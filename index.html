@@ -379,8 +379,9 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
   max-width:78%;animation:msgpop .35s cubic-bezier(.34,1.4,.64,1) both;
 }
 @keyframes msgpop{from{opacity:0;transform:translateY(8px) scale(.95);}to{opacity:1;transform:none;}}
+@keyframes msgpopme{from{opacity:0;transform:translateX(16px) scale(.95);}to{opacity:1;transform:none;}}
 .cmsg.them{align-self:flex-start;}
-.cmsg.me{align-self:flex-end;}
+.cmsg.me{align-self:flex-end;animation-name:msgpopme;}
 .cmsg-name{
   font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;
   color:var(--mut);margin-bottom:4px;padding:0 4px;
@@ -442,6 +443,7 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
   box-shadow:0 0 24px rgba(255,196,0,.3);
 }
 
+@keyframes spyfade{0%{opacity:0;transform:translateX(-50%) translateY(10px);}15%{opacity:1;transform:translateX(-50%) translateY(0);}80%{opacity:1;}100%{opacity:0;}}
 </style>
 </head>
 <body>
@@ -1148,6 +1150,7 @@ async function launchHost(){
       if(!players[d.nick])players[d.nick]={score:0,step:0};
       Object.assign(players[d.nick],d.data,{step:d.step,score:d.score});
       updateProgress();
+      broadcastSpyComment(d.nick,d.step,d.score);
     });
     sub('quiz-ans',d=>{
       if(players[d.nick]&&d.correct) players[d.nick].quizPts=(players[d.nick].quizPts||0)+100;
@@ -1182,48 +1185,35 @@ function hostLaunch(){
   go('s-hgame');
   const n=Object.keys(players).length;
   runTerm([
+    {t:'WARNING: UNIDENTIFIED SIGNAL DETECTED ON THIS MACHINE',c:'r',p:80,fast:true},
+    {t:'FIREWALL BREACH IN PROGRESS...',c:'r',p:60,fast:true},
+    {t:'ACCESS GRANTED — REMOTE CONNECTION ESTABLISHED',c:'r',p:80,fast:true},
+    {t:'',p:120},
+    {t:'> CHANNEL: OMEGA-7 // EYES ONLY // NO RECORD',c:'y',p:140},
+    {t:'> FROM: [REDACTED]  TO: DIM UNIT — '+n+' AGENTS',c:'c',p:120},
+    {t:'> RE: OPERATION SILENT EAR  //  PRIORITY: CRITICAL',c:'r',p:120},
     {t:'',p:100},
-    {t:'> ========================================',p:60,fast:true},
-    {t:'> CLASSIFIED CHANNEL ACTIVE',p:80,fast:true},
-    {t:'> ========================================',p:80,fast:true},
-    {t:'',p:200},
-    {t:'> INCOMING TRANSMISSION - SOURCE: UNKNOWN',c:'r',p:300},
-    {t:'> DECRYPTING PAYLOAD...',p:200},
-    {t:'> [====                ] 18%',p:80,fast:true},
-    {t:'> [============        ] 54%',p:80,fast:true},
-    {t:'> [=====================] 100% - DECRYPTED',c:'g',p:400,fast:true},
-    {t:'',p:200},
-    {t:'> FROM:    [REDACTED] - OMEGA DIVISION HANDLER',c:'y',p:250},
-    {t:'> TO:      DIM TACTICAL UNIT - '+n+' AGENTS CLEARED',c:'c',p:200},
-    {t:'> RE:      OPERATION SILENT EAR',c:'y',p:200},
-    {t:'> PRIORITY: CRITICAL',c:'r',p:300},
-    {t:'',p:150},
-    {t:'> Our operative in the field has lost comms.',p:220},
-    {t:'> Standard equipment cannot handle the noise environment.',p:200},
-    {t:'> We need custom headphones. Spec from scratch.',p:200},
-    {t:'> Your team has the product development skills we need.',p:220},
-    {t:'',p:150},
-    {t:'> This is not a university exercise.',c:'y',p:200},
-    {t:'> Every specification you set will be built.',p:180},
-    {t:'> Every cost model you approve will be funded.',p:180},
-    {t:'> Get them wrong. She does not come home.',c:'r',p:400},
-    {t:'',p:200},
-    {t:'> OPERATION SILENT EAR - STATUS: ACTIVE',c:'g',p:250},
-    {t:'> AGENTS CLEARED: '+n,c:'c',p:200},
-    {t:'> INITIATING STEP 1...',c:'y',p:0},
-  ],()=>showHostStep(1));
+    {t:'> OPERATIVE OMEGA — STATUS: COMPROMISED',c:'r',p:140},
+    {t:'> She is in. We cannot extract her without comms.',p:120},
+    {t:'> Standard equipment fails in high-noise environments.',p:100},
+    {t:'> She needs custom headphones. Spec-d from scratch.',p:100},
+    {t:'> Your team has 7 steps. Build the spec sheet.',c:'y',p:120},
+    {t:'> The best one goes into production.',p:100},
+    {t:'',p:80},
+    {t:'> Do not fail her.  — OMEGA HANDLER',c:'r',p:100},
+    {t:'',p:60},
+    {t:'> STEP 1 LOADING...',c:'g',p:0},
+  ],()=>showHostStep(1),18);
 }
 
 // HOST STEP DEFINITIONS
 const HOST_STEPS={
   1:{
     title:'STEP 1 — WHAT ARE SPECIFICATIONS?',
-    theory:`Customer needs are expressed in <em>the language of the customer</em> — subjective, vague, emotional. 
-    Specifications translate these into <strong>precise, measurable targets</strong>.<br><br>
-    Each specification = <strong style="color:var(--cyan)">metric</strong> (what you measure) + <strong style="color:var(--gold)">value</strong> (the target number + unit).<br><br>
-    <em>Need:</em> "blocks noise effectively"<br>
-    <em>Spec:</em> ANC attenuation ≥ 35 dB at 1 kHz`,
-    task:'<strong>Students:</strong> read the client brief on their phones and select the correct specifications. Too many specs or near-duplicates lose points.',
+    theory:`A <strong>specification</strong> = <span style="color:var(--cyan)">metric</span> + <span style="color:var(--gold)">value</span>.<br>
+    Metric = what you measure &nbsp;·&nbsp; Value = the target number + unit.<br><br>
+    <span style="font-size:.8rem;color:#5a8aa8;">Need: "blocks noise" → vague<br>Spec: ANC ≥ 35 dB at 1 kHz → precise, testable</span>`,
+    task:'Read the mission brief on your phones. Select ONLY the specs that match the client needs. Too many picks or near-duplicates lose points.',
     term:[
       {t:'> STEP 1 LAUNCHED: SPECIFICATION SELECTION',c:'c',p:200},
       {t:'> Agents are reading the client brief...',p:150},
@@ -1233,13 +1223,9 @@ const HOST_STEPS={
   },
   2:{
     title:'STEP 2 — NEEDS → METRICS',
-    theory:`A <strong>metric</strong> is an objective, measurable quantity that directly reflects how well the product satisfies a customer need.<br><br>
-    Guidelines for good metrics:<br>
-    ✓ <strong>Complete</strong> — one metric per need ideally<br>
-    ✓ <strong>Dependent variable</strong> — measures WHAT, not HOW<br>
-    ✓ <strong>Testable</strong> — can be verified in the lab<br><br>
-    This needs-metrics matrix is the foundation of the <strong>House of Quality</strong> (QFD).`,
-    task:'<strong>Students:</strong> match each customer need to its correct engineering metric from a dropdown.',
+    theory:`A <strong>metric</strong> is an objective, measurable quantity that reflects how well a need is satisfied.<br><br>
+    <span style="font-size:.8rem;color:#5a8aa8;">Must be: objective · testable · measures WHAT not HOW</span>`,
+    task:'Match each customer need to its correct engineering metric.',
     term:[
       {t:'> STEP 2 LAUNCHED: NEEDS → METRICS MAPPING',c:'c',p:200},
       {t:'> Agents are translating customer language into measurable metrics.',p:150},
@@ -1248,12 +1234,9 @@ const HOST_STEPS={
   },
   3:{
     title:'STEPS 3+4 — BENCHMARKING & TARGET VALUES',
-    theory:`<strong>Step 3 — Competitive benchmarking:</strong> study rival products on your chosen metrics. This reveals the natural trade-off curve in the market.<br><br>
-    <strong>Step 4 — Set target values:</strong> for each metric define:<br>
-    <span style="color:var(--cyan)">Ideal value</span> = best achievable (stretch goal)<br>
-    <span style="color:var(--gold)">Marginal value</span> = minimum acceptable to compete<br><br>
-    Agents set their <strong>ANC target and retail price</strong> — these feed directly into the target costing calculation.`,
-    task:'<strong>Students:</strong> study the competitive map on their phone and lock in their target position (ANC level + retail price).',
+    theory:`Study competitor products on the map to find the <strong>trade-off curve</strong>.<br><br>
+    Then set: <span style="color:var(--cyan)">Ideal value</span> = best achievable &nbsp;·&nbsp; <span style="color:var(--gold)">Marginal value</span> = minimum to compete`,
+    task:'Study the competitive map. Choose your target ANC and retail price. This price sets your cost budget in Step 6.',
     term:[
       {t:'> STEP 3+4 LAUNCHED: COMPETITIVE POSITIONING',c:'c',p:200},
       {t:'> Agents are studying the competitive landscape.',p:150},
@@ -1348,10 +1331,11 @@ function showHostStep(step){
       <div class="prog-lbl" id="hp-prog-lbl">0/0 done</div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="btn btn-y" style="flex:1;min-width:160px;" onclick="hostFireStep(${step})">
+      <button class="btn btn-y" style="flex:1;min-width:140px;" id="launch-btn-${step}" onclick="hostFireStep(${step})">
         ▶ LAUNCH TO PHONES
       </button>
-      ${step===8?`<button class="btn btn-g" style="flex:1;min-width:160px;" onclick="showHostFinal()">🏆 Show Results</button>`:''}
+      ${step<8?`<button class="btn btn-p" style="flex:1;min-width:140px;" onclick="showHostStep(${step+1})">NEXT STEP →</button>`:''}
+      ${step===8?`<button class="btn btn-g" style="width:100%;margin-top:4px;" onclick="showHostFinal()">🏆 Show Final Results</button>`:''}
     </div>`;
   updateProgress();
 }
@@ -1433,6 +1417,10 @@ async function mobileJoin(){
     if(d.dur>0) startTimer(d.dur);
     launchMobStep(d.step);
   });
+  sub('spy-msg',d=>{
+    // show as a special themed toast
+    showSpyToast(d.msg);
+  });
 
   go('s-mwait');
   setMobWait('CONNECTED','Waiting for host…','Stand by — mission brief incoming');
@@ -1454,31 +1442,77 @@ function launchMobStep(s){
   else if(s===8){initS8();go('s-m8');}
   else{go('s-mwait');setMobWait('STEP '+s,'Coming soon…','Wait for next step');}
 }
+
+// ── SPY COMMENTARY ──
+function broadcastSpyComment(nick,step,score){
+  // sort players by score to find rank
+  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
+  const rank=sorted.findIndex(([n])=>n===nick)+1;
+  const total=sorted.length;
+  const topScore=sorted[0]?sorted[0][1].score||0:0;
+  const myS=score||0;
+  const gap=topScore-myS;
+
+  let comment='';
+  if(rank===1){
+    const praise=['Impressive.',`${nick} leads the pack.`,`${nick} — sharp. Very sharp.`,`First place. ${nick} knows what they are doing.`];
+    comment=praise[Math.floor(Math.random()*praise.length)];
+  } else if(gap<40){
+    comment=`${nick} is closing in. Only ${gap} points behind. Do not underestimate them.`;
+  } else if(rank===total){
+    const enc=['Keep going. We need every agent.','Everyone starts somewhere.',`${nick} — you can recover. Focus.`];
+    comment=enc[Math.floor(Math.random()*enc.length)];
+  } else {
+    const mid=[`${nick} — solid. Keep pushing.`,`${nick} — promising. We are watching.`,`Mid-pack. ${nick} has more to give.`];
+    comment=mid[Math.floor(Math.random()*mid.length)];
+  }
+
+  if(comment){
+    // append to terminal
+    appendTerm([{t:'> HANDLER: '+comment,c:'y',p:0}]);
+    // send to all players as a toast
+    pub('spy-msg',{msg:comment});
+  }
+}
+
 function doneStep(step,data){
   pub('step-result',{nick:mNick,step,score:myScore,data});
   stopTimer();
   go('s-mwait');
-  setMobWait('STEP '+step+' DONE ✓','Nice work!','Waiting for host to launch next step');
+  setMobWait('STEP '+step+' DONE ✓','Stand by…','Waiting for host to launch next step');
 }
 
 // ── STEP 1 ──
 const S1_OPTS=[
-  {t:'ANC attenuation ≥ 35 dB',v:'ok',pts:20,w:'Client needs full noise blocking — 35 dB is the right threshold for hostile environments.'},
-  {t:'Battery playback ≥ 8 hours',v:'ok',pts:20,w:'Client said "8-hour operation" — this spec is exact and testable.'},
-  {t:'Total mass < 280 g',v:'ok',pts:20,w:'Client said "weight is critical" — sub-280g is field-grade lightweight.'},
-  {t:'Bluetooth pairing time < 1 s',v:'ok',pts:20,w:'Client said "pair instantly" — pairing time is the correct metric.'},
-  {t:'THD+N < 0.5 % at 1 kHz',v:'ok',pts:20,w:'Client said "crystal clear audio" — Total Harmonic Distortion is the right metric.'},
-  // similar/redundant
-  {t:'ANC attenuation ≥ 30 dB',v:'warn',pts:-10,w:'Near-duplicate of the 35 dB spec. Selecting both creates redundancy in your spec sheet.'},
-  {t:'ANC attenuation ≥ 40 dB',v:'warn',pts:-10,w:'Another near-duplicate of the ANC spec — pick one target value.'},
-  {t:'Battery playback ≥ 10 hours',v:'warn',pts:-10,w:'Duplicate battery spec with a different value. Contradicts the ≥ 8h spec.'},
-  {t:'Bluetooth pairing time < 3 s',v:'warn',pts:-10,w:'Same metric as the 1s spec — having both is redundant and confusing.'},
-  // wrong
-  {t:'Headband available in matte black',v:'bad',pts:-15,w:'Cosmetic preference — not a measurable engineering metric.'},
-  {t:'Price lower than competitor average',v:'bad',pts:-15,w:'Cost target belongs in target costing, not the spec sheet.'},
-  {t:'Compatible with iOS apps only',v:'bad',pts:-15,w:"Contradicts any-device requirement — this excludes the client's devices."},
-
-  {t:'Logo embossed on ear cup',v:'bad',pts:-15,w:'Irrelevant — no customer need maps to this metric.'},
+  // ✅ CORRECT — each maps directly to a client need with a clear metric + value
+  {t:'ANC attenuation ≥ 35 dB at 1 kHz',v:'ok',pts:20,
+   w:'✅ CORRECT — metric: attenuation level · value: ≥35 dB · maps to "eliminate background noise"'},
+  {t:'Battery playback ≥ 8 h at 50% volume',v:'ok',pts:20,
+   w:'✅ CORRECT — metric: playback hours · value: ≥8h · maps exactly to "8-hour operation"'},
+  {t:'Total assembled mass < 280 g',v:'ok',pts:20,
+   w:'✅ CORRECT — metric: total mass · value: <280g · maps to "weight is critical"'},
+  {t:'Bluetooth 5.x — initial pairing time < 1 s',v:'ok',pts:20,
+   w:'✅ CORRECT — metric: pairing time · value: <1s · maps to "pairs instantly with any device"'},
+  {t:'Total harmonic distortion + noise < 0.5%',v:'ok',pts:20,
+   w:'✅ CORRECT — metric: THD+N · value: <0.5% · maps to "crystal-clear audio for instructions"'},
+  // ⚠️ NEAR-DUPLICATE — same metric, different (conflicting) value
+  {t:'ANC attenuation ≥ 30 dB at 1 kHz',v:'warn',pts:-10,
+   w:'⚠️ NEAR-DUPLICATE — same metric as the 35 dB spec. Two values for one metric = contradiction. Pick one.'},
+  {t:'ANC attenuation ≥ 40 dB broadband',v:'warn',pts:-10,
+   w:'⚠️ NEAR-DUPLICATE — third ANC spec. Redundancy weakens the spec sheet. One metric, one value.'},
+  {t:'Battery playback ≥ 10 h at 50% volume',v:'warn',pts:-10,
+   w:'⚠️ NEAR-DUPLICATE — client said 8 hours. Adding ≥10h contradicts the brief without justification.'},
+  {t:'Bluetooth pairing time < 3 s',v:'warn',pts:-10,
+   w:'⚠️ NEAR-DUPLICATE — weaker version of the <1s spec. Keeping both creates ambiguity: which is the real target?'},
+  // ❌ WRONG — not a specification (no metric+value) or irrelevant to client needs
+  {t:'Available in matte black and olive drab',v:'bad',pts:-15,
+   w:'❌ WRONG — colour is a cosmetic preference, not a performance specification. No customer need maps to this.'},
+  {t:'Price competitive with Sony and Bose',v:'bad',pts:-15,
+   w:'❌ WRONG — price targets belong in the Target Costing phase, not the spec sheet.'},
+  {t:'Should feel premium when worn',v:'bad',pts:-15,
+   w:'❌ WRONG — "feel premium" is a customer need, not a specification. Where is the metric? Where is the value?'},
+  {t:'Meets CE and FCC regulatory standards',v:'bad',pts:-15,
+   w:'❌ WRONG — compliance is a constraint, not a product specification. Not derived from any client need here.'},
 ];
 let s1sel=new Set();
 function initS1(){s1sel=new Set();document.getElementById('s1-fb').style.display='none';document.getElementById('s1-count').textContent='Selected: 0';const p=document.getElementById('s1-pool');p.innerHTML='';[...S1_OPTS].sort(()=>Math.random()-.5).forEach((o,i)=>{const c=document.createElement('span');c.className='chip';c.textContent=o.t;c.dataset.i=i;c.addEventListener('click',()=>{sfxClick();if(s1sel.has(i)){s1sel.delete(i);c.classList.remove('sel');}else{s1sel.add(i);c.classList.add('sel');}document.getElementById('s1-count').textContent='Selected: '+s1sel.size+(s1sel.size>6?' ⚠️ Too many!':'');});p.appendChild(c);});}
