@@ -381,6 +381,54 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
 <!-- ═══════════════════════════════════════════
      HOST — LOBBY
 ═══════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════
+     HOST — INTRO / NARRATIVE
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-hintro">
+  <div class="intro-classified">⚠ CLASSIFIED · LEVEL 5 CLEARANCE REQUIRED</div>
+  <div class="intro-title">OPERATION<br>SILENT EAR</div>
+  <div class="intro-sub">SPECMASTER · PRODUCT SPECIFICATIONS DIVISION</div>
+
+  <div class="intro-block">
+    <h3>// WHO YOU ARE</h3>
+    <p>You are a student of <strong>Digital Innovation and Management</strong> at the University of Bergamo.</p>
+    <p>Three days ago, an anonymous message appeared on your university portal. No sender. No subject line.
+    Just coordinates and a time.</p>
+    <p>You showed up. They were waiting.</p>
+    <p><span class="highlight">"We've been watching your class,"</span> said the figure in the dark.
+    <span class="highlight">"You study how products are built. We need that skill. Tonight."</span></p>
+  </div>
+
+  <div class="intro-block">
+    <h3>// THE MISSION</h3>
+    <p>An undercover operative — codename <strong>OMEGA</strong> — is embedded in a high-noise environment.
+    She needs a custom pair of noise-cancelling headphones. Field-grade. Untraceable. Built to exact specifications.</p>
+    <p>The problem: <strong>no off-the-shelf product meets the requirements.</strong>
+    Someone needs to spec them from scratch. That someone is you.</p>
+    <p><span class="highlight">But specifications are not wishes. They are precise, measurable, testable targets.</span>
+    Get them wrong and the headphones fail. The operative is compromised. The mission is over.</p>
+  </div>
+
+  <div class="intro-block">
+    <h3>// WHAT YOU WILL DO</h3>
+    <div class="intro-steps">
+      <div class="intro-step"><div class="isn">01</div><div class="ise">🎯</div><div class="isl">Identify Specs</div></div>
+      <div class="intro-step"><div class="isn">02</div><div class="ise">📐</div><div class="isl">Map Metrics</div></div>
+      <div class="intro-step"><div class="isn">03</div><div class="ise">🗺️</div><div class="isl">Position vs Market</div></div>
+      <div class="intro-step"><div class="isn">04</div><div class="ise">🏭</div><div class="isl">Cost Model</div></div>
+      <div class="intro-step"><div class="isn">05</div><div class="ise">💰</div><div class="isl">Target Cost</div></div>
+      <div class="intro-step"><div class="isn">06</div><div class="ise">⚖️</div><div class="isl">Trade-offs</div></div>
+      <div class="intro-step"><div class="isn">07</div><div class="ise">🧠</div><div class="isl">Final Quiz</div></div>
+    </div>
+    <p style="font-size:.78rem;color:var(--mut);">Each agent builds their own spec sheet. At the end, the best one gets approved for production.</p>
+  </div>
+
+  <button class="btn btn-y" onclick="goLobby()" style="max-width:480px;font-size:.85rem;">
+    PROCEED TO LOBBY → CONNECT AGENTS
+  </button>
+</div>
+
 <div class="scr" id="s-hlobby">
   <div style="text-align:center;margin-bottom:18px;padding-top:20px;">
     <div style="font-family:var(--mono);font-size:.6rem;color:var(--mut);letter-spacing:.18em;margin-bottom:10px;">ROOM CODE</div>
@@ -842,6 +890,11 @@ function sub(ev,fn){if(ch)ch.subscribe(ev,msg=>fn(msg.data));}
 function startHost(){
   sfxClick();
   myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);
+  go('s-hintro');
+  startMusic(0);
+}
+function goLobby(){
+  sfxClick();
   launchHost();
 }
 function startJoin(){
@@ -906,28 +959,41 @@ function hostLaunch(){
   sfxBig();startMusic(0);
   pub('game-start',{});
   go('s-hgame');
+  const n=Object.keys(players).length;
   runTerm([
-    {t:'> SYSTEM BREACH DETECTED — INCOMING ENCRYPTED MESSAGE',c:'r',p:300},
-    {t:'>',p:100},
-    {t:'> ████████████████████████████████████████',p:50,fast:true},
-    {t:'> DECRYPTING... ■■■■■■■■■■■■■░░░░░░░░░ 64%',p:200,fast:true},
-    {t:'> DECRYPTING... ■■■■■■■■■■■■■■■■■■■░░ 90%',p:200,fast:true},
-    {t:'> DECRYPTING... ■■■■■■■■■■■■■■■■■■■■■ 100%',c:'g',p:400,fast:true},
-    {t:'>',p:150},
-    {t:'> SOURCE: [CLASSIFIED] · OMEGA DIVISION',c:'y',p:250},
-    {t:'> TO: YOU',c:'c',p:200},
-    {t:'>',p:100},
-    {t:'> MESSAGE:',c:'y',p:150},
-    {t:'> "Agent. We have a situation.",c:"w"',p:200},
-    {t:'> "An operative needs new equipment — fast.',p:200},
-    {t:'> Noise-cancelling headphones. Field-grade.',p:180},
-    {t:'> You have ONE chance to spec them correctly.',p:180},
-    {t:'> Wrong specs. Mission fails. Do not fail us."',p:350},
-    {t:'>',p:200},
-    {t:'> OPERATION: SILENT EAR — NOW ACTIVE',c:'g',p:300},
-    {t:'> AGENTS CONNECTED: '+Object.keys(players).length,c:'c',p:200},
-    {t:'>',p:100},
-    {t:'> LAUNCHING STEP 1...',c:'y',p:0},
+    {t:'',p:100},
+    {t:'> ██████████████████████████████████████████████',p:60,fast:true},
+    {t:'> ██  CLASSIFIED CHANNEL ACTIVE  ████████████',p:60,fast:true},
+    {t:'> ██████████████████████████████████████████████',p:80,fast:true},
+    {t:'',p:200},
+    {t:'> INCOMING TRANSMISSION — SOURCE: UNKNOWN',c:'r',p:300},
+    {t:'> SIGNAL STRENGTH: ▓▓▓▓▓▓▓▓░░ 82%',p:120,fast:true},
+    {t:'> DECRYPTING PAYLOAD...',p:200},
+    {t:'> ░░░░░░░░░░░░░░░░░░░░░░░ 0%',p:80,fast:true},
+    {t:'> ████░░░░░░░░░░░░░░░░░░░ 18%',p:80,fast:true},
+    {t:'> ████████████░░░░░░░░░░░ 54%',p:80,fast:true},
+    {t:'> ███████████████████░░░░ 83%',p:80,fast:true},
+    {t:'> ██████████████████████░ 97%',p:80,fast:true},
+    {t:'> ███████████████████████ 100% — DECRYPTED',c:'g',p:400,fast:true},
+    {t:'',p:200},
+    {t:'> FROM:    [REDACTED] — OMEGA DIVISION HANDLER',c:'y',p:250},
+    {t:'> TO:      DIM TACTICAL UNIT — '+n+' AGENT'+(n===1?'':'S')+' CLEARED',c:'c',p:200},
+    {t:'> RE:      OPERATION SILENT EAR',c:'y',p:200},
+    {t:'> PRIORITY: CRITICAL',c:'r',p:300},
+    {t:'',p:150},
+    {t:'> "Our operative in the field has lost comms.",p:220},
+    {t:'> Standard equipment cannot handle the noise environment.',p:200},
+    {t:'> We need custom headphones. Spec'd from scratch.',p:200},
+    {t:'> Your team has the product development skills we need.",p:220},
+    {t:'',p:150},
+    {t:'> "This is not a university exercise.',c:'y',p:200},
+    {t:'> Every specification you set will be built.',p:180},
+    {t:'> Every cost model you approve will be funded.',p:180},
+    {t:'> Get them wrong. She doesn't come home."',c:'r',p:400},
+    {t:'',p:200},
+    {t:'> OPERATION SILENT EAR — STATUS: ACTIVE',c:'g',p:250},
+    {t:'> AGENTS CLEARED: '+n,c:'c',p:200},
+    {t:'> INITIATING STEP 1...',c:'y',p:0},
   ],()=>showHostStep(1));
 }
 
