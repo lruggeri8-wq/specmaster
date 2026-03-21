@@ -736,17 +736,33 @@ function stopTimer(){clearInterval(timerInt);document.getElementById('timerfill'
 // ══════════════════════════════════
 // ABLY
 // ══════════════════════════════════
-const ABLY_KEY='xVLyHw.DEK_tA:3X5s1d7rlUB1Ey9VmSnbE8nVkl4yI_D7KBbIiEoR6CE';
+const ABLY_KEY='xC3oQQ.lm_9hg:boqSp-TCWIv_mIHQzAxWLI7KZcsMUjE7U7tAd6cZDbM';
 let ably=null,ch=null;
 function genRoom(){return Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');}
 async function connectAbly(room){
+  for(let i=0;i<20;i++){
+    if(typeof Ably!=='undefined') break;
+    await new Promise(r=>setTimeout(r,300));
+  }
+  if(typeof Ably==='undefined'){console.error('Ably SDK not loaded');return false;}
   try{
-    if(ably)ably.close();
-    ably=new Ably.Realtime({key:ABLY_KEY,clientId:myNick+'_'+Date.now()});
+    if(ably){try{ably.close();}catch(e){}}
+    ably=new Ably.Realtime({
+      key:ABLY_KEY,
+      clientId:myNick+'_'+Date.now(),
+      disconnectedRetryTimeout:3000,
+    });
     ch=ably.channels.get('sme-'+room);
-    await new Promise((res,rej)=>{ably.connection.on('connected',res);ably.connection.on('failed',rej);setTimeout(rej,8000);});
+    await new Promise((res,rej)=>{
+      ably.connection.on('connected',res);
+      ably.connection.on('failed',()=>rej(new Error('failed')));
+      setTimeout(()=>rej(new Error('timeout')),15000);
+    });
     return true;
-  }catch(e){return false;}
+  }catch(e){
+    console.error('Ably connect error:',e.message);
+    return false;
+  }
 }
 function pub(ev,data){if(ch)ch.publish(ev,data);}
 function sub(ev,fn){if(ch)ch.subscribe(ev,msg=>fn(msg.data));}
@@ -976,9 +992,14 @@ async function joinGame(){
   myRoom=document.getElementById('code-in').value.trim().toUpperCase();
   if(myRoom.length<3){showToast('Enter a valid code!');return;}
 
-  showToast('Connecting…');
-  const ok=await connectAbly(myRoom);
-  if(!ok){showToast('❌ Cannot connect — check code');return;}
+  showToast('Connecting… (may take a few seconds on mobile)');
+  let ok=await connectAbly(myRoom);
+  if(!ok){
+    showToast('Retrying…');
+    await new Promise(r=>setTimeout(r,2000));
+    ok=await connectAbly(myRoom);
+  }
+  if(!ok){showToast('❌ Connection failed — check WiFi and retry');return;}
 
   pub('join',{nick:myNick});
   setHUD('CONNECTED',0);
