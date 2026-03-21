@@ -553,122 +553,175 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
 </div>
 </div>
 
-<!-- S3: Set ideal & marginal values -->
+<!-- S3: Target values — empty number inputs -->
 <div class="scr" id="s-m3">
 <div class="mob" style="padding-top:58px;">
   <div class="stag">STEP 3 · TARGET VALUES</div>
   <div class="instr">
-    <span class="itag">🗺️ COMPETITOR DATA:</span>
-    BrandB (budget): ANC 18dB · Battery 12h · Weight 380g · Price €89<br>
-    BrandX (mid): ANC 28dB · Battery 20h · Weight 330g · Price €149<br>
-    BrandZ (upper): ANC 35dB · Battery 30h · Weight 295g · Price €229<br>
-    BrandS (premium): ANC 44dB · Battery 40h · Weight 240g · Price €380
+    <span class="itag">📊 COMPETITOR REFERENCE:</span>
+    <strong>BrandB</strong> (budget/marginal): ANC 18dB · Battery 12h · Weight 380g<br>
+    <strong>BrandX</strong> (mid): ANC 28dB · Battery 20h · Weight 330g<br>
+    <strong>BrandZ</strong> (upper-mid): ANC 35dB · Battery 30h · Weight 295g<br>
+    <strong>BrandS</strong> (premium/ideal): ANC 44dB · Battery 40h · Weight 240g
   </div>
   <div class="instr" style="border-left-color:var(--gold);">
     <span class="itag" style="color:var(--gold);">📋 YOUR TASK</span>
-    For each metric, set: <strong style="color:var(--cyan)">Ideal</strong> (best you want to achieve)
-    and <strong style="color:var(--gold)">Marginal</strong> (minimum to compete).
-    Leave fields empty and fill them yourself — don't copy blindly!
+    Study the data above. For each metric enter your <strong style="color:var(--cyan)">Ideal</strong>
+    (the best you want) and your <strong style="color:var(--gold)">Marginal</strong>
+    (the minimum to stay competitive). Fields are empty — think before you type.
   </div>
-  <div id="m3-rows" style="width:100%;"></div>
+
+  <!-- ANC -->
+  <div class="mc" style="width:100%;margin-bottom:10px;">
+    <div style="font-size:.78rem;font-weight:700;margin-bottom:10px;">🎧 ANC Attenuation (dB)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>
+        <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);
+          margin-bottom:6px;letter-spacing:.1em;">IDEAL (dB)</div>
+        <input type="number" id="s3-anc-i" placeholder="?" min="10" max="60"
+          style="width:100%;background:var(--s2);border:2px solid rgba(0,229,255,.3);
+          color:var(--cyan);padding:12px;border-radius:10px;font-family:var(--mono);
+          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
+      </div>
+      <div>
+        <div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);
+          margin-bottom:6px;letter-spacing:.1em;">MARGINAL (dB)</div>
+        <input type="number" id="s3-anc-m" placeholder="?" min="10" max="60"
+          style="width:100%;background:var(--s2);border:2px solid rgba(255,196,0,.3);
+          color:var(--gold);padding:12px;border-radius:10px;font-family:var(--mono);
+          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Battery -->
+  <div class="mc" style="width:100%;margin-bottom:10px;">
+    <div style="font-size:.78rem;font-weight:700;margin-bottom:10px;">🔋 Battery Life (hours)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>
+        <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);
+          margin-bottom:6px;letter-spacing:.1em;">IDEAL (h)</div>
+        <input type="number" id="s3-bat-i" placeholder="?" min="4" max="60"
+          style="width:100%;background:var(--s2);border:2px solid rgba(0,229,255,.3);
+          color:var(--cyan);padding:12px;border-radius:10px;font-family:var(--mono);
+          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
+      </div>
+      <div>
+        <div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);
+          margin-bottom:6px;letter-spacing:.1em;">MARGINAL (h)</div>
+        <input type="number" id="s3-bat-m" placeholder="?" min="4" max="60"
+          style="width:100%;background:var(--s2);border:2px solid rgba(255,196,0,.3);
+          color:var(--gold);padding:12px;border-radius:10px;font-family:var(--mono);
+          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Weight -->
+  <div class="mc" style="width:100%;margin-bottom:10px;">
+    <div style="font-size:.78rem;font-weight:700;margin-bottom:4px;">⚖️ Total Mass (grams)</div>
+    <div style="font-size:.68rem;color:var(--mut);margin-bottom:10px;">Lower is better — ideal = lightest</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>
+        <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);
+          margin-bottom:6px;letter-spacing:.1em;">IDEAL (g)</div>
+        <input type="number" id="s3-wt-i" placeholder="?" min="100" max="500"
+          style="width:100%;background:var(--s2);border:2px solid rgba(0,229,255,.3);
+          color:var(--cyan);padding:12px;border-radius:10px;font-family:var(--mono);
+          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
+      </div>
+      <div>
+        <div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);
+          margin-bottom:6px;letter-spacing:.1em;">MARGINAL (g)</div>
+        <input type="number" id="s3-wt-m" placeholder="?" min="100" max="500"
+          style="width:100%;background:var(--s2);border:2px solid rgba(255,196,0,.3);
+          color:var(--gold);padding:12px;border-radius:10px;font-family:var(--mono);
+          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
+      </div>
+    </div>
+  </div>
+
   <!-- Retail price -->
-  <div class="mc gold" style="width:100%;">
-    <div style="font-size:.68rem;font-family:var(--mono);color:var(--gold);margin-bottom:8px;">
+  <div class="mc gold" style="width:100%;margin-bottom:14px;">
+    <div style="font-size:.7rem;font-family:var(--mono);color:var(--gold);margin-bottom:8px;">
       💰 YOUR RETAIL PRICE TARGET
     </div>
-    <div style="font-size:.78rem;color:#8ab8d4;margin-bottom:10px;">
-      This drives your C* in Step 5. BrandB=€89 · BrandS=€380
+    <div style="font-size:.76rem;color:#8ab8d4;margin-bottom:10px;">
+      This sets your allowable cost C* in Step 5. BrandB=€89 · BrandS=€380
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-family:var(--mono);font-size:1.2rem;color:var(--mut);">€</span>
       <input type="range" id="price-slider" min="80" max="450" value="200" step="10"
-        oninput="updPrice();" style="flex:1;">
+        oninput="updPrice()" style="flex:1;">
       <span style="font-family:var(--mono);font-size:1rem;color:var(--gold);
-        background:rgba(255,196,0,.1);padding:4px 12px;border-radius:6px;
-        white-space:nowrap;" id="price-val">€200</span>
+        background:rgba(255,196,0,.1);padding:4px 14px;border-radius:8px;
+        white-space:nowrap;font-weight:700;" id="price-val">€200</span>
     </div>
     <div style="font-size:.68rem;color:var(--mut);margin-top:6px;">
-      → C* = €<span id="cstar-prev">84</span> &nbsp;(= price × 0.70 × 0.60)
+      C* = €<span id="cstar-prev">84</span> (price × 0.70 × 0.60)
     </div>
   </div>
-  <div class="g8"></div>
+
   <button class="btn bp" style="width:100%;" onclick="submitS3()">LOCK TARGET SPECS →</button>
   <div id="s3-fb" style="display:none;width:100%;"></div>
 </div>
 </div>
 
-<!-- S4: Configure specs with sliders (constrained between marginal and ideal) -->
+<!-- S4: BOM — choose LOW or HIGH per component -->
 <div class="scr" id="s-m4">
 <div class="mob" style="padding-top:58px;">
-  <div class="stag">STEP 4 · FINAL SPECIFICATIONS</div>
+  <div class="stag">STEP 4 · BILL OF MATERIALS</div>
   <div class="instr">
-    <span class="itag">⚙️ YOUR TASK</span>
-    Set the exact values for your headphones. Sliders are <strong>constrained between
-    your Marginal and Ideal values</strong> from Step 3.
-    Cost updates live as you adjust.
+    <span class="itag">🏭 YOUR TASK</span>
+    Build your Bill of Materials. For each component choose
+    <strong>LOW</strong> (cheaper, lower performance) or
+    <strong>HIGH</strong> (expensive, better performance).
+    Your total cost updates live.
   </div>
-  <!-- locked price reminder -->
-  <div class="mc gold" style="width:100%;margin-bottom:10px;">
+  <div class="mc gold" style="width:100%;margin-bottom:12px;">
     <div style="font-size:.62rem;font-family:var(--mono);color:var(--gold);margin-bottom:4px;">
-      🔒 YOUR TARGETS (from Step 3):
+      🔒 YOUR TARGETS (Step 3):
     </div>
-    <div style="font-size:.78rem;color:#8ab8d4;" id="s4-locked"></div>
+    <div style="font-size:.76rem;color:#8ab8d4;" id="s4-targets"></div>
   </div>
-  <!-- sliders -->
-  <div style="width:100%;" id="s4-sliders"></div>
-  <!-- material choice -->
-  <div class="mc" style="width:100%;margin-bottom:10px;">
-    <div style="font-size:.68rem;font-family:var(--mono);color:var(--cyan);margin-bottom:8px;">
-      🏗️ HOUSING MATERIAL:
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <button id="mat-plastic" onclick="setMat(0)"
-        style="padding:12px 8px;border-radius:10px;border:2px solid var(--cyan);
-        background:rgba(0,229,255,.12);color:var(--cyan);font-family:var(--mono);
-        font-size:.7rem;cursor:pointer;line-height:1.7;transition:all .18s;">
-        PLASTIC<br>+€0 · +50g
-      </button>
-      <button id="mat-carbon" onclick="setMat(1)"
-        style="padding:12px 8px;border-radius:10px;border:2px solid var(--bd);
-        background:var(--s2);color:var(--mut);font-family:var(--mono);
-        font-size:.7rem;cursor:pointer;line-height:1.7;transition:all .18s;">
-        CARBON FIBER<br>+€60 · −80g
-      </button>
-    </div>
-  </div>
-  <!-- live BOM summary -->
-  <div class="mc" style="width:100%;margin-bottom:12px;">
-    <div style="font-size:.62rem;font-family:var(--mono);color:var(--cyan);
-      margin-bottom:8px;">📊 COST SUMMARY:</div>
-    <div id="s4-bom"></div>
-    <div style="font-size:.74rem;text-align:center;margin-top:8px;
-      padding:8px;border-radius:8px;" id="s4-insight"></div>
-  </div>
-  <button class="btn bp" style="width:100%;" onclick="submitS4()">LOCK SPECS →</button>
-</div>
-</div>
 
-<!-- S5: Target costing — just read and confirm -->
+  <!-- Component selectors -->
+  <div id="bom-items" style="width:100%;margin-bottom:12px;"></div>
+
+  <!-- Total -->
+  <div style="background:var(--s1);border:2px solid var(--bd);border-radius:12px;
+    padding:14px 16px;width:100%;margin-bottom:12px;text-align:center;">
+    <div style="font-size:.6rem;font-family:var(--mono);color:var(--mut);
+      letter-spacing:.12em;margin-bottom:6px;">TOTAL MFG COST</div>
+    <div style="font-family:var(--mono);font-size:1.8rem;font-weight:700;"
+      id="bom-total">€0</div>
+    <div style="font-size:.7rem;color:var(--mut);margin-top:4px;" id="bom-vs-cstar"></div>
+  </div>
+  <div style="font-size:.74rem;padding:10px 12px;border-radius:10px;
+    margin-bottom:12px;width:100%;line-height:1.5;" id="bom-weight-status"></div>
+
+  <button class="btn bp" style="width:100%;" onclick="submitS4()">LOCK BOM →</button>
+</div>
+</div>
+<!-- S5: Target costing -->
 <div class="scr" id="s-m5">
 <div class="mob" style="padding-top:58px;">
   <div class="stag">STEP 5 · TARGET COSTING</div>
   <div class="instr">
-    <span class="itag">💰 FORMULA — C* = P × (1−Mᵣ) × (1−Mₘ)</span>
-    Your retail price minus the retailer's cut (30%), minus the manufacturer's cut (40%).
-    What's left = <strong>maximum you can spend building it</strong>.
+    <span class="itag">💰 C* = P × (1 − Mᵣ) × (1 − Mₘ)</span>
+    Start from your retail price. Subtract the retailer cut (30%), then the manufacturer cut (40%).
+    What remains = <strong>maximum you can spend building it</strong>.
   </div>
-  <div id="s5-chain" style="width:100%;"></div>
+  <div id="s5-chain" style="width:100%;margin-bottom:10px;"></div>
   <div id="s5-disaster" style="display:none;background:rgba(255,61,90,.1);
     border:2px solid var(--red);border-radius:12px;padding:14px;text-align:center;
     margin-bottom:12px;width:100%;animation:flashb .8s ease-in-out infinite alternate;">
     <div style="font-family:var(--mono);font-size:.9rem;font-weight:700;
-      color:var(--red);margin-bottom:5px;">💸 FINANCIAL DISASTER!</div>
+      color:var(--red);margin-bottom:5px;">FINANCIAL DISASTER!</div>
     <div style="font-size:.78rem;color:#ff7a8a;" id="s5-dis-sub"></div>
   </div>
   <div id="s5-verdict" style="display:none;padding:13px;border-radius:12px;
-    text-align:center;margin-bottom:12px;font-size:.84rem;line-height:1.6;
-    width:100%;"></div>
-  <button class="btn bp" style="width:100%;" onclick="submitS5()">CONTINUE →</button>
+    text-align:center;margin-bottom:12px;font-size:.84rem;line-height:1.6;width:100%;"></div>
+  <button class="btn bp" style="width:100%;" onclick="submitS5()">CONTINUE</button>
 </div>
 </div>
 
@@ -677,35 +730,23 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
 <div class="mob" style="padding-top:58px;">
   <div class="stag">STEP 6 · TRADE-OFFS</div>
   <div class="instr">
-    <span class="itag">⚖️ YOUR SITUATION</span>
+    <span class="itag">SITUATION</span>
     <span id="s6-intro"></span>
   </div>
-  <!-- live tracker -->
   <div style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;
-    padding:12px 14px;width:100%;margin-bottom:12px;">
-    <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);
-      letter-spacing:.1em;margin-bottom:8px;">📊 LIVE TRACKER:</div>
+    padding:12px 16px;width:100%;margin-bottom:14px;">
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;">
-      <div>
-        <div style="font-size:.56rem;color:var(--mut);font-family:var(--mono);">YOUR COST</div>
-        <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;"
-          id="t6-cost">—</div>
-      </div>
-      <div>
-        <div style="font-size:.56rem;color:var(--mut);font-family:var(--mono);">C*</div>
-        <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;
-          color:var(--cyan);" id="t6-cstar">—</div>
-      </div>
-      <div>
-        <div style="font-size:.56rem;color:var(--mut);font-family:var(--mono);">GAP</div>
-        <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;"
-          id="t6-gap">—</div>
-      </div>
+      <div><div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">COST</div>
+        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;" id="t6-cost">-</div></div>
+      <div><div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">C*</div>
+        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--cyan);" id="t6-cstar">-</div></div>
+      <div><div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">GAP</div>
+        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;" id="t6-gap">-</div></div>
     </div>
   </div>
   <div id="s6-opts" style="width:100%;margin-bottom:12px;"></div>
   <div id="s6-warn" style="display:none;width:100%;margin-bottom:10px;"></div>
-  <button class="btn bp" style="width:100%;" onclick="submitS6()">FINALIZE →</button>
+  <button class="btn bp" style="width:100%;" onclick="submitS6()">FINALIZE</button>
   <div id="s6-fb" style="display:none;width:100%;"></div>
 </div>
 </div>
@@ -1539,77 +1580,15 @@ function submitS2(){
   setTimeout(()=>doneStep(2,{}),2400);
 }
 
-// ─── STEP 3: Target values ───
-const COMPS_DATA={
-  BrandB:{anc:18,battery:12,weight:380,price:89},
-  BrandX:{anc:28,battery:20,weight:330,price:149},
-  BrandZ:{anc:35,battery:30,weight:295,price:229},
-  BrandS:{anc:44,battery:40,weight:240,price:380},
-};
+// ─── STEP 3: Target values — empty fields ───
+/* dup removed */
+
 function initS3(){
   document.getElementById('s3-fb').style.display='none';
-  document.getElementById('m3-rows').innerHTML=`
-    <div class="mc" style="margin-bottom:10px;">
-      <div style="font-size:.7rem;font-weight:700;margin-bottom:10px;">🎧 ANC Attenuation (dB)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div>
-          <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);margin-bottom:5px;">
-            IDEAL VALUE (dB)
-          </div>
-          <input type="number" id="ideal-anc" placeholder="e.g. 44" min="10" max="60"
-            style="width:100%;background:var(--s2);border:1px solid rgba(0,229,255,.3);
-            color:var(--cyan);padding:10px;border-radius:8px;font-family:var(--mono);
-            font-size:1.1rem;text-align:center;outline:none;">
-        </div>
-        <div>
-          <div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);margin-bottom:5px;">
-            MARGINAL VALUE (dB)
-          </div>
-          <input type="number" id="marg-anc" placeholder="e.g. 18" min="10" max="60"
-            style="width:100%;background:var(--s2);border:1px solid rgba(255,196,0,.3);
-            color:var(--gold);padding:10px;border-radius:8px;font-family:var(--mono);
-            font-size:1.1rem;text-align:center;outline:none;">
-        </div>
-      </div>
-    </div>
-    <div class="mc" style="margin-bottom:10px;">
-      <div style="font-size:.7rem;font-weight:700;margin-bottom:10px;">🔋 Battery Life (hours)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div>
-          <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);margin-bottom:5px;">IDEAL VALUE (h)</div>
-          <input type="number" id="ideal-bat" placeholder="e.g. 40" min="4" max="60"
-            style="width:100%;background:var(--s2);border:1px solid rgba(0,229,255,.3);
-            color:var(--cyan);padding:10px;border-radius:8px;font-family:var(--mono);
-            font-size:1.1rem;text-align:center;outline:none;">
-        </div>
-        <div>
-          <div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);margin-bottom:5px;">MARGINAL VALUE (h)</div>
-          <input type="number" id="marg-bat" placeholder="e.g. 12" min="4" max="60"
-            style="width:100%;background:var(--s2);border:1px solid rgba(255,196,0,.3);
-            color:var(--gold);padding:10px;border-radius:8px;font-family:var(--mono);
-            font-size:1.1rem;text-align:center;outline:none;">
-        </div>
-      </div>
-    </div>
-    <div class="mc" style="margin-bottom:10px;">
-      <div style="font-size:.7rem;font-weight:700;margin-bottom:10px;">⚖️ Total Mass (grams) — lower is better</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div>
-          <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);margin-bottom:5px;">IDEAL VALUE (g)</div>
-          <input type="number" id="ideal-wt" placeholder="e.g. 240" min="100" max="500"
-            style="width:100%;background:var(--s2);border:1px solid rgba(0,229,255,.3);
-            color:var(--cyan);padding:10px;border-radius:8px;font-family:var(--mono);
-            font-size:1.1rem;text-align:center;outline:none;">
-        </div>
-        <div>
-          <div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);margin-bottom:5px;">MARGINAL VALUE (g)</div>
-          <input type="number" id="marg-wt" placeholder="e.g. 380" min="100" max="500"
-            style="width:100%;background:var(--s2);border:1px solid rgba(255,196,0,.3);
-            color:var(--gold);padding:10px;border-radius:8px;font-family:var(--mono);
-            font-size:1.1rem;text-align:center;outline:none;">
-        </div>
-      </div>
-    </div>`;
+  // clear all fields
+  ['s3-anc-i','s3-anc-m','s3-bat-i','s3-bat-m','s3-wt-i','s3-wt-m'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
   updPrice();
 }
 function updPrice(){
@@ -1619,125 +1598,116 @@ function updPrice(){
 }
 function submitS3(){
   sfxClick();
-  tgtIdeal.anc=+document.getElementById('ideal-anc').value||44;
-  tgtMarg.anc=+document.getElementById('marg-anc').value||18;
-  tgtIdeal.battery=+document.getElementById('ideal-bat').value||40;
-  tgtMarg.battery=+document.getElementById('marg-bat').value||12;
-  tgtIdeal.weight=+document.getElementById('ideal-wt').value||240;
-  tgtMarg.weight=+document.getElementById('marg-wt').value||380;
+  tgtIdeal.anc=+document.getElementById('s3-anc-i').value;
+  tgtMarg.anc=+document.getElementById('s3-anc-m').value;
+  tgtIdeal.bat=+document.getElementById('s3-bat-i').value;
+  tgtMarg.bat=+document.getElementById('s3-bat-m').value;
+  tgtIdeal.wt=+document.getElementById('s3-wt-i').value;
+  tgtMarg.wt=+document.getElementById('s3-wt-m').value;
   tgtPrice=+document.getElementById('price-slider').value||200;
-  // quick validation
-  if(!tgtIdeal.anc||!tgtMarg.anc){toast('Fill in all ANC values!');return;}
-  if(!tgtIdeal.battery||!tgtMarg.battery){toast('Fill in all Battery values!');return;}
-  if(!tgtIdeal.weight||!tgtMarg.weight){toast('Fill in all Weight values!');return;}
-  addPts(120);sfxOk();
-  showFb('s3-fb','ok',`Target specs locked! +120 pts<br>
-    <small>ANC: Ideal ${tgtIdeal.anc}dB · Marginal ${tgtMarg.anc}dB | Battery: ${tgtIdeal.battery}h–${tgtMarg.battery}h | Weight: ${tgtIdeal.weight}g–${tgtMarg.weight}g | Price: €${tgtPrice}</small>`);
+  // validate
+  if(!tgtIdeal.anc||!tgtMarg.anc){toast('Enter ANC values!');return;}
+  if(!tgtIdeal.bat||!tgtMarg.bat){toast('Enter Battery values!');return;}
+  if(!tgtIdeal.wt||!tgtMarg.wt){toast('Enter Weight values!');return;}
+  // sanity check: ideal must be better than marginal
+  const ancOk=tgtIdeal.anc>=tgtMarg.anc;// higher is better
+  const batOk=tgtIdeal.bat>=tgtMarg.bat;// higher is better
+  const wtOk=tgtIdeal.wt<=tgtMarg.wt;// lower is better
+  let pts=120;
+  if(!ancOk){showFb('s3-fb','bad','Ideal ANC must be ≥ Marginal (higher = better noise cancellation)');return;}
+  if(!batOk){showFb('s3-fb','bad','Ideal Battery must be ≥ Marginal (more hours = better)');return;}
+  if(!wtOk){showFb('s3-fb','bad','Ideal Weight must be ≤ Marginal (lighter = better)');return;}
+  // bonus for being ambitious but realistic
+  if(tgtIdeal.anc>=40) pts+=20;
+  if(tgtIdeal.bat>=30) pts+=20;
+  if(tgtIdeal.wt<=260) pts+=20;
+  addPts(pts);sfxOk();
+  showFb('s3-fb','ok',`Target specs locked! +${pts} pts<br>
+    <small>ANC: ${tgtMarg.anc}–${tgtIdeal.anc}dB · Battery: ${tgtMarg.bat}–${tgtIdeal.bat}h · Weight: ${tgtIdeal.wt}–${tgtMarg.wt}g · Price: €${tgtPrice}</small>`);
   setTimeout(()=>doneStep(3,{ideal:tgtIdeal,marg:tgtMarg,price:tgtPrice}),2400);
 }
 
-// ─── STEP 4: Final specs with constrained sliders ───
-function calcBOM(){
-  const ancExtra=Math.max(0,specANC-20)*2.5;
-  const batCost=(specBattery-8)*1.2+14;
-  const matCost=specMat?60:0;
-  const base=50;
-  return{
-    base,ancExtra:Math.round(ancExtra),batCost:Math.round(batCost),
-    matCost,total:Math.round(base+ancExtra+batCost+matCost),
-    weight:specMat?(250-80+50-80):(250+50),
-  };
-}
+// ─── STEP 4: BOM — LOW / HIGH per component ───
+const BOM_ITEMS=[
+  {id:'anc', label:'ANC Chip',
+   low:{name:'Standard ANC (≈25dB)',cost:18,ancPerf:25,note:'Good but below BrandS level'},
+   high:{name:'Premium ANC (≈40dB)',cost:45,ancPerf:40,note:'Approaches BrandS performance'}},
+  {id:'bat', label:'Battery Pack',
+   low:{name:'Standard (16h)',cost:12,batPerf:16,note:'Meets minimum requirement'},
+   high:{name:'Large (32h)',cost:28,batPerf:32,note:'Exceeds BrandS battery life'}},
+  {id:'mat', label:'Housing Material',
+   low:{name:'Plastic housing',cost:0,weightAdd:50,note:'+50g, no extra cost'},
+   high:{name:'Carbon Fiber',cost:60,weightAdd:-80,note:'-80g but +€60 cost'}},
+  {id:'drv', label:'Audio Driver',
+   low:{name:'Standard 40mm driver',cost:8,note:'Good audio quality'},
+   high:{name:'Premium 45mm driver',cost:18,note:'Audiophile-grade clarity'}},
+];
+const BOM_BASE=50;// base electronics: PCB, Bluetooth, assembly
+let bomChoices={anc:'low',bat:'low',mat:'low',drv:'low'};
+/* dup removed */
+
 function initS4(){
-  document.getElementById('s4-locked').innerHTML=
-    `ANC: <b>${tgtMarg.anc}–${tgtIdeal.anc} dB</b> · Battery: <b>${tgtMarg.battery}–${tgtIdeal.battery} h</b> · Weight ideal: <b>&lt;${tgtIdeal.weight}g</b> · Price: <b>€${tgtPrice}</b>`;
-  // ANC slider constrained
-  document.getElementById('s4-sliders').innerHTML=`
-    <div class="slrow">
-      <div class="sltop">
-        <span class="slname">🎧 ANC Attenuation</span>
-        <span class="slval" id="v4-anc">${tgtMarg.anc} dB</span>
-      </div>
-      <input type="range" id="r4-anc"
-        min="${tgtMarg.anc}" max="${tgtIdeal.anc}" value="${tgtMarg.anc}" step="1"
-        oninput="updS4()">
-      <div style="display:flex;justify-content:space-between;font-size:.64rem;color:var(--mut);margin-top:3px;">
-        <span>Marginal: ${tgtMarg.anc}dB</span><span>Ideal: ${tgtIdeal.anc}dB</span>
-      </div>
-      <div style="font-size:.66rem;color:var(--mut);margin-top:2px;">€2.50 per dB above 20dB</div>
-    </div>
-    <div class="slrow">
-      <div class="sltop">
-        <span class="slname">🔋 Battery Life</span>
-        <span class="slval" id="v4-bat">${tgtMarg.battery} h</span>
-      </div>
-      <input type="range" id="r4-bat"
-        min="${tgtMarg.battery}" max="${tgtIdeal.battery}" value="${tgtMarg.battery}" step="1"
-        oninput="updS4()">
-      <div style="display:flex;justify-content:space-between;font-size:.64rem;color:var(--mut);margin-top:3px;">
-        <span>Marginal: ${tgtMarg.battery}h</span><span>Ideal: ${tgtIdeal.battery}h</span>
-      </div>
-      <div style="font-size:.66rem;color:var(--mut);margin-top:2px;">€1.20 per hour above 8h base</div>
-    </div>`;
-  specMat=0;setMat(0);
+  const el=document.getElementById('s4-targets');
+  if(el) el.innerHTML=`ANC: <b>${tgtMarg.anc}–${tgtIdeal.anc}dB</b> · Battery: <b>${tgtMarg.bat}–${tgtIdeal.bat}h</b> · Weight: <b>&lt;${tgtMarg.wt}g</b> · Price: <b>€${tgtPrice}</b>`;
+  bomChoices={anc:'low',bat:'low',mat:'low',drv:'low'};
+  renderBOM();
 }
-function setMat(m){
-  specMat=m;
-  const pb=document.getElementById('mat-plastic');
-  const cb=document.getElementById('mat-carbon');
-  if(pb&&cb){
-    if(m===0){
-      pb.style.borderColor='var(--cyan)';pb.style.background='rgba(0,229,255,.12)';pb.style.color='var(--cyan)';
-      cb.style.borderColor='var(--bd)';cb.style.background='var(--s2)';cb.style.color='var(--mut)';
-    } else {
-      cb.style.borderColor='var(--cyan)';cb.style.background='rgba(0,229,255,.12)';cb.style.color='var(--cyan)';
-      pb.style.borderColor='var(--bd)';pb.style.background='var(--s2)';pb.style.color='var(--mut)';
-    }
-  }
-  updS4();
-}
-function updS4(){
-  specANC=+document.getElementById('r4-anc').value;
-  specBattery=+document.getElementById('r4-bat').value;
-  document.getElementById('v4-anc').textContent=specANC+' dB';
-  document.getElementById('v4-bat').textContent=specBattery+' h';
-  const b=calcBOM();
-  finalCost=b.total;finalWeight=b.weight;
+function renderBOM(){
   const cstar=Math.round(tgtPrice*.70*.60);
-  document.getElementById('s4-bom').innerHTML=`
-    <div class="crow" style="margin-bottom:4px;">
-      <span>Base electronics</span><span class="camt">€${b.base}</span>
-    </div>
-    <div class="crow" style="margin-bottom:4px;">
-      <span>ANC chip (${specANC}dB · ${Math.max(0,specANC-20)}dB above 20)</span>
-      <span class="camt">€${b.ancExtra}</span>
-    </div>
-    <div class="crow" style="margin-bottom:4px;">
-      <span>Battery (${specBattery}h)</span>
-      <span class="camt">€${b.batCost}</span>
-    </div>
-    <div class="crow" style="margin-bottom:4px;">
-      <span>Material (${specMat?'Carbon Fiber':'Plastic'})</span>
-      <span class="camt">€${b.matCost}</span>
-    </div>
-    <div class="crow ${b.total>cstar?'cr':'cg'}">
-      <strong>TOTAL MFG COST</strong>
-      <span class="camt" style="font-size:1rem;color:${b.total>cstar?'var(--red)':'var(--grn)'};">€${b.total}</span>
+  document.getElementById('bom-items').innerHTML=BOM_ITEMS.map(item=>{
+    const chosen=bomChoices[item.id];
+    const low=item.low,high=item.high;
+    return `<div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;
+      padding:12px 14px;margin-bottom:8px;">
+      <div style="font-size:.75rem;font-weight:700;margin-bottom:8px;">${item.label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button onclick="setBOM('${item.id}','low')"
+          style="padding:10px 8px;border-radius:10px;cursor:pointer;transition:all .18s;
+          border:2px solid ${chosen==='low'?'var(--grn)':'var(--bd)'};
+          background:${chosen==='low'?'rgba(0,230,118,.1)':'var(--s2)'};
+          color:${chosen==='low'?'var(--grn)':'var(--txt)'};
+          font-size:.72rem;line-height:1.6;font-family:var(--sans);font-weight:600;">
+          LOW<br><span style="font-family:var(--mono);font-size:.8rem;">€${low.cost}</span><br>
+          <span style="font-size:.65rem;opacity:.8;">${low.name}</span>
+        </button>
+        <button onclick="setBOM('${item.id}','high')"
+          style="padding:10px 8px;border-radius:10px;cursor:pointer;transition:all .18s;
+          border:2px solid ${chosen==='high'?'var(--cyan)':'var(--bd)'};
+          background:${chosen==='high'?'rgba(0,229,255,.1)':'var(--s2)'};
+          color:${chosen==='high'?'var(--cyan)':'var(--txt)'};
+          font-size:.72rem;line-height:1.6;font-family:var(--sans);font-weight:600;">
+          HIGH<br><span style="font-family:var(--mono);font-size:.8rem;">€${high.cost}</span><br>
+          <span style="font-size:.65rem;opacity:.8;">${high.name}</span>
+        </button>
+      </div>
     </div>`;
-  const wOk=b.weight<tgtMarg.weight;
-  const ins=document.getElementById('s4-insight');
-  const gap=b.total-cstar;
-  let msg='',col='';
-  if(gap>0&&!wOk){msg=`⚠️ Cost €${b.total} > C* €${cstar} AND weight ${b.weight}g > ${tgtMarg.weight}g`;col='var(--red)';}
-  else if(gap>0){msg=`⚠️ Cost €${b.total} exceeds C* €${cstar} by €${gap}. Trade-offs needed in Step 6.`;col='var(--gold)';}
-  else if(!wOk){msg=`⚠️ Weight ${b.weight}g > ${tgtMarg.weight}g. Try Carbon Fiber.`;col='var(--gold)';}
-  else{msg=`✅ Cost €${b.total} ≤ C* €${cstar} · Weight ${b.weight}g OK.`;col='var(--grn)';}
-  ins.textContent=msg;ins.style.color=col;
+  }).join('');
+  // calc total
+  let total=BOM_BASE;
+  let weight=250;// base weight
+  BOM_ITEMS.forEach(item=>{
+    const ch=bomChoices[item.id]==='high'?item.high:item.low;
+    total+=ch.cost;
+    if(ch.weightAdd!==undefined) weight+=ch.weightAdd;
+  });
+  finalCost=total;finalWeight=weight;
+  const gap=total-cstar;
+  const totEl=document.getElementById('bom-total');
+  if(totEl){totEl.textContent='€'+total;totEl.style.color=gap>0?'var(--red)':gap>-10?'var(--gold)':'var(--grn)';}
+  const vsEl=document.getElementById('bom-vs-cstar');
+  if(vsEl) vsEl.textContent=gap>0?`⚠️ €${gap} over C* (€${cstar})`:gap===0?`= C* exactly (€${cstar})`:`✅ €${Math.abs(gap)} under C* (€${cstar})`;
+  // weight status
+  const wEl=document.getElementById('bom-weight-status');
+  if(wEl){
+    const wOk=weight<tgtMarg.wt;
+    wEl.style.background=wOk?'rgba(0,230,118,.07)':'rgba(255,61,90,.07)';
+    wEl.style.border='1px solid '+(wOk?'rgba(0,230,118,.25)':'rgba(255,61,90,.3)');
+    wEl.style.color=wOk?'#5eea9a':'#ff7a8a';
+    wEl.textContent=`${wOk?'✅':'⚠️'} Total weight: ${weight}g (marginal limit: ${tgtMarg.wt}g)`;
+  }
 }
-function submitS4(){
-  sfxClick();sfxOk();addPts(130);
-  doneStep(4,{specANC,specBattery,specMat,finalCost,finalWeight});
-}
+function setBOM(id,level){sfxClick();bomChoices[id]=level;renderBOM();}
+function submitS4(){sfxClick();sfxOk();addPts(130);doneStep(4,{bomChoices,finalCost,finalWeight});}
 
 // ─── STEP 5: Target costing ───
 function initS5(){
@@ -1748,21 +1718,21 @@ function initS5(){
   finalCstar=Math.round(P*(1-Mr)*(1-Mm));
   const gap=finalCost-finalCstar;
   document.getElementById('s5-chain').innerHTML=`
-    <div class="crow"><div><div>🏷️ Retail price (P) — from Step 3</div></div>
+    <div class="crow"><div><div>Retail price (P) — from Step 3</div></div>
       <span class="camt">€${P}</span></div>
     <div class="crow"><div>
-      <div>🏪 Retailer margin (Mᵣ = 30%)</div>
-      <div style="font-size:.65rem;color:var(--mut);">Consumer electronics: ~30% (Exhibit 6-13)</div>
+      <div>Retailer margin (Mᵣ = 30%)</div>
+      <div style="font-size:.65rem;color:var(--mut);">Electronics retail: ~30% (Exhibit 6-13)</div>
     </div><span class="camt" style="color:var(--red);">−€${retCut}</span></div>
     <div class="crow"><span>Price received by manufacturer</span>
       <span class="camt">€${mfrPrice}</span></div>
     <div class="crow"><div>
-      <div>🏭 Manufacturer margin (Mₘ = 40%)</div>
-      <div style="font-size:.65rem;color:var(--mut);">Consumer electronics mfg: ~40% (Exhibit 6-13)</div>
+      <div>Manufacturer margin (Mₘ = 40%)</div>
+      <div style="font-size:.65rem;color:var(--mut);">Electronics mfg: ~40% (Exhibit 6-13)</div>
     </div><span class="camt" style="color:var(--red);">−€${mfrCut}</span></div>
     <div class="crow ${gap>0?'cr':'cg'}">
       <div><strong>C* = P × 0.70 × 0.60</strong>
-        <div style="font-size:.65rem;color:var(--mut);">Max allowable manufacturing cost</div></div>
+        <div style="font-size:.65rem;color:var(--mut);">Maximum allowable manufacturing cost</div></div>
       <span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCstar}</span>
     </div>
     <div class="crow ${gap>0?'cr':'cg'}">
@@ -1775,14 +1745,14 @@ function initS5(){
   if(gap>0){
     dis.style.display='block';
     document.getElementById('s5-dis-sub').textContent=
-      `Your cost €${finalCost} exceeds C* €${finalCstar} by €${gap}. Trade-offs required in Step 6.`;
+      `Cost €${finalCost} exceeds C* €${finalCstar} by €${gap}. You must make trade-offs in Step 6.`;
     verd.style.cssText='display:block;padding:13px;border-radius:12px;text-align:center;margin-bottom:12px;font-size:.84rem;line-height:1.6;width:100%;background:rgba(255,61,90,.07);border:2px solid var(--red);color:#ff7a8a;';
-    verd.innerHTML=`⚠️ <strong>UNPROFITABLE</strong> — Gap: €${gap}<br><small>Proceed to Step 6 to fix this.</small>`;
+    verd.innerHTML=`<strong>UNPROFITABLE</strong> — Gap: €${gap}<br><small>Proceed to Step 6.</small>`;
     sfxBad();
   } else {
     dis.style.display='none';
     verd.style.cssText='display:block;padding:13px;border-radius:12px;text-align:center;margin-bottom:12px;font-size:.84rem;line-height:1.6;width:100%;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.3);color:var(--grn);';
-    verd.innerHTML=`✅ <strong>PROFITABLE</strong> — Safety margin: €${Math.abs(gap)}<br><small>You still make strategic trade-offs in Step 6.</small>`;
+    verd.innerHTML=`<strong>PROFITABLE</strong> — Safety margin: €${Math.abs(gap)}<br><small>You still make strategic trade-offs in Step 6.</small>`;
   }
 }
 function submitS5(){
@@ -1791,26 +1761,26 @@ function submitS5(){
   doneStep(5,{finalCost,finalCstar,gap});
 }
 
-// ─── STEP 6: Trade-offs ───
+// ─── STEP 6: Trade-offs — pick LOW/HIGH option ───
 const T6=[
-  {id:'A',label:'Option A — Sacrifice Noise Quality',
-   apply:'Reduce ANC by 5 dB → Cost −€12.50',
-   skip:'Keep ANC at current level',
-   consApply:'⚠️ ANC drops 5dB. If it falls below your marginal value, OMEGA mission fails.',
-   consSkip:'ANC and cost unchanged.',
-   fx:{ancDelta:-5,costDelta:-12.5}},
-  {id:'B',label:'Option B — Upgrade Material',
-   apply:'Carbon Fiber → Cost +€60, Weight −80g',
-   skip:'Keep Plastic',
-   consApply:'✅ Weight drops ~80g. Good if overweight. But adds €60 to BOM.',
-   consSkip:'Plastic stays. Weight unchanged.',
-   fx:{costDelta:+60,matChange:1}},
+  {id:'A',label:'Option A — Cut ANC Quality',
+   a:'Switch ANC to LOW chip (saves €27, ANC drops to 25dB)',
+   b:'Keep current ANC chip',
+   consA:'ANC drops to ~25dB. Check if this is still above your Marginal value.',
+   consB:'ANC stays. Cost unchanged.',
+   fxA:{costDelta:-27,ancNote:'25dB'}},
+  {id:'B',label:'Option B — Cut Audio Driver',
+   a:'Switch Driver to LOW (saves €10)',
+   b:'Keep current driver',
+   consA:'Audio quality drops slightly. Saves €10.',
+   consB:'Driver stays. Cost unchanged.',
+   fxA:{costDelta:-10}},
   {id:'C',label:'Option C — Raise Retail Price',
-   apply:'Retail price +€50 → raises C*',
-   skip:'Hold retail price',
-   consApply:'✅ C* increases → more budget room. But higher price = weaker vs competitors.',
-   consSkip:'Price and C* unchanged.',
-   fx:{priceDelta:+50}},
+   a:'Raise retail price +€50 (raises C*)',
+   b:'Hold retail price',
+   consA:'C* increases. More budget room. But price rises vs competitors.',
+   consB:'Price and C* stay unchanged.',
+   fxA:{priceDelta:+50}},
 ];
 let t6ch=[];
 function initS6(){
@@ -1818,28 +1788,35 @@ function initS6(){
   document.getElementById('s6-fb').style.display='none';
   document.getElementById('s6-warn').style.display='none';
   const gap=finalCost-finalCstar;
-  const wOk=finalWeight<tgtMarg.weight;
+  const wOk=finalWeight<tgtMarg.wt;
   let intro='';
-  if(gap>0&&!wOk) intro=`<strong style="color:var(--red)">Two problems:</strong> €${gap} over C* AND weight ${finalWeight}g over ${tgtMarg.weight}g.`;
-  else if(gap>0) intro=`<strong style="color:var(--red)">€${gap} over C*.</strong> Your BOM exceeds the target cost. Apply options below.`;
-  else if(!wOk) intro=`Cost is fine, but <strong style="color:var(--gold)">weight ${finalWeight}g</strong> exceeds marginal ${tgtMarg.weight}g. Use Option B.`;
-  else intro=`✅ <strong style="color:var(--grn)">Cost and weight both OK.</strong> Apply options to improve your competitive position.`;
+  if(gap>0) intro=`<strong style="color:var(--red)">€${gap} over C* (€${finalCstar})</strong>. Your BOM exceeds the target cost. Pick options below to close the gap.`;
+  else if(!wOk) intro=`Cost is fine, but weight <strong style="color:var(--gold)">${finalWeight}g</strong> exceeds your marginal ${tgtMarg.wt}g. Consider switching to Carbon Fiber in Option B if you chose it in Step 4.`;
+  else intro=`<strong style="color:var(--grn)">Cost is within C* and weight is OK.</strong> You can still apply options to improve your competitive position.`;
   document.getElementById('s6-intro').innerHTML=intro;
   document.getElementById('t6-cost').textContent='€'+finalCost;
   document.getElementById('t6-cost').style.color=gap>0?'var(--red)':'var(--grn)';
   document.getElementById('t6-cstar').textContent='€'+finalCstar;
-  document.getElementById('t6-gap').textContent=gap>0?'+€'+gap:'−€'+Math.abs(gap);
+  document.getElementById('t6-gap').textContent=gap>0?'+€'+gap:'OK';
   document.getElementById('t6-gap').style.color=gap>0?'var(--red)':'var(--grn)';
   document.getElementById('s6-opts').innerHTML=T6.map((t,i)=>`
-    <div style="margin-bottom:10px;background:var(--s2);border:1px solid var(--bd);
-      border-radius:12px;padding:12px;width:100%;">
-      <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);
-        letter-spacing:.1em;margin-bottom:8px;">${t.label}:</div>
-      <div style="display:grid;grid-template-columns:1fr 26px 1fr;gap:5px;align-items:center;">
-        <div class="tcell" id="t6a-${i}" onclick="pickT6(${i},'a')">${t.apply}</div>
-        <div style="text-align:center;font-family:var(--mono);font-size:.58rem;
-          color:var(--mut);">VS</div>
-        <div class="tcell" id="t6s-${i}" onclick="pickT6(${i},'s')">${t.skip}</div>
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;
+      padding:12px 14px;margin-bottom:8px;width:100%;">
+      <div style="font-size:.65rem;font-family:var(--mono);color:var(--cyan);
+        letter-spacing:.1em;margin-bottom:8px;">${t.label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button onclick="pickT6(${i},'a')" id="t6a-${i}"
+          style="padding:11px 8px;border-radius:10px;border:2px solid var(--bd);
+          background:var(--s2);color:var(--txt);font-size:.74rem;cursor:pointer;
+          line-height:1.5;transition:all .18s;font-family:var(--sans);font-weight:600;">
+          ${t.a}
+        </button>
+        <button onclick="pickT6(${i},'b')" id="t6b-${i}"
+          style="padding:11px 8px;border-radius:10px;border:2px solid var(--bd);
+          background:var(--s2);color:var(--txt);font-size:.74rem;cursor:pointer;
+          line-height:1.5;transition:all .18s;font-family:var(--sans);font-weight:600;">
+          ${t.b}
+        </button>
       </div>
       <div id="tc6-${i}" style="display:none;font-size:.72rem;padding:7px 10px;
         border-radius:8px;margin-top:6px;line-height:1.4;"></div>
@@ -1847,79 +1824,63 @@ function initS6(){
 }
 function pickT6(i,side){
   sfxClick();t6ch[i]=side;
-  document.getElementById('t6a-'+i).classList.toggle('pick',side==='a');
-  document.getElementById('t6s-'+i).classList.toggle('pick',side==='s');
-  const t=T6[i];const msg=side==='a'?t.consApply:t.consSkip;
+  const ta=document.getElementById('t6a-'+i);
+  const tb=document.getElementById('t6b-'+i);
+  if(ta){ta.style.borderColor=side==='a'?'var(--grn)':'var(--bd)';
+    ta.style.background=side==='a'?'rgba(0,230,118,.08)':'var(--s2)';
+    ta.style.color=side==='a'?'var(--grn)':'var(--txt)';}
+  if(tb){tb.style.borderColor=side==='b'?'var(--cyan)':'var(--bd)';
+    tb.style.background=side==='b'?'rgba(0,229,255,.08)':'var(--s2)';
+    tb.style.color=side==='b'?'var(--cyan)':'var(--txt)';}
+  const t=T6[i];const msg=side==='a'?t.consA:t.consB;
   const el=document.getElementById('tc6-'+i);
-  el.style.display='block';el.textContent=msg;
-  el.style.background=side==='a'&&i===0?'rgba(255,196,0,.08)':'rgba(0,230,118,.08)';
-  el.style.border='1px solid '+(side==='a'&&i===0?'rgba(255,196,0,.25)':'rgba(0,230,118,.25)');
-  el.style.color=side==='a'&&i===0?'#e8c060':'#5eea9a';
-  // update live tracker
-  let sc=finalCost,sp=tgtPrice,sm=specMat,sa=specANC;
-  t6ch.forEach((s,j)=>{
-    if(s==='a'){
-      const f=T6[j].fx;
-      if(f.costDelta) sc=Math.round(sc+f.costDelta);
-      if(f.priceDelta) sp+=f.priceDelta;
-      if(f.matChange!==undefined) sm=f.matChange;
-      if(f.ancDelta) sa=Math.max(10,sa+f.ancDelta);
-    }
-  });
+  if(el){el.style.display='block';el.textContent=msg;
+    el.style.cssText+=';background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.2);color:#7ab8d4;';}
+  // live update
+  let sc=finalCost,sp=tgtPrice;
+  t6ch.forEach((s,j)=>{if(s==='a'&&T6[j].fxA){
+    if(T6[j].fxA.costDelta) sc=Math.round(sc+T6[j].fxA.costDelta);
+    if(T6[j].fxA.priceDelta) sp+=T6[j].fxA.priceDelta;
+  }});
   const sc2=Math.round(sp*.70*.60);const gap=sc-sc2;
   document.getElementById('t6-cost').textContent='€'+sc;
   document.getElementById('t6-cost').style.color=gap>0?'var(--red)':'var(--grn)';
-  document.getElementById('t6-gap').textContent=gap>0?'+€'+gap:'OK ✅';
+  document.getElementById('t6-gap').textContent=gap>0?'+€'+gap:'OK';
   document.getElementById('t6-gap').style.color=gap>0?'var(--red)':'var(--grn)';
-  // cascade warning
-  const ancMarg=tgtMarg.anc||18;
-  const warn=document.getElementById('s6-warn');
-  if(sa<ancMarg){warn.style.display='block';warn.className='fb bad';
-    warn.textContent=`⚠️ ANC ${sa}dB is below marginal ${ancMarg}dB — OMEGA mission compromised!`;}
-  else warn.style.display='none';
 }
 function submitS6(){
   if(t6ch.includes(null)){toast('Make all 3 choices first!');return;}
   sfxClick();
-  let fANC=specANC,fMat=specMat,fPrice=tgtPrice;
-  t6ch.forEach((s,i)=>{
-    if(s==='a'){const f=T6[i].fx;
-      if(f.ancDelta) fANC=Math.max(10,fANC+f.ancDelta);
-      if(f.costDelta) finalCost=Math.round(finalCost+f.costDelta);
-      if(f.priceDelta) fPrice+=f.priceDelta;
-      if(f.matChange!==undefined) fMat=f.matChange;
-    }
-  });
+  let fCost=finalCost,fPrice=tgtPrice;
+  t6ch.forEach((s,i)=>{if(s==='a'&&T6[i].fxA){
+    if(T6[i].fxA.costDelta) fCost=Math.round(fCost+T6[i].fxA.costDelta);
+    if(T6[i].fxA.priceDelta) fPrice+=T6[i].fxA.priceDelta;
+  }});
   finalCstar=Math.round(fPrice*.70*.60);
-  const gap=finalCost-finalCstar;
-  const ancOk=fANC>=tgtMarg.anc,costOk=gap<=0,wOk=finalWeight<tgtMarg.weight;
-  let pts=180;
-  if(!costOk) pts-=50;if(!ancOk) pts-=50;
-  addPts(pts);
-  if(costOk&&ancOk) sfxOk();else sfxBad();
+  finalCost=fCost;
+  const gap=fCost-finalCstar;
+  const wOk=finalWeight<tgtMarg.wt;
+  let pts=180;if(gap>0) pts-=50;
+  addPts(pts);if(gap<=0&&wOk)sfxOk();else sfxBad();
   const sheet=`<div style="background:var(--s1);border:1px solid var(--bd);
     border-radius:10px;padding:12px;margin-top:10px;">
     <div style="font-family:var(--mono);font-size:.6rem;color:var(--cyan);
-      margin-bottom:8px;">📋 FINAL SPEC SHEET:</div>
-    <div class="crow" style="margin-bottom:4px;"><span>ANC</span>
-      <span class="camt" style="color:${ancOk?'var(--grn)':'var(--red)'};">${fANC}dB ${ancOk?'✅':'❌'}</span></div>
-    <div class="crow" style="margin-bottom:4px;"><span>Battery</span>
-      <span class="camt" style="color:var(--cyan);">${specBattery}h</span></div>
-    <div class="crow" style="margin-bottom:4px;"><span>Material</span>
-      <span class="camt">${fMat?'Carbon Fiber':'Plastic'}</span></div>
-    <div class="crow" style="margin-bottom:4px;"><span>Retail Price</span>
+      margin-bottom:8px;">FINAL SPEC SHEET:</div>
+    <div class="crow" style="margin-bottom:4px;"><span>Mfg Cost</span>
+      <span class="camt" style="color:${gap<=0?'var(--grn)':'var(--red)'};">€${fCost} ${gap<=0?'OK':'OVER'}</span></div>
+    <div class="crow" style="margin-bottom:4px;"><span>C* Target</span>
+      <span class="camt">€${finalCstar}</span></div>
+    <div class="crow" style="margin-bottom:4px;"><span>Weight</span>
+      <span class="camt" style="color:${wOk?'var(--grn)':'var(--gold)'};">${finalWeight}g ${wOk?'OK':'check'}</span></div>
+    <div class="crow"><span>Retail Price</span>
       <span class="camt">€${fPrice}</span></div>
-    <div class="crow" style="margin-bottom:4px;"><span>BOM Cost</span>
-      <span class="camt" style="color:${costOk?'var(--grn)':'var(--red)'};">€${finalCost} ${costOk?'✅':'❌'}</span></div>
-    <div class="crow cg"><span>C*</span>
-      <span class="camt" style="color:var(--grn);">€${finalCstar}</span></div>
   </div>`;
   const fb=document.getElementById('s6-fb');
-  fb.style.display='block';fb.className='fb '+(costOk&&ancOk?'ok':'bad');
-  fb.innerHTML=(costOk&&ancOk?'✅ <strong>MISSION READY</strong>':
-    '⚠️ <strong>COMPROMISED</strong> — constraints violated.')+sheet;
-  setTimeout(()=>doneStep(6,{fANC,fMat,fPrice,finalCost,finalCstar,finalWeight}),3500);
+  fb.style.display='block';fb.className='fb '+(gap<=0?'ok':'warn');
+  fb.innerHTML=(gap<=0?'MISSION READY — spec sheet approved!':'Compromised — OMEGA accepts the risk.')+sheet;
+  setTimeout(()=>doneStep(6,{finalCost:fCost,finalCstar,finalWeight,finalPrice:fPrice}),3000);
 }
+
 
 // ─── STEP 7: Quiz (1 per step) ───
 const QUIZ=[
@@ -2021,5 +1982,94 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 });
 </script>
+</body>
+</html><!-- S5: Target costing -->
+<div class="scr" id="s-m5">
+<div class="mob" style="padding-top:58px;">
+  <div class="stag">STEP 5 · TARGET COSTING</div>
+  <div class="instr">
+    <span class="itag">💰 C* = P × (1 − Mᵣ) × (1 − Mₘ)</span>
+    Start from your retail price. Subtract the retailer cut (30%), then the manufacturer cut (40%).
+    What remains = <strong>maximum you can spend building it</strong>.
+  </div>
+  <div id="s5-chain" style="width:100%;margin-bottom:10px;"></div>
+  <div id="s5-disaster" style="display:none;background:rgba(255,61,90,.1);
+    border:2px solid var(--red);border-radius:12px;padding:14px;text-align:center;
+    margin-bottom:12px;width:100%;animation:flashb .8s ease-in-out infinite alternate;">
+    <div style="font-family:var(--mono);font-size:.9rem;font-weight:700;
+      color:var(--red);margin-bottom:5px;">💸 FINANCIAL DISASTER!</div>
+    <div style="font-size:.78rem;color:#ff7a8a;" id="s5-dis-sub"></div>
+  </div>
+  <div id="s5-verdict" style="display:none;padding:13px;border-radius:12px;
+    text-align:center;margin-bottom:12px;font-size:.84rem;line-height:1.6;width:100%;"></div>
+  <button class="btn bp" style="width:100%;" onclick="submitS5()">CONTINUE →</button>
+</div>
+</div>
+
+<!-- S6: Trade-offs — pick ONE option if over budget -->
+<div class="scr" id="s-m6">
+<div class="mob" style="padding-top:58px;">
+  <div class="stag">STEP 6 · TRADE-OFFS</div>
+  <div class="instr">
+    <span class="itag">⚖️ YOUR SITUATION</span>
+    <span id="s6-intro"></span>
+  </div>
+  <div style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;
+    padding:12px 16px;width:100%;margin-bottom:14px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;">
+      <div>
+        <div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">YOUR COST</div>
+        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;" id="t6-cost">—</div>
+      </div>
+      <div>
+        <div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">C*</div>
+        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--cyan);" id="t6-cstar">—</div>
+      </div>
+      <div>
+        <div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">GAP</div>
+        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;" id="t6-gap">—</div>
+      </div>
+    </div>
+  </div>
+  <div id="s6-opts" style="width:100%;margin-bottom:12px;"></div>
+  <div id="s6-warn" style="display:none;width:100%;margin-bottom:10px;"></div>
+  <button class="btn bp" style="width:100%;" onclick="submitS6()">FINALIZE →</button>
+  <div id="s6-fb" style="display:none;width:100%;"></div>
+</div>
+</div>
+<!-- S7: Quiz -->
+<div class="scr" id="s-m7">
+<div class="mob" style="padding-top:58px;">
+  <div style="font-family:var(--mono);font-size:.62rem;color:var(--cyan);
+    letter-spacing:.12em;margin-bottom:4px;text-align:center;" id="s7-ref"></div>
+  <div class="stag" id="s7-num">QUESTION 1/7</div>
+  <div style="font-size:.96rem;font-weight:700;line-height:1.45;margin-bottom:16px;
+    text-align:center;width:100%;" id="s7-q"></div>
+  <div id="s7-opts" style="width:100%;"></div>
+  <div id="s7-exp" style="display:none;width:100%;"></div>
+</div>
+</div>
+
+<!-- MOBILE FINAL -->
+<div class="scr" id="s-mfinal">
+<div class="mob mob-wait">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🎯</div>
+  <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;
+    text-align:center;" id="mfinal-title">Mission Complete</div>
+  <div style="font-size:.82rem;color:var(--mut);text-align:center;line-height:1.6;
+    max-width:270px;" id="mfinal-sub"></div>
+  <div class="g16"></div>
+  <div style="font-size:.88rem;font-weight:700;">
+    Score: <span style="font-family:var(--mono);color:var(--gold);" id="mfinal-score">0</span> pts
+  </div>
+  <div class="g8"></div>
+  <div style="font-size:.7rem;color:var(--mut);">Awaiting final debrief…</div>
+  <div class="wdots" style="color:var(--cyan);font-size:.9rem;margin-top:5px;">
+    <span>.</span><span>.</span><span>.</span>
+  </div>
+</div>
+</div>
+
+
 </body>
 </html>
