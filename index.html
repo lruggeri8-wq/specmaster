@@ -3,445 +3,414 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SPECMASTER · Operation Silent Ear</title>
+<title>Product Specifications — Chapter 6</title>
 <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════
-   SHARED BASE
-═══════════════════════════════════════ */
+/* ══════════════════════════ BASE ══════════════════════════ */
 :root{
   --bg:#020810;--s1:#07111e;--s2:#0c1a2e;--bd:#1a2e48;
   --cyan:#00e5ff;--gold:#ffc400;--grn:#00e676;--red:#ff3d5a;--pur:#b366ff;
-  --txt:#d4eaf8;--mut:#2e4a62;--r:16px;
-  --mono:'Share Tech Mono',monospace;
-  --sans:'Inter',sans-serif;
+  --txt:#d4eaf8;--mut:#2e4a62;--r:14px;
+  --mono:'Share Tech Mono',monospace;--sans:'Inter',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
 body{font-family:var(--sans);color:var(--txt);}
-
-/* canvas bg */
 #bgC{position:fixed;inset:0;z-index:0;pointer-events:none;}
 
 /* screens */
-.scr{position:absolute;inset:0;z-index:10;
-  opacity:0;pointer-events:none;transition:opacity .35s;
-  overflow-y:auto;overflow-x:hidden;}
+.scr{position:absolute;inset:0;z-index:10;opacity:0;pointer-events:none;
+  transition:opacity .35s;overflow-y:auto;overflow-x:hidden;}
 .scr::-webkit-scrollbar{display:none;}
 .scr.on{opacity:1;pointer-events:all;}
 
 /* toast */
-#toast{position:fixed;bottom:20px;left:50%;
-  transform:translateX(-50%) translateY(60px);
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
   background:var(--s2);border:1px solid var(--cyan);border-radius:30px;
   padding:9px 22px;font-size:.82rem;z-index:900;pointer-events:none;
   white-space:nowrap;transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
 #toast.on{transform:translateX(-50%) translateY(0);}
 
+/* spy toast */
+#spy-toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(7,17,30,.97);border:1px solid rgba(255,196,0,.45);border-radius:12px;
+  padding:11px 18px;max-width:290px;text-align:center;font-family:var(--mono);
+  font-size:.72rem;color:var(--gold);z-index:880;pointer-events:none;line-height:1.5;
+  opacity:0;transition:opacity .4s,transform .4s;}
+#spy-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
 /* confetti */
 .cf{position:fixed;width:8px;height:8px;z-index:500;pointer-events:none;
   animation:cffall 2.5s ease-in forwards;}
-@keyframes cffall{0%{opacity:1;transform:translateY(-10px) rotate(0);}
-  100%{opacity:0;transform:translateY(100vh) rotate(600deg);}}
+@keyframes cffall{0%{opacity:1;transform:translateY(-10px) rotate(0);}100%{opacity:0;transform:translateY(100vh) rotate(600deg);}}
 
+/* ══════════════════════════ KAHOOT FAKE ══════════════════════════ */
+#s-kahoot{
+  background:#fff;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:32px 24px;
+  font-family:'Nunito',sans-serif;
+}
+.kh-header{
+  width:100%;max-width:500px;background:#46178f;border-radius:12px;
+  padding:18px 24px;text-align:center;margin-bottom:28px;
+  box-shadow:0 4px 20px rgba(70,23,143,.4);
+}
+.kh-header h1{color:#fff;font-size:clamp(1.4rem,4vw,2rem);font-weight:900;margin-bottom:4px;}
+.kh-header p{color:rgba(255,255,255,.7);font-size:.82rem;}
+.kh-card{
+  width:100%;max-width:500px;background:#f0f0f0;border-radius:12px;
+  padding:24px;margin-bottom:20px;
+}
+.kh-card h2{color:#333;font-size:1rem;font-weight:800;margin-bottom:8px;}
+.kh-card p{color:#555;font-size:.88rem;line-height:1.6;}
+.kh-pins{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.kh-pin{background:#fff;border:2px solid #e0e0e0;border-radius:8px;
+  padding:6px 14px;font-size:.78rem;font-weight:700;color:#333;}
+.kh-btn{
+  width:100%;max-width:500px;padding:16px;border-radius:12px;border:none;
+  background:#ff3355;color:#fff;font-family:'Nunito',sans-serif;
+  font-size:1.1rem;font-weight:900;cursor:pointer;
+  box-shadow:0 4px 16px rgba(255,51,85,.4);transition:transform .1s;
+  letter-spacing:.02em;
+}
+.kh-btn:active{transform:scale(.98);}
+.kh-footer{margin-top:14px;font-size:.72rem;color:#999;text-align:center;}
 
-/* ═══════════════════════════════════════
-   LANDING (shared)
-═══════════════════════════════════════ */
-#s-land{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
-.land-hp{width:110px;height:110px;margin:0 auto 18px;animation:hpf 3.2s ease-in-out infinite;}
-@keyframes hpf{0%,100%{transform:translateY(0) rotate(-1.5deg);}50%{transform:translateY(-10px) rotate(1.5deg);}}
-.land-title{font-family:'Orbitron',monospace;font-weight:900;
-  font-size:clamp(2rem,8vw,3.2rem);line-height:1;text-align:center;
-  background:linear-gradient(135deg,#fff 0%,var(--cyan) 45%,var(--pur) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  filter:drop-shadow(0 0 30px rgba(0,229,255,.45));margin-bottom:4px;}
-.land-sub{font-family:var(--mono);font-size:.58rem;letter-spacing:.22em;
-  color:var(--mut);margin-bottom:28px;}
-.land-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
-  padding:18px;width:100%;max-width:360px;margin-bottom:14px;}
-.land-input{width:100%;background:var(--s2);border:1px solid var(--bd);
-  color:var(--txt);padding:12px 14px;border-radius:10px;
-  font-size:1rem;outline:none;font-family:var(--sans);}
-.land-input:focus{border-color:var(--cyan);}
-.land-btns{width:100%;max-width:360px;display:flex;flex-direction:column;gap:10px;}
+/* glitch overlay */
+#glitch-overlay{
+  position:fixed;inset:0;z-index:800;pointer-events:none;opacity:0;
+  background:#fff;
+}
+.glitch-line{
+  position:absolute;left:0;right:0;height:2px;background:rgba(0,229,255,.8);
+  animation:glitchscan 0.15s infinite linear;
+}
+@keyframes glitchscan{0%{top:0;}100%{top:100%}}
+.glitch-block{
+  position:absolute;background:rgba(0,229,255,.15);
+  animation:glitchblock .1s infinite;
+}
+@keyframes glitchblock{0%,100%{opacity:0;}50%{opacity:1;}}
+#glitch-text{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:820;font-family:var(--mono);font-size:clamp(.7rem,2vw,1rem);
+  color:#ff3d5a;text-align:center;opacity:0;line-height:1.8;
+  text-shadow:2px 0 var(--cyan),-2px 0 var(--red);
+}
+@keyframes glitchshake{0%,100%{transform:translate(-50%,-50%);}
+  20%{transform:translate(-52%,-50%);}40%{transform:translate(-48%,-49%);}
+  60%{transform:translate(-51%,-51%);}80%{transform:translate(-49%,-50%);}}
 
+/* ══════════════════════════ CHAT ══════════════════════════ */
+#s-hchat{
+  display:flex;flex-direction:column;background:var(--bg);
+  padding:0;
+}
+#chat-wrap{
+  flex:1;display:flex;flex-direction:column;
+  max-width:700px;width:100%;margin:0 auto;overflow:hidden;
+}
+#chat-header{
+  padding:14px 20px;background:rgba(7,17,30,.98);
+  border-bottom:1px solid var(--bd);flex-shrink:0;
+}
+.ch-sig{display:flex;align-items:center;gap:8px;font-family:var(--mono);
+  font-size:.56rem;letter-spacing:.14em;color:var(--mut);margin-bottom:4px;}
+#sig-dot{width:7px;height:7px;border-radius:50%;background:var(--red);
+  animation:sigp 1s ease-in-out infinite;}
+#sig-dot.live{background:var(--grn);}
+@keyframes sigp{0%,100%{opacity:1;}50%{opacity:.25;}}
+.ch-from{font-family:'Orbitron',monospace;font-size:.72rem;font-weight:700;
+  color:var(--cyan);text-shadow:0 0 12px rgba(0,229,255,.45);}
+#chat-msgs{flex:1;overflow-y:auto;padding:16px 14px 8px;
+  display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
+#chat-msgs::-webkit-scrollbar{display:none;}
+.cmsg{max-width:80%;}
+.cmsg.them{align-self:flex-start;animation:msgL .32s cubic-bezier(.34,1.4,.64,1) both;}
+.cmsg.me{align-self:flex-end;animation:msgR .32s cubic-bezier(.34,1.4,.64,1) both;}
+@keyframes msgL{from{opacity:0;transform:translateX(-14px) scale(.95);}to{opacity:1;transform:none;}}
+@keyframes msgR{from{opacity:0;transform:translateX(14px) scale(.95);}to{opacity:1;transform:none;}}
+.cname{font-family:var(--mono);font-size:.54rem;letter-spacing:.1em;
+  color:var(--mut);margin-bottom:3px;padding:0 4px;}
+.cmsg.me .cname{text-align:right;color:rgba(0,229,255,.5);}
+.cbubble{padding:11px 15px;border-radius:18px;font-size:.86rem;line-height:1.6;}
+.cmsg.them .cbubble{background:var(--s1);border:1px solid var(--bd);
+  color:var(--txt);border-bottom-left-radius:4px;}
+.cmsg.me .cbubble{background:rgba(0,229,255,.13);border:1px solid rgba(0,229,255,.28);
+  color:#b8e8f8;border-bottom-right-radius:4px;}
+.cbubble.urg{border-color:rgba(255,61,90,.55)!important;background:rgba(255,61,90,.09)!important;}
+.cbubble.cls{border-color:rgba(255,196,0,.45)!important;background:rgba(255,196,0,.07)!important;
+  font-family:var(--mono);font-size:.78rem;color:var(--gold)!important;}
+.cbubble.grn{border-color:rgba(0,230,118,.45)!important;background:rgba(0,230,118,.07)!important;color:#5eea9a!important;}
+/* pending button — blue message waiting to be sent */
+.cmsg-pending{
+  align-self:flex-end;max-width:80%;cursor:pointer;
+  animation:msgR .32s cubic-bezier(.34,1.4,.64,1) both;
+}
+.cpending-bubble{
+  padding:11px 15px;border-radius:18px;border-bottom-right-radius:4px;
+  font-size:.86rem;line-height:1.6;
+  background:rgba(0,229,255,.07);border:2px dashed rgba(0,229,255,.4);
+  color:rgba(184,232,248,.6);cursor:pointer;transition:all .2s;
+}
+.cpending-bubble:hover{background:rgba(0,229,255,.16);border-color:var(--cyan);color:#b8e8f8;}
+.cpending-bubble:active{transform:scale(.97);}
+.cpending-label{font-family:var(--mono);font-size:.52rem;letter-spacing:.1em;
+  color:rgba(0,229,255,.4);margin-bottom:3px;text-align:right;padding:0 4px;}
 
-/* ═══════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════ */
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
-  font-family:'Orbitron',monospace;font-size:.72rem;font-weight:700;
-  letter-spacing:.1em;transition:all .18s;position:relative;overflow:hidden;}
-.btn::after{content:'';position:absolute;inset:0;
-  background:rgba(255,255,255,.07);opacity:0;transition:.15s;}
-.btn:hover::after,.btn:active::after{opacity:1;}
-.btn:active{transform:scale(.97);}
-.btn-p{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;
-  box-shadow:0 0 24px rgba(0,229,255,.28);}
-.btn-s{background:var(--s2);border:1px solid var(--bd);color:var(--txt);}
-.btn-g{background:linear-gradient(135deg,var(--grn),#007a3d);color:#000;}
-.btn-y{background:linear-gradient(135deg,var(--gold),#cc7000);color:#000;
-  box-shadow:0 0 24px rgba(255,196,0,.28);}
-.btn-r{background:linear-gradient(135deg,var(--red),#8b0020);color:#fff;}
-.btn-sm{padding:11px 16px;font-size:.65rem;}
-
-
-/* ═══════════════════════════════════════
-   HOST LAYOUT
-═══════════════════════════════════════ */
-#s-hlobby,#s-hgame{
-  display:flex;flex-direction:column;align-items:center;
-  padding:28px 24px 40px;
+/* typing */
+#chat-typing{padding:0 14px;flex-shrink:0;}
+.tbub{display:inline-flex;gap:4px;align-items:center;
+  background:var(--s1);border:1px solid var(--bd);
+  padding:9px 14px;border-radius:18px;border-bottom-left-radius:4px;}
+.tbub span{width:6px;height:6px;background:var(--mut);border-radius:50%;
+  animation:td 1.2s infinite;}
+.tbub span:nth-child(2){animation-delay:.2s;}
+.tbub span:nth-child(3){animation-delay:.4s;}
+@keyframes td{0%,80%,100%{transform:scale(1);opacity:.4;}40%{transform:scale(1.3);opacity:1;}}
+#chat-footer{
+  padding:12px 14px;border-top:1px solid var(--bd);
+  background:rgba(7,17,30,.95);flex-shrink:0;
+  max-width:700px;width:100%;margin:0 auto;
+}
+#chat-cta{
+  font-size:.72rem;color:var(--mut);font-family:var(--mono);
+  text-align:center;letter-spacing:.1em;min-height:20px;
 }
 
+/* ══════════════════════════ HOST GAME ══════════════════════════ */
+#s-hgame{
+  display:flex;flex-direction:column;align-items:center;
+  padding:16px 18px 40px;
+}
 /* terminal */
 #terminal{
-  width:100%;max-width:640px;
-  background:rgba(7,17,30,.95);border:1px solid var(--bd);
-  border-radius:var(--r);padding:22px 24px;margin-bottom:20px;
-  min-height:160px;position:relative;
+  width:100%;max-width:680px;background:rgba(7,17,30,.95);
+  border:1px solid var(--bd);border-radius:var(--r);padding:18px 20px;
+  margin-bottom:14px;max-height:200px;overflow:hidden;position:relative;
 }
-#term-hdr{font-family:var(--mono);font-size:.58rem;color:var(--cyan);
-  letter-spacing:.18em;opacity:.55;margin-bottom:14px;}
-#term-lines{font-family:var(--mono);font-size:.88rem;line-height:1.85;
-  color:#7ab8d4;max-height:260px;overflow:hidden;}
-#term-lines .tc{color:var(--cyan);}
-#term-lines .tg{color:var(--grn);}
-#term-lines .ty{color:var(--gold);}
-#term-lines .tr{color:var(--red);}
-#term-lines .tw{color:#fff;}
-#tcursor{display:inline-block;width:9px;height:.9em;background:var(--cyan);
+#term-hdr{font-family:var(--mono);font-size:.56rem;color:var(--cyan);
+  letter-spacing:.18em;opacity:.5;margin-bottom:10px;}
+#term-lines{font-family:var(--mono);font-size:.82rem;line-height:1.8;
+  color:#7ab8d4;overflow:hidden;}
+#tcursor{display:inline-block;width:8px;height:.85em;background:var(--cyan);
   animation:tblink .65s step-end infinite;vertical-align:middle;margin-left:2px;}
 @keyframes tblink{0%,100%{opacity:1;}50%{opacity:0;}}
-
-/* host step panel */
-#host-panel{
-  width:100%;max-width:640px;
-  background:var(--s1);border:1px solid var(--bd);
-  border-radius:var(--r);padding:22px 24px;
-}
-.host-step-title{font-family:'Orbitron',monospace;font-size:1.1rem;
-  font-weight:700;margin-bottom:4px;}
-.host-theory{font-size:.84rem;line-height:1.7;color:#8ab8d4;margin-bottom:16px;}
-.host-theory strong{color:var(--cyan);}
-.host-theory .formula{
-  font-family:var(--mono);font-size:.82rem;color:var(--cyan);
-  background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);
-  border-radius:8px;padding:8px 12px;margin:8px 0;display:block;
-}
-.host-task{
-  background:rgba(255,196,0,.06);border:1px solid rgba(255,196,0,.2);
-  border-radius:10px;padding:11px 14px;font-size:.8rem;
-  color:#e8c060;margin-bottom:14px;
-}
-.host-task strong{color:var(--gold);}
-.progress-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-.prog-bar{flex:1;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;}
-.prog-fill{height:100%;background:var(--grn);border-radius:3px;transition:width .5s ease;}
-.prog-lbl{font-family:var(--mono);font-size:.72rem;color:var(--grn);white-space:nowrap;}
+/* host panel */
+#host-panel{width:100%;max-width:680px;background:var(--s1);
+  border:1px solid var(--bd);border-radius:var(--r);padding:20px;}
+.hp-step-num{font-family:var(--mono);font-size:.58rem;color:var(--cyan);
+  letter-spacing:.14em;margin-bottom:6px;}
+.hp-title{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;margin-bottom:10px;}
+.hp-def{font-size:.84rem;line-height:1.65;color:#8ab8d4;margin-bottom:12px;
+  padding:12px 14px;background:rgba(0,229,255,.05);border-left:3px solid var(--cyan);
+  border-radius:0 8px 8px 0;}
+.hp-def strong{color:var(--cyan);}
+.hp-def .formula{font-family:var(--mono);font-size:.8rem;color:var(--cyan);
+  display:block;margin-top:6px;background:rgba(0,229,255,.06);
+  padding:6px 10px;border-radius:6px;}
+.hp-task{background:rgba(255,196,0,.06);border:1px solid rgba(255,196,0,.22);
+  border-radius:10px;padding:10px 14px;font-size:.8rem;color:#e8c060;margin-bottom:12px;}
+.hp-task strong{color:var(--gold);}
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.prog-bar{flex:1;height:5px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--grn);border-radius:3px;transition:width .5s;}
+.prog-lbl{font-family:var(--mono);font-size:.68rem;color:var(--grn);white-space:nowrap;}
+.hp-btns{display:flex;gap:8px;flex-wrap:wrap;}
 
 /* host lobby */
-.room-code{font-family:'Orbitron',monospace;font-size:3rem;
-  color:var(--cyan);letter-spacing:.25em;text-shadow:0 0 30px rgba(0,229,255,.5);}
-.qr-img{border-radius:12px;border:2px solid var(--cyan);
-  width:160px;height:160px;display:block;}
+#s-hlobby{display:flex;flex-direction:column;align-items:center;padding:28px 20px 40px;}
+.room-code{font-family:'Orbitron',monospace;font-size:2.8rem;color:var(--cyan);
+  letter-spacing:.22em;text-shadow:0 0 28px rgba(0,229,255,.5);}
+.qr-img{border-radius:12px;border:2px solid var(--cyan);width:155px;height:155px;display:block;}
 
-/* host final dashboard */
+/* agent pills */
+.ppill{display:inline-flex;align-items:center;gap:5px;background:var(--s2);
+  border:1px solid var(--bd);border-radius:20px;padding:5px 12px;margin:3px;
+  font-size:.78rem;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
+
+/* final dashboard */
 .agent-card{background:var(--s2);border:1px solid var(--bd);border-radius:12px;
-  padding:14px 16px;margin-bottom:8px;width:100%;max-width:640px;}
-.agent-card .aname{font-family:var(--mono);font-size:.75rem;
-  color:var(--cyan);margin-bottom:8px;letter-spacing:.08em;}
-.bar-row{display:flex;align-items:center;gap:8px;margin-top:5px;}
-.bar-lbl{font-size:.65rem;color:var(--mut);width:58px;flex-shrink:0;font-family:var(--mono);}
+  padding:13px 16px;margin-bottom:8px;width:100%;max-width:680px;}
+.aname{font-family:var(--mono);font-size:.7rem;color:var(--cyan);margin-bottom:7px;letter-spacing:.07em;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.bar-lbl{font-size:.63rem;color:var(--mut);width:56px;flex-shrink:0;font-family:var(--mono);}
 .bar-bg{flex:1;height:5px;background:var(--bd);border-radius:3px;}
 .bar-fill{height:100%;border-radius:3px;}
 
-/* host lb */
-.lb-row{display:flex;align-items:center;gap:12px;
-  background:var(--s1);border:1px solid var(--bd);border-radius:12px;
-  padding:13px 16px;margin-bottom:7px;width:100%;max-width:640px;
-  animation:sup .4s ease both;}
-@keyframes sup{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+/* ══════════════════════════ SHARED BUTTONS ══════════════════════════ */
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;
+  font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;
+  letter-spacing:.1em;transition:all .18s;position:relative;overflow:hidden;}
+.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.07);opacity:0;transition:.15s;}
+.btn:hover::after,.btn:active::after{opacity:1;}
+.btn:active{transform:scale(.97);}
+.bp{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;box-shadow:0 0 22px rgba(0,229,255,.28);}
+.bs{background:var(--s2);border:1px solid var(--bd);color:var(--txt);}
+.bg{background:linear-gradient(135deg,var(--grn),#007a3d);color:#000;}
+.by{background:linear-gradient(135deg,var(--gold),#cc7000);color:#000;box-shadow:0 0 22px rgba(255,196,0,.28);}
+.br{background:linear-gradient(135deg,var(--red),#8b0020);color:#fff;}
+.btn-sm{padding:10px 14px;font-size:.62rem;}
 
-
-/* ═══════════════════════════════════════
-   MOBILE LAYOUT
-═══════════════════════════════════════ */
-/* mobile screens always full height, flex column */
-.mob-scr{
-  display:flex;flex-direction:column;
-  align-items:center;padding:16px 16px 32px;
-}
-
-/* mobile HUD */
-#mob-hud{
-  position:fixed;top:0;left:0;right:0;height:46px;z-index:200;
-  display:flex;align-items:center;padding:0 14px;gap:10px;
+/* ══════════════════════════ MOBILE ══════════════════════════ */
+/* hud */
+#mob-hud{position:fixed;top:0;left:0;right:0;height:46px;z-index:200;
+  display:flex;align-items:center;padding:0 13px;gap:9px;
   background:rgba(2,8,16,.95);border-bottom:1px solid var(--bd);
-  backdrop-filter:blur(14px);opacity:0;transition:opacity .3s;pointer-events:none;
-}
+  backdrop-filter:blur(14px);opacity:0;transition:opacity .3s;pointer-events:none;}
 #mob-hud.on{opacity:1;}
-#mob-step-lbl{font-family:var(--mono);font-size:.58rem;color:var(--cyan);letter-spacing:.12em;}
-#mob-bar{flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden;}
-#mob-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--pur));
-  border-radius:2px;transition:width .6s ease;}
-#mob-pts{font-family:var(--mono);font-size:.65rem;color:var(--gold);}
-
-/* timer strip */
+#mhl{font-family:var(--mono);font-size:.56rem;color:var(--cyan);letter-spacing:.12em;}
+#mhbar{flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden;}
+#mhfill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--pur));border-radius:2px;transition:width .6s ease;}
+#mhpts{font-family:var(--mono);font-size:.63rem;color:var(--gold);}
 #timer-strip{position:fixed;top:46px;left:0;right:0;height:3px;z-index:199;
   background:var(--bd);display:none;}
 #timer-fill{height:100%;background:var(--gold);transition:width .5s linear;}
-#timer-fill.urgent{background:var(--red);}
+#timer-fill.urg{background:var(--red);}
 
-/* mobile wait */
-.mob-wait{display:flex;flex-direction:column;align-items:center;
-  justify-content:center;min-height:70vh;text-align:center;gap:12px;}
-.pulse-ring{width:64px;height:64px;border-radius:50%;
-  border:2px solid var(--cyan);
-  animation:pr 2s ease-in-out infinite;margin:0 auto;}
-@keyframes pr{0%,100%{transform:scale(1);opacity:.35;}50%{transform:scale(1.18);opacity:.9;}}
-.wdots span{animation:wd 1.3s infinite;display:inline-block;}
-.wdots span:nth-child(2){animation-delay:.22s;}
-.wdots span:nth-child(3){animation-delay:.44s;}
-@keyframes wd{0%,80%,100%{opacity:.15;}40%{opacity:1;}}
-
-/* mobile card */
-.mc{background:var(--s1);border:1px solid var(--bd);
-  border-radius:var(--r);padding:16px;width:100%;margin-bottom:12px;}
-.mc.glow{border-color:rgba(0,229,255,.35);}
-.mc.gold{border-color:rgba(255,196,0,.35);}
-
-/* instruction box */
-.instr{background:rgba(0,229,255,.05);
-  border:1px solid rgba(0,229,255,.15);
+/* mobile screens */
+.mob{display:flex;flex-direction:column;align-items:center;padding:12px 14px 40px;}
+.stag{font-family:var(--mono);font-size:.56rem;letter-spacing:.15em;color:var(--cyan);
+  background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);
+  padding:4px 12px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;}
+.instr{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);
   border-left:3px solid var(--cyan);border-radius:10px;
-  padding:12px 14px;margin-bottom:14px;
-  font-size:.82rem;line-height:1.6;color:#7ab8d4;width:100%;}
+  padding:12px 14px;margin-bottom:12px;font-size:.8rem;line-height:1.6;color:#7ab8d4;width:100%;}
 .instr strong{color:var(--cyan);}
-.itag{font-family:var(--mono);font-size:.6rem;color:var(--gold);
-  letter-spacing:.1em;display:block;margin-bottom:5px;}
+.itag{font-family:var(--mono);font-size:.58rem;color:var(--gold);letter-spacing:.1em;display:block;margin-bottom:5px;}
+.mc{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px;width:100%;margin-bottom:10px;}
+.mc.glow{border-color:rgba(0,229,255,.35);}
 
-/* section tag */
-.stag{font-family:var(--mono);font-size:.58rem;letter-spacing:.15em;
-  color:var(--cyan);background:rgba(0,229,255,.07);
-  border:1px solid rgba(0,229,255,.18);padding:4px 12px;
-  border-radius:20px;margin-bottom:12px;text-transform:uppercase;}
-
-/* chips */
-.chip{display:inline-block;padding:9px 15px;border-radius:24px;
-  font-size:.82rem;font-weight:600;cursor:pointer;
-  background:var(--s2);border:1.5px solid var(--bd);
-  transition:all .18s;user-select:none;margin:4px;}
+/* chip */
+.chip{display:inline-block;padding:8px 13px;border-radius:22px;font-size:.78rem;
+  font-weight:600;cursor:pointer;background:var(--s2);border:1.5px solid var(--bd);
+  transition:all .18s;user-select:none;margin:3px;}
 .chip:active{transform:scale(.94);}
 .chip.sel{border-color:var(--cyan);background:rgba(0,229,255,.12);color:var(--cyan);}
 .chip.ok{border-color:var(--grn);background:rgba(0,230,118,.1);color:var(--grn);}
 .chip.warn{border-color:var(--gold);background:rgba(255,196,0,.1);color:var(--gold);}
 .chip.bad{border-color:var(--red);background:rgba(255,61,90,.1);color:var(--red);}
 
+/* inline feedback */
+.chip-fb{display:none;font-size:.72rem;padding:7px 12px;border-radius:8px;
+  margin:4px 3px;line-height:1.4;animation:fbpop .3s ease both;}
+@keyframes fbpop{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+.chip-fb.ok{background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.25);color:#5eea9a;}
+.chip-fb.warn{background:rgba(255,196,0,.08);border:1px solid rgba(255,196,0,.25);color:#e8c060;}
+.chip-fb.bad{background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.25);color:#ff7a8a;}
+.chip-fb.lang{background:rgba(255,61,90,.12);border:2px solid var(--red);color:#ff7a8a;font-weight:700;}
+
 /* select */
-.gsel{width:100%;background:var(--s2);border:1px solid var(--bd);
-  color:var(--txt);padding:12px 14px;border-radius:10px;
-  font-size:.86rem;outline:none;font-family:var(--sans);
-  appearance:none;-webkit-appearance:none;
+.gsel{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);
+  padding:11px 13px;border-radius:10px;font-size:.84rem;outline:none;
+  font-family:var(--sans);appearance:none;-webkit-appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232e4a62' stroke-width='1.8' fill='none'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
 .gsel:focus{border-color:var(--cyan);}
 
 /* slider */
-input[type=range]{width:100%;height:6px;-webkit-appearance:none;
-  appearance:none;background:var(--bd);border-radius:3px;outline:none;cursor:pointer;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
-  width:26px;height:26px;background:var(--cyan);border-radius:50%;
-  border:3px solid var(--bg);box-shadow:0 0 10px rgba(0,229,255,.6);
-  cursor:pointer;transition:transform .12s;}
+input[type=range]{width:100%;height:6px;-webkit-appearance:none;appearance:none;
+  background:var(--bd);border-radius:3px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;
+  background:var(--cyan);border-radius:50%;border:3px solid var(--bg);
+  box-shadow:0 0 8px rgba(0,229,255,.6);cursor:pointer;transition:transform .12s;}
 input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
-.slrow{margin-bottom:16px;}
-.sltop{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
-.slname{font-size:.86rem;font-weight:600;}
-.slval{font-family:var(--mono);font-size:.86rem;color:var(--cyan);
-  background:rgba(0,229,255,.1);padding:3px 10px;border-radius:6px;}
+.slrow{margin-bottom:14px;}
+.sltop{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.slname{font-size:.84rem;font-weight:600;}
+.slval{font-family:var(--mono);font-size:.84rem;color:var(--cyan);
+  background:rgba(0,229,255,.1);padding:2px 10px;border-radius:5px;}
 
 /* stat grid */
-.statgrid{display:grid;grid-template-columns:1fr 1fr 1fr;
-  gap:1px;background:var(--bd);border-radius:12px;overflow:hidden;margin-bottom:12px;}
-.sbox{background:var(--s1);padding:10px 6px;text-align:center;}
-.slbl{font-family:var(--mono);font-size:.55rem;color:var(--mut);
-  letter-spacing:.07em;margin-bottom:3px;}
-.sval{font-family:var(--mono);font-size:.95rem;font-weight:700;}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--bd);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.sbox{background:var(--s1);padding:9px 6px;text-align:center;}
+.slbl{font-family:var(--mono);font-size:.54rem;color:var(--mut);letter-spacing:.07em;margin-bottom:3px;}
+.sval{font-family:var(--mono);font-size:.92rem;font-weight:700;}
 
 /* cost chain */
-.crow{display:flex;justify-content:space-between;align-items:center;
-  background:var(--s2);border:1px solid var(--bd);
-  border-radius:10px;padding:11px 14px;margin-bottom:7px;font-size:.82rem;}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;
+  background:var(--s2);border:1px solid var(--bd);border-radius:10px;
+  padding:10px 13px;margin-bottom:6px;font-size:.8rem;gap:10px;}
 .crow.cg{border-color:rgba(0,230,118,.4);background:rgba(0,230,118,.05);}
 .crow.cr{border-color:rgba(255,61,90,.4);background:rgba(255,61,90,.05);}
-.camt{font-family:var(--mono);font-size:.86rem;font-weight:700;}
+.camt{font-family:var(--mono);font-size:.84rem;font-weight:700;white-space:nowrap;flex-shrink:0;}
 
-/* trade buttons */
-.trow{display:grid;grid-template-columns:1fr 26px 1fr;gap:6px;
-  align-items:center;margin-bottom:10px;}
+/* trade */
+.trow{display:grid;grid-template-columns:1fr 24px 1fr;gap:5px;align-items:center;margin-bottom:9px;}
 .tcell{background:var(--s2);border:2px solid var(--bd);border-radius:10px;
-  padding:11px 10px;font-size:.78rem;font-weight:600;text-align:center;
+  padding:10px 9px;font-size:.75rem;font-weight:600;text-align:center;
   cursor:pointer;transition:all .18s;line-height:1.4;}
 .tcell:active{transform:scale(.96);}
 .tcell.pick{border-color:var(--grn);background:rgba(0,230,118,.08);color:var(--grn);}
-.tvs{text-align:center;font-family:var(--mono);font-size:.6rem;color:var(--mut);}
+.tvs{text-align:center;font-family:var(--mono);font-size:.58rem;color:var(--mut);}
+.trade-conseq{font-size:.7rem;padding:7px 10px;border-radius:8px;margin-top:6px;
+  line-height:1.4;display:none;animation:fbpop .3s ease both;}
+.trade-conseq.show{display:block;}
+.trade-conseq.bad{background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.25);color:#ff7a8a;}
+.trade-conseq.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.2);color:#5eea9a;}
 
 /* quiz */
-.qopt{width:100%;padding:15px 16px;background:var(--s2);
-  border:2px solid var(--bd);border-radius:12px;margin-bottom:9px;
-  font-size:.9rem;font-weight:600;cursor:pointer;text-align:left;
-  color:var(--txt);transition:all .18s;}
+.qopt{width:100%;padding:14px 15px;background:var(--s2);border:2px solid var(--bd);
+  border-radius:12px;margin-bottom:8px;font-size:.88rem;font-weight:600;
+  cursor:pointer;text-align:left;color:var(--txt);transition:all .18s;}
 .qopt:active{transform:scale(.98);}
 .qopt.ok{border-color:var(--grn);background:rgba(0,230,118,.1);color:var(--grn);}
 .qopt.bad{border-color:var(--red);background:rgba(255,61,90,.1);color:var(--red);}
 .qopt:disabled{cursor:default;}
 
-/* scatter */
-#scatter{border-radius:12px;border:1px solid var(--bd);
-  display:block;margin:0 auto 12px;}
+/* scatter canvas */
+#scatter{border-radius:12px;border:1px solid var(--bd);display:block;margin:0 auto 10px;}
 
-/* feedback */
-.fb{padding:12px 14px;border-radius:10px;font-size:.78rem;
-  line-height:1.55;margin-top:10px;width:100%;}
+/* mobile wait */
+.mob-wait{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:72vh;text-align:center;gap:10px;}
+.pulse-ring{width:60px;height:60px;border-radius:50%;border:2px solid var(--cyan);
+  animation:pr 2s ease-in-out infinite;margin:0 auto;}
+@keyframes pr{0%,100%{transform:scale(1);opacity:.3;}50%{transform:scale(1.18);opacity:.9;}}
+.wdots span{animation:wd 1.3s infinite;display:inline-block;}
+.wdots span:nth-child(2){animation-delay:.22s;}
+.wdots span:nth-child(3){animation-delay:.44s;}
+@keyframes wd{0%,80%,100%{opacity:.15;}40%{opacity:1;}}
+
+/* lb */
+.lbrow{display:flex;align-items:center;gap:10px;background:var(--s1);
+  border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:7px;
+  width:100%;animation:sup .4s ease both;}
+@keyframes sup{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+/* fb */
+.fb{padding:11px 13px;border-radius:10px;font-size:.76rem;line-height:1.5;margin-top:8px;width:100%;}
 .fb.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.25);color:#5eea9a;}
 .fb.bad{background:rgba(255,61,90,.07);border:1px solid rgba(255,61,90,.25);color:#ff7a8a;}
+.fb.warn{background:rgba(255,196,0,.07);border:1px solid rgba(255,196,0,.25);color:#e8c060;}
 
-/* spacers */
-.g8{height:8px;} .g12{height:12px;} .g20{height:20px;}
+/* disaster banner */
+#disaster-banner{
+  display:none;background:rgba(255,61,90,.12);border:2px solid var(--red);
+  border-radius:12px;padding:14px;text-align:center;margin-bottom:12px;
+  width:100%;animation:flashb .8s ease-in-out infinite alternate;
+}
+@keyframes flashb{from{box-shadow:0 0 0 rgba(255,61,90,0);}to{box-shadow:0 0 20px rgba(255,61,90,.4);}}
+#disaster-banner.show{display:block;}
+#disaster-banner .dtitle{font-family:var(--mono);font-size:.88rem;font-weight:700;color:var(--red);margin-bottom:5px;}
+#disaster-banner .dsub{font-size:.76rem;color:#ff7a8a;line-height:1.5;}
 
-/* mobile lb */
-.mob-lb{display:flex;align-items:center;gap:10px;
-  background:var(--s1);border:1px solid var(--bd);border-radius:12px;
-  padding:13px 14px;margin-bottom:7px;width:100%;
-  animation:sup .4s ease both;}
+/* landing */
+#s-land{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.land-input{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);
+  padding:12px 14px;border-radius:10px;font-size:1rem;outline:none;font-family:var(--sans);}
+.land-input:focus{border-color:var(--cyan);}
 
-/* player pills host lobby */
-.ppill{display:inline-flex;align-items:center;gap:5px;
-  background:var(--s2);border:1px solid var(--bd);border-radius:20px;
-  padding:5px 12px;margin:3px;font-size:.8rem;
-  animation:pop .3s cubic-bezier(.34,1.56,.64,1) both;}
-@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
+/* join */
+#s-mjoin{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
 
-@media(max-width:380px){
-  .land-title{font-size:1.9rem;}
-  .trow{grid-template-columns:1fr 22px 1fr;}
-  .tcell{font-size:.72rem;padding:9px 7px;}
-}
-
-/* ── CHAT INTRO ── */
-#s-hintro{
-  display:flex;flex-direction:column;
-  background:var(--bg);
-  padding:0;
-}
-#chat-wrap{
-  flex:1;display:flex;flex-direction:column;
-  max-width:680px;width:100%;margin:0 auto;
-  padding:0 0 12px;
-  overflow:hidden;
-}
-#chat-header{
-  padding:16px 20px 14px;
-  background:rgba(7,17,30,.98);
-  border-bottom:1px solid var(--bd);
-  flex-shrink:0;
-}
-#chat-signal{
-  display:flex;align-items:center;gap:8px;
-  font-family:var(--mono);font-size:.58rem;
-  letter-spacing:.14em;color:var(--mut);margin-bottom:4px;
-}
-#signal-dot{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--red);
-  animation:sigpulse 1s ease-in-out infinite;
-}
-#signal-dot.live{background:var(--grn);}
-@keyframes sigpulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-#chat-from{
-  font-family:'Orbitron',monospace;font-size:.75rem;
-  font-weight:700;color:var(--cyan);
-  text-shadow:0 0 14px rgba(0,229,255,.5);
-}
-#chat-msgs{
-  flex:1;overflow-y:auto;overflow-x:hidden;
-  padding:20px 16px 8px;
-  display:flex;flex-direction:column;gap:12px;
-  scroll-behavior:smooth;
-}
-#chat-msgs::-webkit-scrollbar{display:none;}
-/* message bubbles */
-.cmsg{
-  max-width:78%;animation:msgpop .35s cubic-bezier(.34,1.4,.64,1) both;
-}
-@keyframes msgpop{from{opacity:0;transform:translateY(8px) scale(.95);}to{opacity:1;transform:none;}}
-@keyframes msgpopme{from{opacity:0;transform:translateX(16px) scale(.95);}to{opacity:1;transform:none;}}
-.cmsg.them{align-self:flex-start;}
-.cmsg.me{align-self:flex-end;animation-name:msgpopme;}
-.cmsg-name{
-  font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;
-  color:var(--mut);margin-bottom:4px;padding:0 4px;
-}
-.cmsg.me .cmsg-name{text-align:right;color:rgba(0,229,255,.5);}
-.cmsg-bubble{
-  padding:11px 15px;border-radius:18px;
-  font-size:.88rem;line-height:1.6;
-}
-.cmsg.them .cmsg-bubble{
-  background:var(--s1);border:1px solid var(--bd);
-  color:var(--txt);border-bottom-left-radius:5px;
-}
-.cmsg.me .cmsg-bubble{
-  background:rgba(0,229,255,.12);
-  border:1px solid rgba(0,229,255,.25);
-  color:#b8e8f8;border-bottom-right-radius:5px;
-}
-.cmsg.them .cmsg-bubble.urgent{
-  border-color:rgba(255,61,90,.5);
-  background:rgba(255,61,90,.08);
-}
-.cmsg.them .cmsg-bubble.classified{
-  border-color:rgba(255,196,0,.4);
-  background:rgba(255,196,0,.06);
-  font-family:var(--mono);font-size:.78rem;
-  color:var(--gold);
-}
-/* typing indicator */
-#chat-typing{padding:0 16px;}
-.typing-bubble{
-  display:inline-flex;gap:4px;align-items:center;
-  background:var(--s1);border:1px solid var(--bd);
-  padding:10px 16px;border-radius:18px;border-bottom-left-radius:5px;
-}
-.typing-bubble span{
-  width:6px;height:6px;background:var(--mut);
-  border-radius:50%;animation:tdot 1.2s infinite;
-}
-.typing-bubble span:nth-child(2){animation-delay:.2s;}
-.typing-bubble span:nth-child(3){animation-delay:.4s;}
-@keyframes tdot{0%,80%,100%{transform:scale(1);opacity:.4;}40%{transform:scale(1.3);opacity:1;}}
-/* footer */
-#chat-footer{
-  padding:14px 16px;border-top:1px solid var(--bd);
-  background:rgba(7,17,30,.95);flex-shrink:0;
-  max-width:680px;width:100%;margin:0 auto;
-}
-#chat-btn{
-  width:100%;padding:15px;border-radius:12px;border:none;
-  background:linear-gradient(135deg,var(--cyan),#0099bb);
-  color:#000;font-family:'Orbitron',monospace;
-  font-size:.75rem;font-weight:700;letter-spacing:.1em;cursor:pointer;
-  transition:all .18s;box-shadow:0 0 24px rgba(0,229,255,.3);
-}
-#chat-btn:active{transform:scale(.97);}
-#chat-btn.gold{
-  background:linear-gradient(135deg,var(--gold),#cc7000);
-  box-shadow:0 0 24px rgba(255,196,0,.3);
-}
+/* misc */
+.g8{height:8px;}.g12{height:12px;}.g20{height:20px;}
+@media(max-width:380px){.trow{grid-template-columns:1fr 20px 1fr;}.tcell{font-size:.7rem;padding:8px 7px;}}
 
 @keyframes spyfade{0%{opacity:0;transform:translateX(-50%) translateY(10px);}15%{opacity:1;transform:translateX(-50%) translateY(0);}80%{opacity:1;}100%{opacity:0;}}
 </style>
@@ -449,390 +418,326 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
 <body>
 <canvas id="bgC"></canvas>
 <div id="toast"></div>
-
-<!-- Mobile HUD -->
+<div id="spy-toast"></div>
 <div id="mob-hud">
-  <div id="mob-step-lbl">STEP 0</div>
-  <div id="mob-bar"><div id="mob-bar-fill" style="width:0%"></div></div>
-  <div id="mob-pts">0 pts</div>
+  <div id="mhl">STEP 0</div>
+  <div id="mhbar"><div id="mhfill" style="width:0%"></div></div>
+  <div id="mhpts">0 pts</div>
 </div>
 <div id="timer-strip"><div id="timer-fill" style="width:100%"></div></div>
 
+<!-- glitch overlay -->
+<div id="glitch-overlay"></div>
+<div id="glitch-text"></div>
 
-<!-- ═══════════════════════════════════════════
-     LANDING
-═══════════════════════════════════════════ -->
-<div class="scr on" id="s-land">
-  <svg class="land-hp" viewBox="0 0 110 110" fill="none">
-    <circle cx="55" cy="55" r="52" fill="rgba(0,229,255,.04)" stroke="rgba(0,229,255,.12)" stroke-width="1"/>
+<!-- ══════════════ FAKE KAHOOT ══════════════ -->
+<div class="scr on" id="s-kahoot">
+  <div class="kh-header">
+    <h1>📚 Product Specifications</h1>
+    <p>Chapter 6 · Ulrich &amp; Eppinger · Interactive Quiz</p>
+  </div>
+  <div class="kh-card">
+    <h2>Welcome to today's quiz!</h2>
+    <p>Test your knowledge on Product Specifications, Target Costing and the concept development process. Answer quickly to score bonus points!</p>
+    <div class="kh-pins">
+      <span class="kh-pin">⏱ 8 Questions</span>
+      <span class="kh-pin">🎯 Chapter 6</span>
+      <span class="kh-pin">👥 Team Play</span>
+    </div>
+  </div>
+  <button class="kh-btn" id="kh-start-btn" onclick="startKahootBreach()">▶ START QUIZ</button>
+  <div class="kh-footer">Hosted by Prof. · Digital Innovation &amp; Management · UniBg</div>
+</div>
+
+<!-- ══════════════ LANDING (fallback) ══════════════ -->
+<div class="scr" id="s-land">
+  <svg width="90" height="90" viewBox="0 0 110 110" fill="none" style="margin-bottom:14px;animation:hpf 3.2s ease-in-out infinite;">
+    <style>@keyframes hpf{0%,100%{transform:translateY(0) rotate(-1.5deg);}50%{transform:translateY(-9px) rotate(1.5deg);}}</style>
     <path d="M18 55Q18 18 55 18Q92 18 92 55" stroke="#00e5ff" stroke-width="4.5" fill="none" stroke-linecap="round"/>
     <ellipse cx="14" cy="59" rx="12" ry="18" fill="#07111e" stroke="#00e5ff" stroke-width="2"/>
-    <ellipse cx="14" cy="59" rx="6" ry="10" fill="rgba(0,229,255,.14)"/>
     <ellipse cx="96" cy="59" rx="12" ry="18" fill="#07111e" stroke="#00e5ff" stroke-width="2"/>
-    <ellipse cx="96" cy="59" rx="6" ry="10" fill="rgba(0,229,255,.14)"/>
-    <circle cx="14" cy="59" r="3" fill="#00e5ff"/>
-    <circle cx="96" cy="59" r="3" fill="#00e5ff"/>
-    <path d="M42 44Q48 55 42 66" stroke="rgba(0,229,255,.45)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-    <path d="M68 44Q62 55 68 66" stroke="rgba(0,229,255,.45)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <circle cx="14" cy="59" r="3" fill="#00e5ff"/><circle cx="96" cy="59" r="3" fill="#00e5ff"/>
   </svg>
-  <div class="land-title">SPECMASTER</div>
-  <div class="land-sub">OPERATION SILENT EAR</div>
-  <div class="land-card">
-    <div style="font-size:.72rem;color:var(--mut);margin-bottom:8px;">Your codename:</div>
-    <input class="land-input" id="nick" placeholder="e.g. SHADOW, ACE, VIPER…" maxlength="16" autocomplete="off">
+  <div style="font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(1.8rem,7vw,2.8rem);text-align:center;
+    background:linear-gradient(135deg,#fff,var(--cyan) 45%,var(--pur));-webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;">SPECMASTER</div>
+  <div style="font-family:var(--mono);font-size:.58rem;letter-spacing:.2em;color:var(--mut);margin-bottom:24px;">OPERATION SILENT EAR</div>
+  <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;width:100%;max-width:360px;margin-bottom:12px;">
+    <div style="font-size:.72rem;color:var(--mut);margin-bottom:7px;">Codename:</div>
+    <input class="land-input" id="nick" placeholder="e.g. SHADOW, ACE…" maxlength="16" autocomplete="off">
   </div>
-  <div class="land-btns">
-    <button class="btn btn-p" onclick="startHost()">🖥️ HOST — present to class</button>
-    <button class="btn btn-s" onclick="startJoin()">📱 JOIN — I'm a student</button>
-  </div>
-  <div style="font-size:.65rem;color:var(--mut);text-align:center;margin-top:14px;line-height:1.6;max-width:280px;">
-    HOST controls the game on the projector.<br>Students join with the room code shown on screen.
+  <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:9px;">
+    <button class="btn bp" onclick="startHost()">🖥️ HOST — present to class</button>
+    <button class="btn bs" onclick="startJoin()">📱 JOIN — I'm a student</button>
   </div>
 </div>
 
+<!-- ══════════════ JOIN ══════════════ -->
+<div class="scr" id="s-mjoin">
+  <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:340px;gap:10px;">
+    <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;margin-bottom:6px;">JOIN MISSION</div>
+    <div style="width:100%;">
+      <div style="font-size:.72rem;color:var(--mut);margin-bottom:6px;">Your codename:</div>
+      <input class="land-input" id="m-nick" placeholder="e.g. SHADOW, ACE…" maxlength="16" autocomplete="off">
+    </div>
+    <div style="width:100%;">
+      <div style="font-size:.72rem;color:var(--mut);margin-bottom:6px;">Room code:</div>
+      <input class="land-input" id="m-code" placeholder="e.g. ECHO77" maxlength="8"
+        style="font-family:var(--mono);font-size:1.2rem;letter-spacing:.2em;text-transform:uppercase;text-align:center;">
+    </div>
+    <button class="btn bp" style="width:100%;" onclick="mobileJoin()">JOIN →</button>
+    <button class="btn bs" style="width:100%;" onclick="go('s-land')">← Back</button>
+  </div>
+</div>
 
-<!-- ═══════════════════════════════════════════
-     HOST — LOBBY
-═══════════════════════════════════════════ -->
+<!-- ══════════════ HOST LOBBY ══════════════ -->
+<div class="scr" id="s-hlobby">
+  <div style="text-align:center;padding-top:28px;margin-bottom:16px;">
+    <div style="font-family:var(--mono);font-size:.58rem;color:var(--mut);letter-spacing:.18em;margin-bottom:8px;">ROOM CODE</div>
+    <div class="room-code" id="room-disp">———</div>
+    <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Share this · or scan QR ↓</div>
+  </div>
+  <div id="qr-wrap" style="margin-bottom:16px;text-align:center;"></div>
+  <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
+    padding:14px 18px;width:100%;max-width:480px;margin-bottom:16px;">
+    <div style="font-size:.62rem;color:var(--mut);font-family:var(--mono);margin-bottom:8px;letter-spacing:.1em;">AGENTS CONNECTED:</div>
+    <div id="plist" style="min-height:28px;"></div>
+    <div class="wdots" style="color:var(--mut);font-size:.75rem;margin-top:8px;">Awaiting<span>.</span><span>.</span><span>.</span></div>
+  </div>
+  <button class="btn by" onclick="hostLaunch()" style="max-width:480px;width:100%;">▶ LAUNCH MISSION</button>
+</div>
 
-<!-- ═══════════════════════════════════════════
-     HOST — INTRO / NARRATIVE
-═══════════════════════════════════════════ -->
-<!-- ═══════════════════════════════════════════
-     HOST — CHAT INTRO
-═══════════════════════════════════════════ -->
-<div class="scr" id="s-hintro">
+<!-- ══════════════ HOST CHAT ══════════════ -->
+<div class="scr" id="s-hchat">
   <div id="chat-wrap">
     <div id="chat-header">
-      <div id="chat-signal">
-        <span id="signal-dot"></span>
-        <span id="signal-txt">ENCRYPTED CHANNEL · CONNECTING…</span>
-      </div>
-      <div id="chat-from">UNKNOWN · [CLASSIFIED]</div>
+      <div class="ch-sig"><span id="sig-dot"></span><span id="sig-txt">CONNECTING…</span></div>
+      <div class="ch-from" id="chat-from">UNKNOWN</div>
     </div>
     <div id="chat-msgs"></div>
-    <div id="chat-typing" style="display:none;">
-      <div class="typing-bubble"><span></span><span></span><span></span></div>
+    <div id="chat-typing" style="display:none;padding:0 14px;">
+      <div class="tbub"><span></span><span></span><span></span></div>
     </div>
   </div>
-  <div id="chat-footer">
-    <button id="chat-btn" onclick="chatNext()" style="display:none;">TAP TO CONTINUE ↓</button>
-  </div>
+  <div id="chat-footer"><div id="chat-cta"></div></div>
 </div>
 
-<div class="scr" id="s-hlobby">
-  <div style="text-align:center;margin-bottom:18px;padding-top:20px;">
-    <div style="font-family:var(--mono);font-size:.6rem;color:var(--mut);letter-spacing:.18em;margin-bottom:10px;">ROOM CODE</div>
-    <div class="room-code" id="room-disp">———</div>
-    <div style="font-size:.7rem;color:var(--mut);margin-top:4px;">Share this · or scan QR below</div>
-  </div>
-  <div id="qr-wrap" style="margin-bottom:18px;text-align:center;"></div>
-  <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
-    padding:16px 20px;width:100%;max-width:480px;margin-bottom:18px;">
-    <div style="font-size:.65rem;color:var(--mut);font-family:var(--mono);margin-bottom:10px;letter-spacing:.1em;">AGENTS CONNECTED:</div>
-    <div id="plist" style="min-height:32px;"></div>
-    <div class="wdots" style="color:var(--mut);font-size:.78rem;margin-top:10px;">
-      Waiting for agents<span>.</span><span>.</span><span>.</span>
-    </div>
-  </div>
-  <button class="btn btn-y" onclick="hostLaunch()" style="max-width:480px;">▶ LAUNCH MISSION</button>
-</div>
-
-
-<!-- ═══════════════════════════════════════════
-     HOST — GAME (terminal + panel)
-═══════════════════════════════════════════ -->
+<!-- ══════════════ HOST GAME ══════════════ -->
 <div class="scr" id="s-hgame">
-  <div style="width:100%;max-width:660px;padding-top:20px;">
-
-    <!-- Terminal always visible -->
+  <div style="width:100%;max-width:680px;padding-top:16px;">
     <div id="terminal">
-      <div id="term-hdr">// SPECMASTER · ENCRYPTED CHANNEL — OPERATION SILENT EAR //</div>
+      <div id="term-hdr">// OPERATION SILENT EAR · ENCRYPTED CHANNEL //</div>
       <div id="term-lines"><span id="tcursor"></span></div>
     </div>
-
-    <!-- Step control panel -->
-    <div id="host-panel">
-      <div id="hp-content">
-        <!-- filled dynamically -->
-      </div>
-    </div>
-
+    <div id="host-panel"><div id="hp-content"></div></div>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     HOST — FINAL DASHBOARD
-═══════════════════════════════════════════ -->
+<!-- ══════════════ HOST FINAL DASHBOARD ══════════════ -->
 <div class="scr" id="s-hdash">
-  <div style="width:100%;max-width:660px;padding:20px 0 40px;">
+  <div style="width:100%;max-width:680px;padding:20px 0 40px;">
     <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;margin-bottom:4px;">MISSION DEBRIEF</div>
-      <div id="hdash-winner" style="font-family:var(--mono);font-size:.82rem;color:var(--cyan);line-height:1.7;"></div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;margin-bottom:6px;">MISSION DEBRIEF</div>
+      <div id="hdash-winner" style="font-family:var(--mono);font-size:.8rem;color:var(--cyan);line-height:1.8;"></div>
     </div>
-    <div id="hdash-lb" style="margin-bottom:20px;"></div>
-    <div style="font-family:var(--mono);font-size:.7rem;color:var(--mut);margin-bottom:10px;letter-spacing:.1em;">ALL AGENT SPEC SHEETS:</div>
+    <div id="hdash-lb" style="margin-bottom:18px;"></div>
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--mut);margin-bottom:8px;letter-spacing:.1em;">AGENT SPEC SHEETS:</div>
     <div id="hdash-cards"></div>
     <div class="g20"></div>
-    <button class="btn btn-s" onclick="location.reload()" style="max-width:480px;">NEW MISSION ↺</button>
+    <button class="btn bs" onclick="location.reload()" style="max-width:480px;width:100%;">NEW MISSION ↺</button>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — JOIN
-═══════════════════════════════════════════ -->
-<div class="scr" id="s-mjoin">
-  <div class="mob-scr" style="justify-content:center;min-height:100vh;">
-    <svg width="70" height="70" viewBox="0 0 110 110" fill="none" style="margin-bottom:14px;opacity:.7;">
-      <path d="M18 55Q18 18 55 18Q92 18 92 55" stroke="#00e5ff" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-      <ellipse cx="14" cy="59" rx="12" ry="18" fill="#07111e" stroke="#00e5ff" stroke-width="2"/>
-      <ellipse cx="96" cy="59" rx="12" ry="18" fill="#07111e" stroke="#00e5ff" stroke-width="2"/>
-    </svg>
-    <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;margin-bottom:4px;text-align:center;">JOIN MISSION</div>
-    <div style="font-size:.8rem;color:var(--mut);margin-bottom:24px;text-align:center;">Enter your codename to start</div>
-
-    <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;">
-      <div>
-        <div style="font-size:.72rem;color:var(--mut);margin-bottom:6px;">Your codename:</div>
-        <input class="land-input" id="m-nick" placeholder="e.g. SHADOW, ACE, VIPER…" maxlength="16" autocomplete="off">
-      </div>
-      <div>
-        <div style="font-size:.72rem;color:var(--mut);margin-bottom:6px;">Room code:</div>
-        <input class="land-input" id="m-code" placeholder="e.g. ECHO77" maxlength="8"
-          style="font-family:var(--mono);font-size:1.2rem;letter-spacing:.2em;text-transform:uppercase;text-align:center;">
-      </div>
-      <div class="g8"></div>
-      <button class="btn btn-p" onclick="mobileJoin()">JOIN MISSION →</button>
-      <button class="btn btn-s" onclick="go('s-land')">← Back</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — WAIT SCREEN
-═══════════════════════════════════════════ -->
+<!-- ══════════════ MOBILE WAIT ══════════════ -->
 <div class="scr" id="s-mwait">
-  <div class="mob-scr mob-wait">
+  <div class="mob mob-wait">
     <div class="pulse-ring"></div>
-    <div style="font-family:var(--mono);font-size:.65rem;color:var(--cyan);letter-spacing:.15em;" id="mw-step">CONNECTED</div>
-    <div style="font-size:1.1rem;font-weight:700;" id="mw-title">Waiting for host…</div>
-    <div style="font-size:.8rem;color:var(--mut);max-width:260px;text-align:center;line-height:1.5;" id="mw-sub">
-      The host will launch each step. Stand by.
-    </div>
-    <div class="wdots" style="color:var(--cyan);font-size:1rem;margin-top:8px;"><span>●</span><span>●</span><span>●</span></div>
+    <div style="font-family:var(--mono);font-size:.62rem;color:var(--cyan);letter-spacing:.15em;" id="mw-step">CONNECTED</div>
+    <div style="font-size:1rem;font-weight:700;" id="mw-title">Waiting for host…</div>
+    <div style="font-size:.78rem;color:var(--mut);max-width:250px;line-height:1.5;" id="mw-sub">Stand by</div>
+    <div class="wdots" style="color:var(--cyan);font-size:1rem;margin-top:6px;"><span>●</span><span>●</span><span>●</span></div>
     <div class="g20"></div>
-    <div style="font-size:.72rem;color:var(--mut);">Score: <span style="font-family:var(--mono);color:var(--gold);" id="mw-score">0</span> pts</div>
+    <div style="font-size:.7rem;color:var(--mut);">Score: <span style="font-family:var(--mono);color:var(--gold);" id="mw-score">0</span> pts</div>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — STEP 1 (spec selection)
-═══════════════════════════════════════════ -->
+<!-- ══════════════ MOBILE STEPS ══════════════ -->
+<!-- STEP 1 -->
 <div class="scr" id="s-m1">
-  <div class="mob-scr" style="padding-top:58px;">
+  <div class="mob" style="padding-top:58px;">
     <div class="stag">STEP 1 · SPECS</div>
     <div class="instr">
-      <span class="itag">🕵️ THE CLIENT SAYS:</span>
-      <em>"I need headphones that completely eliminate background noise in hostile environments.
-      They must last at least 8 hours, be lightweight, pair instantly with any device,
-      and deliver crystal-clear audio for receiving instructions."</em>
+      <span class="itag">🕵️ OMEGA'S MESSAGE (intercepted):</span>
+      <em>"I need headphones that completely eliminate background noise. Must last at least 8 hours. Light as possible. Instant pairing with any device. Crystal-clear audio for receiving instructions."</em>
     </div>
     <div class="instr" style="border-left-color:var(--gold);">
-      <span class="itag" style="color:var(--gold);">⚠️ YOUR TASK</span>
-      Select the <strong>correct specifications</strong> from the list below.
-      Too many specs or near-duplicates <strong>lose points</strong>. Be precise.
+      <span class="itag" style="color:var(--gold);">⚠️ TASK — select the correct specs</span>
+      Pick <strong>only</strong> what maps directly to a client need. Too many or near-duplicates = penalty.
+      <strong>Specs need a metric AND a value. Feelings are not specs.</strong>
     </div>
-    <div style="font-size:.75rem;color:var(--mut);margin-bottom:10px;width:100%;" id="s1-count">Selected: 0</div>
-    <div id="s1-pool" style="width:100%;margin-bottom:14px;"></div>
-    <button class="btn btn-p" style="width:100%;" onclick="submitS1()">SUBMIT →</button>
+    <div style="font-size:.72rem;color:var(--mut);margin-bottom:8px;width:100%;" id="s1-count">Selected: 0</div>
+    <div id="s1-pool" style="width:100%;margin-bottom:4px;"></div>
+    <div id="s1-inline-fb" style="width:100%;margin-bottom:10px;"></div>
+    <button class="btn bp" style="width:100%;margin-top:4px;" onclick="submitS1()">SUBMIT →</button>
     <div id="s1-fb" style="display:none;width:100%;"></div>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — STEP 2 (needs → metrics)
-═══════════════════════════════════════════ -->
+<!-- STEP 2 -->
 <div class="scr" id="s-m2">
-  <div class="mob-scr" style="padding-top:58px;">
+  <div class="mob" style="padding-top:58px;">
     <div class="stag">STEP 2 · METRICS</div>
     <div class="instr">
-      <span class="itag">📐 YOUR TASK</span>
-      A <strong>metric</strong> is an objective, measurable quantity that directly reflects
-      how well the product satisfies a need. Match each customer need to its correct metric.
+      <span class="itag">📐 TASK</span>
+      A <strong>metric</strong> is an objective, measurable quantity. It must be a <strong>dependent variable</strong> — it measures WHAT the product does, not HOW it works. Match each need to its metric.
     </div>
     <div id="s2-rows" style="width:100%;"></div>
-    <button class="btn btn-p" style="width:100%;" onclick="submitS2()">SUBMIT →</button>
+    <button class="btn bp" style="width:100%;" onclick="submitS2()">SUBMIT →</button>
     <div id="s2-fb" style="display:none;width:100%;"></div>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — STEP 3 (competitive map + position)
-═══════════════════════════════════════════ -->
+<!-- STEP 3 -->
 <div class="scr" id="s-m3">
-  <div class="mob-scr" style="padding-top:58px;">
-    <div class="stag">STEP 3 · POSITIONING</div>
+  <div class="mob" style="padding-top:58px;">
+    <div class="stag">STEP 3 · COMPETITIVE POSITIONING</div>
     <div class="instr">
-      <span class="itag">🗺️ YOUR TASK</span>
-      Study the competitive map. Then set <strong>your target position</strong>:
-      choose an ANC level and a retail price. These will determine your budget in Step 6.
+      <span class="itag">🗺️ TASK</span>
+      Study the map. The curve shows the market trade-off. <strong>BrandS = ideal benchmark · BrandB = marginal minimum.</strong>
+      Set YOUR target. If you go above the curve = impossible without premium materials.
     </div>
     <canvas id="scatter" width="340" height="210"></canvas>
     <div class="mc glow" style="width:100%;">
-      <div style="font-size:.7rem;font-family:var(--mono);color:var(--cyan);margin-bottom:10px;">SET YOUR TARGET:</div>
+      <div style="font-size:.68rem;font-family:var(--mono);color:var(--cyan);margin-bottom:10px;">YOUR TARGET:</div>
       <div class="slrow">
-        <div class="sltop"><span class="slname">🎧 Target ANC Level</span><span class="slval" id="s3-anc-v">30 dB</span></div>
+        <div class="sltop"><span class="slname">🎧 ANC Level</span><span class="slval" id="s3-anc-v">30 dB</span></div>
         <input type="range" id="s3-anc" min="10" max="50" value="30" oninput="updS3()">
-        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Client needs ≥ 35 dB · Premium ≥ 40 dB</div>
+        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">Client minimum: 35 dB · BrandS: 44 dB</div>
       </div>
       <div class="slrow" style="margin-bottom:0;">
         <div class="sltop"><span class="slname">💰 Retail Price</span><span class="slval" id="s3-price-v">€250</span></div>
         <input type="range" id="s3-price" min="100" max="600" value="250" step="10" oninput="updS3()">
-        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Sets your C* in Step 6 via target costing formula</div>
+        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">This sets your C* in Step 6</div>
       </div>
     </div>
-    <div id="s3-verdict" style="font-size:.8rem;padding:10px 12px;border-radius:10px;
-      margin-bottom:14px;line-height:1.5;width:100%;"></div>
-    <button class="btn btn-p" style="width:100%;" onclick="submitS3()">LOCK POSITION →</button>
+    <div id="s3-verdict" style="font-size:.78rem;padding:10px 12px;border-radius:10px;margin-bottom:12px;line-height:1.5;width:100%;"></div>
+    <div id="s3-impossible" style="display:none;" class="fb bad">⚠️ TECHNICALLY IMPOSSIBLE — You cannot achieve this ANC at this price without Carbon Fiber. Go to Step 5 and select Carbon Fiber to unlock this position.</div>
+    <button class="btn bp" style="width:100%;" onclick="submitS3()">LOCK POSITION →</button>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — STEP 5 (cost model)
-═══════════════════════════════════════════ -->
+<!-- STEP 5 -->
 <div class="scr" id="s-m5">
-  <div class="mob-scr" style="padding-top:58px;">
+  <div class="mob" style="padding-top:58px;">
     <div class="stag">STEP 5 · COST MODEL</div>
     <div class="instr">
-      <span class="itag">🏭 YOUR TASK</span>
-      Tune your headphone specs. The cost model updates live — every choice has a trade-off.
-      Keep an eye on your target from Step 3!
+      <span class="itag">🏭 TASK</span>
+      Tune your specs. Every choice has a cost. The model updates live — find the sweet spot. Remember your target position from Step 3!
     </div>
     <div style="width:100%;">
-      <div class="slrow">
-        <div class="sltop"><span class="slname">🎧 ANC Level</span><span class="slval" id="s5-anc-v">30 dB</span></div>
-        <input type="range" id="s5-anc" min="10" max="50" value="30" oninput="updS5()">
-        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">+€1.80/dB above 25 dB — chip complexity</div>
+      <div class="slrow"><div class="sltop"><span class="slname">🎧 ANC</span><span class="slval" id="v5-anc">30 dB</span></div>
+        <input type="range" id="r5-anc" min="10" max="50" value="30" oninput="updS5()">
+        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">+€1.80/dB above 25 dB</div>
       </div>
-      <div class="slrow">
-        <div class="sltop"><span class="slname">🔋 Battery Life</span><span class="slval" id="s5-bat-v">24 h</span></div>
-        <input type="range" id="s5-bat" min="8" max="60" value="24" oninput="updS5()">
-        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">+€0.90/h +2g/h — bigger cell needed</div>
+      <div class="slrow"><div class="sltop"><span class="slname">🔋 Battery</span><span class="slval" id="v5-bat">24 h</span></div>
+        <input type="range" id="r5-bat" min="8" max="60" value="24" oninput="updS5()">
+        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">+€0.90/h +2g/h</div>
       </div>
-      <div class="slrow">
-        <div class="sltop"><span class="slname">🏗️ Material</span><span class="slval" id="s5-mat-v">Plastic</span></div>
-        <input type="range" id="s5-mat" min="0" max="1" value="0" step="1" oninput="updS5()">
-        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Carbon Fiber: −80g weight but +€58 cost</div>
+      <div class="slrow"><div class="sltop"><span class="slname">🏗️ Material</span><span class="slval" id="v5-mat">Plastic</span></div>
+        <input type="range" id="r5-mat" min="0" max="1" value="0" step="1" oninput="updS5()">
+        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">Carbon Fiber: −80g but +€58</div>
       </div>
-      <div class="slrow" style="margin-bottom:4px;">
-        <div class="sltop"><span class="slname">🎵 Driver Size</span><span class="slval" id="s5-drv-v">40 mm</span></div>
-        <input type="range" id="s5-drv" min="30" max="60" value="40" step="5" oninput="updS5()">
-        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">+€4 per 5mm above 35mm — better audio</div>
+      <div class="slrow" style="margin-bottom:4px;"><div class="sltop"><span class="slname">🎵 Driver</span><span class="slval" id="v5-drv">40 mm</span></div>
+        <input type="range" id="r5-drv" min="30" max="60" value="40" step="5" oninput="updS5()">
+        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">+€4 per 5mm above 35mm</div>
       </div>
     </div>
     <div class="statgrid" style="width:100%;">
-      <div class="sbox"><div class="slbl">WEIGHT</div><div class="sval" id="s5-weight">340g</div></div>
-      <div class="sbox"><div class="slbl">MFG COST</div><div class="sval" id="s5-cost" style="color:var(--gold);">€112</div></div>
-      <div class="sbox"><div class="slbl">AUDIO</div><div class="sval" id="s5-audio" style="color:var(--cyan);">6.5/10</div></div>
+      <div class="sbox"><div class="slbl">WEIGHT</div><div class="sval" id="v5-weight">340g</div></div>
+      <div class="sbox"><div class="slbl">MFG COST</div><div class="sval" id="v5-cost" style="color:var(--gold);">€112</div></div>
+      <div class="sbox"><div class="slbl">AUDIO</div><div class="sval" id="v5-audio" style="color:var(--cyan);">6.5</div></div>
     </div>
-    <div style="font-size:.76rem;color:var(--mut);text-align:center;margin-bottom:14px;line-height:1.5;" id="s5-insight"></div>
-    <button class="btn btn-p" style="width:100%;" onclick="submitS5()">LOCK COST MODEL →</button>
+    <div style="font-size:.74rem;color:var(--mut);text-align:center;margin-bottom:12px;line-height:1.5;" id="v5-insight"></div>
+    <button class="btn bp" style="width:100%;" onclick="submitS5()">LOCK COST MODEL →</button>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — STEP 6 (target costing)
-═══════════════════════════════════════════ -->
+<!-- STEP 6 -->
 <div class="scr" id="s-m6">
-  <div class="mob-scr" style="padding-top:58px;">
+  <div class="mob" style="padding-top:58px;">
     <div class="stag">STEP 6 · TARGET COSTING</div>
     <div class="instr">
       <span class="itag">💰 FORMULA (Appendix p.114)</span>
       <strong>C* = P × (1 − M<sub>r</sub>) × (1 − M<sub>m</sub>)</strong><br>
-      Start from your retail price. Subtract the retailer's margin, then the manufacturer's. What's left is the <strong>maximum you can spend</strong> making the product.
+      Start from the market price. Subtract each channel's margin. What remains is your <strong>maximum allowable manufacturing cost</strong>.
+    </div>
+    <div id="disaster-banner">
+      <div class="dtitle">💸 FINANCIAL DISASTER!</div>
+      <div class="dsub" id="disaster-sub"></div>
     </div>
     <div id="s6-chain" style="width:100%;"></div>
-    <div id="s6-verdict" style="display:none;padding:14px;border-radius:12px;
-      text-align:center;margin-bottom:14px;font-size:.84rem;line-height:1.55;width:100%;"></div>
-    <button class="btn btn-p" style="width:100%;" onclick="submitS6()">CONTINUE →</button>
+    <div id="s6-verdict" style="display:none;padding:13px;border-radius:12px;text-align:center;margin-bottom:12px;font-size:.82rem;line-height:1.55;width:100%;"></div>
+    <button class="btn bp" style="width:100%;" onclick="submitS6()">CONTINUE →</button>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — STEP 7 (trade-offs)
-═══════════════════════════════════════════ -->
+<!-- STEP 7 -->
 <div class="scr" id="s-m7">
-  <div class="mob-scr" style="padding-top:58px;">
+  <div class="mob" style="padding-top:58px;">
     <div class="stag">STEP 7 · TRADE-OFFS</div>
     <div class="instr">
-      <span class="itag">⚖️ YOUR TASK</span>
+      <span class="itag">⚖️ TASK</span>
       <span id="s7-intro"></span>
     </div>
-    <div id="s7-trades" style="width:100%;margin-bottom:14px;"></div>
-    <button class="btn btn-p" style="width:100%;" onclick="submitS7()">FINALIZE SPECS →</button>
+    <div id="s7-trades" style="width:100%;margin-bottom:12px;"></div>
+    <div id="s7-outcome" style="display:none;" class="fb warn"></div>
+    <div class="g8"></div>
+    <button class="btn bp" style="width:100%;" onclick="submitS7()">FINALIZE SPECS →</button>
     <div id="s7-fb" style="display:none;width:100%;"></div>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — STEP 8 (quiz)
-═══════════════════════════════════════════ -->
+<!-- STEP 8 -->
 <div class="scr" id="s-m8">
-  <div class="mob-scr" style="padding-top:58px;">
+  <div class="mob" style="padding-top:58px;">
     <div class="stag" id="s8-num">QUESTION 1/3</div>
-    <div style="font-size:1rem;font-weight:700;line-height:1.45;
-      margin-bottom:18px;text-align:center;width:100%;" id="s8-q"></div>
+    <div style="font-size:.98rem;font-weight:700;line-height:1.45;margin-bottom:16px;text-align:center;width:100%;" id="s8-q"></div>
     <div id="s8-opts" style="width:100%;"></div>
     <div id="s8-exp" style="display:none;width:100%;"></div>
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MOBILE — FINAL
-═══════════════════════════════════════════ -->
+<!-- MOBILE FINAL -->
 <div class="scr" id="s-mfinal">
-  <div class="mob-scr mob-wait">
+  <div class="mob mob-wait">
     <div style="font-size:2.5rem;margin-bottom:10px;">🎯</div>
-    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;text-align:center;" id="mfinal-title">Mission Complete</div>
-    <div style="font-size:.85rem;color:var(--mut);text-align:center;line-height:1.6;max-width:280px;" id="mfinal-sub"></div>
-    <div class="g20"></div>
-    <div style="font-size:.9rem;font-weight:700;">Score: <span style="font-family:var(--mono);color:var(--gold);" id="mfinal-score">0</span> pts</div>
+    <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;text-align:center;" id="mfinal-title">Mission Complete</div>
+    <div style="font-size:.82rem;color:var(--mut);text-align:center;line-height:1.6;max-width:270px;" id="mfinal-sub"></div>
+    <div class="g16"></div>
+    <div style="font-size:.88rem;font-weight:700;">Score: <span style="font-family:var(--mono);color:var(--gold);" id="mfinal-score">0</span> pts</div>
     <div class="g8"></div>
-    <div style="font-size:.72rem;color:var(--mut);">Awaiting final debrief from host…</div>
-    <div class="wdots" style="color:var(--cyan);font-size:.9rem;margin-top:6px;"><span>.</span><span>.</span><span>.</span></div>
+    <div style="font-size:.7rem;color:var(--mut);">Awaiting final debrief…</div>
+    <div class="wdots" style="color:var(--cyan);font-size:.9rem;margin-top:5px;"><span>.</span><span>.</span><span>.</span></div>
   </div>
 </div>
 
-
 <script>
 'use strict';
-
-// ═══════════════════════════════════
+// ══════════════════════════════════
 // BG CANVAS
-// ═══════════════════════════════════
-(function initBg(){
+// ══════════════════════════════════
+(function(){
   const c=document.getElementById('bgC');if(!c)return;
   const x=c.getContext('2d');let t=0;
-  const resize=()=>{c.width=innerWidth;c.height=innerHeight;};
-  resize();window.addEventListener('resize',resize);
+  const r=()=>{c.width=innerWidth;c.height=innerHeight;};
+  r();window.addEventListener('resize',r);
   (function loop(){
     c.width=c.width;
     for(let i=0;i<3;i++){
-      x.strokeStyle=`rgba(0,${160+i*22},${220+i*12},${.028+i*.008})`;
+      x.strokeStyle=`rgba(0,${158+i*22},${218+i*12},${.025+i*.008})`;
       x.lineWidth=1;x.beginPath();
       for(let px=0;px<=c.width;px+=6){
-        const py=c.height*.5+Math.sin(px*.006+t+i*1.1)*28*(i*.45+.7)+Math.sin(px*.016+t*.75)*10;
+        const py=c.height*.5+Math.sin(px*.006+t+i*1.1)*27*(i*.45+.7)+Math.sin(px*.016+t*.75)*10;
         px===0?x.moveTo(px,py):x.lineTo(px,py);
       }
       x.stroke();
@@ -841,117 +746,349 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
   })();
 })();
 
-// ═══════════════════════════════════
-// AUDIO — spy ambient
-// ═══════════════════════════════════
+// ══════════════════════════════════
+// AUDIO
+// ══════════════════════════════════
 let AC=null;
-const MOODS=[
-  {root:110,scale:[0,3,7,10],ms:3400},
-  {root:116,scale:[0,2,5,7,10],ms:3000},
-  {root:123,scale:[0,3,7,10,14],ms:2800},
-  {root:130,scale:[0,2,5,8,11],ms:2600},
-  {root:123,scale:[0,3,5,7,10],ms:2800},
-  {root:138,scale:[0,2,7,10,12],ms:2400},
-  {root:130,scale:[0,3,5,8,10],ms:2600},
-  {root:146,scale:[0,2,5,7,12],ms:2200},
-  {root:155,scale:[0,3,7,10,14],ms:2000},
-];
-let moodIdx=0,moodTimer=null;
 function getAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
-function tone(f,type,dur,vol=0.1,del=0){
-  try{
-    const a=getAC(),o=a.createOscillator(),g=a.createGain();
-    o.connect(g);g.connect(a.destination);o.type=type;o.frequency.value=f;
-    const st=a.currentTime+del;
-    g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(vol,st+.04);
-    g.gain.exponentialRampToValueAtTime(.0001,st+dur);
-    o.start(st);o.stop(st+dur+.05);
-  }catch(e){}
+function tone(f,tp,d,v=0.1,dl=0){
+  try{const a=getAC(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);
+    o.type=tp;o.frequency.value=f;const st=a.currentTime+dl;
+    g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(v,st+.04);
+    g.gain.exponentialRampToValueAtTime(.0001,st+d);o.start(st);o.stop(st+d+.05);}catch(e){}
 }
 function sfxOk(){tone(523,'sine',.08);tone(659,'sine',.08,.1,.1);tone(784,'sine',.14,.1,.2);}
 function sfxBad(){tone(220,'sawtooth',.25,.08);tone(185,'sawtooth',.2,.06,.08);}
 function sfxClick(){tone(880,'sine',.04,.06);}
 function sfxBig(){[262,330,392,523,659].forEach((f,i)=>tone(f,'triangle',.14,.09,i*.07));}
 function sfxWin(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,'sine',.22,.08,i*.09));}
-let musicOn=false;
-function startMusic(idx){
-  moodIdx=Math.min(idx,MOODS.length-1);
-  if(!musicOn){musicOn=true;ambientLoop();}
-}
-function setMood(idx){moodIdx=Math.min(idx,MOODS.length-1);}
-function ambientLoop(){
+const MOODS=[
+  {root:110,scale:[0,3,7,10],ms:3400},{root:116,scale:[0,2,5,7,10],ms:3000},
+  {root:123,scale:[0,3,7,10,14],ms:2800},{root:130,scale:[0,2,5,8,11],ms:2600},
+  {root:123,scale:[0,3,5,7,10],ms:2800},{root:138,scale:[0,2,7,10,12],ms:2400},
+  {root:130,scale:[0,3,5,8,10],ms:2600},{root:146,scale:[0,2,5,7,12],ms:2200},
+  {root:155,scale:[0,3,7,10,14],ms:2000},
+];
+let moodIdx=0,musicOn=false,musicLoop=null;
+function startMusic(i){moodIdx=Math.min(i,MOODS.length-1);if(!musicOn){musicOn=true;ambLoop();}}
+function setMood(i){moodIdx=Math.min(i,MOODS.length-1);}
+function ambLoop(){
   const m=MOODS[moodIdx];
-  try{
-    const a=getAC();
-    m.scale.slice(0,3).forEach((s,i)=>tone(m.root*Math.pow(2,s/12),'sine',2,.018,i*.2));
-    if(Math.random()>.55) tone(m.root/2,'triangle',1.4,.014,.7);
-    if(Math.random()>.7){const hi=m.scale[Math.floor(Math.random()*m.scale.length)]+12;tone(m.root*Math.pow(2,hi/12),'sine',.45,.01,1.3);}
+  try{const a=getAC();
+    m.scale.slice(0,3).forEach((s,i)=>tone(m.root*Math.pow(2,s/12),'sine',2,.016,i*.2));
+    if(Math.random()>.55)tone(m.root/2,'triangle',1.4,.012,.7);
+    if(Math.random()>.7){const hi=m.scale[Math.floor(Math.random()*m.scale.length)]+12;tone(m.root*Math.pow(2,hi/12),'sine',.45,.009,1.3);}
   }catch(e){}
-  moodTimer=setTimeout(ambientLoop,m.ms+(Math.random()*500-250));
+  musicLoop=setTimeout(ambLoop,m.ms+(Math.random()*500-250));
 }
 
-// ═══════════════════════════════════
-// TERMINAL (HOST only)
-// ═══════════════════════════════════
-let tLines=[],tIdx=0,tChar=0,tCB=null,tSpeed=30;
-function runTerm(lines,cb,speed=30){
-  tSpeed=speed;tCB=cb;tLines=lines;tIdx=0;tChar=0;
+// ══════════════════════════════════
+// FAKE KAHOOT BREACH
+// ══════════════════════════════════
+let breachDone=false;
+function startKahootBreach(){
+  if(breachDone)return;
+  breachDone=true;
+  sfxClick();
+  const btn=document.getElementById('kh-start-btn');
+  btn.textContent='Loading quiz…';btn.style.background='#888';
+
+  // after 2s — start the hack
+  setTimeout(()=>{
+    const ov=document.getElementById('glitch-overlay');
+    const gt=document.getElementById('glitch-text');
+    const kh=document.getElementById('s-kahoot');
+
+    // phase 1: glitch lines on white bg
+    ov.style.background='#fff';ov.style.opacity='1';
+    for(let i=0;i<8;i++){
+      const l=document.createElement('div');l.className='glitch-line';
+      l.style.top=Math.random()*100+'%';l.style.opacity=Math.random()*.6+.2;
+      l.style.background=i%2?'rgba(255,61,90,.6)':'rgba(0,229,255,.6)';
+      ov.appendChild(l);
+    }
+    // glitch blocks
+    for(let i=0;i<6;i++){
+      const b=document.createElement('div');b.className='glitch-block';
+      b.style.cssText=`left:${Math.random()*80}%;top:${Math.random()*80}%;
+        width:${Math.random()*200+60}px;height:${Math.random()*40+8}px;
+        animation-delay:${Math.random()*.2}s;`;
+      ov.appendChild(b);
+    }
+    // cursor moving on kahoot text — mutate h2
+    const h2=document.querySelector('.kh-card h2');
+    const origText='Welcome to today\'s quiz!';
+    const hackTexts=['W3lc0m3 t0 th3 m4tr1x!','SYSTEM OVERRIDE…','ACCESS GRANTED','BREACH DETECTED'];
+    let hi=0;
+    const mutInterval=setInterval(()=>{
+      if(h2)h2.textContent=hackTexts[hi%hackTexts.length];
+      hi++;
+    },180);
+
+    // phase 2: after 1.5s show glitch text
+    setTimeout(()=>{
+      clearInterval(mutInterval);
+      gt.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:820;'+
+        'font-family:var(--mono);font-size:clamp(.75rem,2.5vw,1.1rem);color:#ff3d5a;text-align:center;'+
+        'opacity:1;line-height:2;text-shadow:2px 0 #00e5ff,-2px 0 #ff3d5a;'+
+        'animation:glitchshake .15s ease-in-out infinite;';
+      gt.innerHTML='WARNING: UNAUTHORIZED ACCESS<br>FIREWALL BYPASSED<br><span style="color:#00e5ff">DECRYPTING CHANNEL...</span>';
+      tone(80,'sawtooth',.5,.15);tone(120,'sawtooth',.4,.1,.2);
+
+      // phase 3: after 1.2s — go dark
+      setTimeout(()=>{
+        ov.style.transition='background .6s,opacity .4s';
+        ov.style.background='#020810';
+        gt.style.opacity='0';
+        setTimeout(()=>{
+          ov.style.opacity='0';
+          ov.innerHTML='';
+          gt.innerHTML='';
+          // now go to lobby (host) or join (player)
+          go('s-land');
+          // pre-fill host
+          startMusic(0);
+          setTimeout(()=>{
+            go('s-hlobby');
+            launchHostDirect();
+          },100);
+        },700);
+      },1200);
+    },1500);
+  },2000);
+}
+
+// ══════════════════════════════════
+// TERMINAL
+// ══════════════════════════════════
+let tQ=[],tI=0,tC=0,tCB=null,tSpeed=22;
+function runTerm(lines,cb,spd=22){
+  tSpeed=spd;tCB=cb;tQ=lines;tI=0;tC=0;
   const el=document.getElementById('term-lines');
   el.innerHTML='<span id="tcursor"></span>';
   typeT();
 }
 function typeT(){
-  if(tIdx>=tLines.length){if(tCB){const f=tCB;tCB=null;f();}return;}
-  const line=tLines[tIdx];
-  let row=document.querySelector(`#term-lines [data-r="${tIdx}"]`);
-  if(!row){
-    row=document.createElement('div');row.dataset.r=tIdx;
-    document.getElementById('term-lines').insertBefore(row,document.getElementById('tcursor'));
-  }
-  if(tChar<line.t.length){
-    const sub=line.t.substring(0,tChar+1);
-    row.innerHTML=line.c?`<span class="t${line.c}">${sub}</span>`:sub;
-    tChar++;setTimeout(typeT,line.fast?10:tSpeed);
-  } else {
-    tIdx++;tChar=0;setTimeout(typeT,line.p||55);
-  }
+  if(tI>=tQ.length){if(tCB){const f=tCB;tCB=null;f();}return;}
+  const line=tQ[tI];
+  let row=document.querySelector('#term-lines [data-r="'+tI+'"]');
+  if(!row){row=document.createElement('div');row.dataset.r=tI;
+    document.getElementById('term-lines').insertBefore(row,document.getElementById('tcursor'));}
+  if(tC<line.t.length){
+    row.innerHTML=line.c?`<span class="t${line.c}">${line.t.substring(0,tC+1)}</span>`:line.t.substring(0,tC+1);
+    tC++;setTimeout(typeT,line.fast?8:tSpeed);
+  } else {tI++;tC=0;setTimeout(typeT,line.p||50);}
 }
 function appendTerm(lines){
-  // append more lines without clearing
-  tLines=[...tLines,...lines];
-  if(tIdx>=tLines.length-lines.length) typeT();
+  const prevLen=tQ.length;
+  tQ=[...tQ,...lines];
+  if(tI>=prevLen) typeT();
 }
+// add color classes
+document.head.insertAdjacentHTML('beforeend','<style>.tc{color:var(--cyan)}.ty{color:var(--gold)}.tr{color:var(--red)}.tg{color:var(--grn)}.tw{color:#fff}</style>');
 
-// ═══════════════════════════════════
+// ══════════════════════════════════
+// CHAT ENGINE
+// ══════════════════════════════════
+// CHAT_SCRIPT: {side, name, text, delay, typing, cls, pending (= show as clickable blue btn first)}
+const CHAT_INTRO=[
+  {side:'them',name:'UNKNOWN',text:'...',delay:600,typing:1400},
+  {side:'them',name:'UNKNOWN',text:'Connection established.',delay:300},
+  {side:'them',name:'UNKNOWN',text:'Encrypted. Level 5.',delay:500,cls:'cls'},
+  {side:'me',name:'YOU',text:'Who is this?',delay:700,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Someone who has been watching your class for three weeks.',delay:900,typing:1200},
+  {side:'them',name:'UNKNOWN',text:'Digital Innovation and Management. University of Bergamo.',delay:700},
+  {side:'them',name:'UNKNOWN',text:'You study how products are built. From customer need to final specification.',delay:800},
+  {side:'me',name:'YOU',text:'...how do you know that?',delay:900,pending:true},
+  {side:'them',name:'UNKNOWN',text:'We know a lot of things.',delay:500,typing:900},
+  {side:'them',name:'UNKNOWN',text:'Right now what matters is this:',delay:400},
+  {side:'them',name:'UNKNOWN',text:'We have an operative in the field. Codename: OMEGA.',delay:700,cls:'cls'},
+  {side:'them',name:'UNKNOWN',text:'She is embedded in a hostile environment. Heavy machinery. Constant noise. 24/7.',delay:800},
+  {side:'them',name:'UNKNOWN',text:'She has lost communication. Her standard equipment cannot handle it.',delay:700,cls:'urg'},
+  {side:'me',name:'YOU',text:'What does this have to do with me?',delay:900,pending:true},
+  {side:'them',name:'UNKNOWN',text:'She needs custom noise-cancelling headphones.',delay:500,typing:1000},
+  {side:'them',name:'UNKNOWN',text:'Field-grade. Untraceable. Built to exact specifications.',delay:600},
+  {side:'them',name:'UNKNOWN',text:'No off-the-shelf product meets the requirements.',delay:600,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Someone needs to spec them from scratch. Your team has that knowledge.',delay:700},
+  {side:'me',name:'YOU',text:"I've never done this for real before.",delay:1000,pending:true},
+  {side:'them',name:'UNKNOWN',text:'That is why we chose students. Fresh eyes. No assumptions.',delay:800,typing:1100},
+  {side:'them',name:'UNKNOWN',text:'But understand this clearly:',delay:400,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Specifications are not wishes. They are precise, measurable, testable targets.',delay:700,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Get them wrong — the headphones fail. OMEGA is compromised. The mission is over.',delay:900,cls:'urg'},
+  {side:'me',name:'YOU',text:'Understood. What do I need to do?',delay:1000,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Seven steps. Each agent on their phone. You control the pace.',delay:700,typing:1100},
+  {side:'them',name:'UNKNOWN',text:'Step 1 — identify correct specs from the client brief.',delay:500},
+  {side:'them',name:'UNKNOWN',text:'Step 2 — map each need to its measurable metric.',delay:500},
+  {side:'them',name:'UNKNOWN',text:'Step 3 — benchmark the market. Choose where to position.',delay:500},
+  {side:'them',name:'UNKNOWN',text:'Steps 5 and 6 — build the cost model. Apply target costing.',delay:600},
+  {side:'them',name:'UNKNOWN',text:'Step 7 — make the hard trade-offs. You cannot have everything.',delay:600},
+  {side:'them',name:'UNKNOWN',text:'Step 8 — final verification. Prove you understood the theory.',delay:600},
+  {side:'them',name:'UNKNOWN',text:'OMEGA is counting on your team.',delay:500,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Do not fail her.',delay:300,cls:'urg'},
+  {side:'me',name:'YOU',text:"Let's begin.",delay:700,pending:true,last:true},
+];
+
+// Between-step chat scripts (keyed by step just completed)
+const CHAT_BETWEEN={
+  1:[
+    {side:'them',name:'UNKNOWN',text:'Step 1 complete. Analyzing results…',delay:400,cls:'cls'},
+    {side:'them',name:'UNKNOWN',text:'__LEADERBOARD__',delay:600},// replaced dynamically
+    {side:'them',name:'UNKNOWN',text:'Remember: a specification without a metric is just a wish.',delay:700},
+    {side:'me',name:'YOU',text:'Ready for Step 2.',delay:600,pending:true,last:true},
+  ],
+  2:[
+    {side:'them',name:'UNKNOWN',text:'Metrics locked. Moving to competitive analysis.',delay:400,cls:'cls'},
+    {side:'them',name:'UNKNOWN',text:'__LEADERBOARD__',delay:600},
+    {side:'them',name:'UNKNOWN',text:'Study the market carefully. Your target position defines your entire budget.',delay:800},
+    {side:'me',name:'YOU',text:'Understood. Launching Step 3.',delay:600,pending:true,last:true},
+  ],
+  3:[
+    {side:'them',name:'UNKNOWN',text:'Position selected. Now we build the cost model.',delay:400,cls:'cls'},
+    {side:'them',name:'UNKNOWN',text:'__LEADERBOARD__',delay:600},
+    {side:'them',name:'UNKNOWN',text:'Every slider you move has a real cost consequence. There is no free lunch.',delay:800},
+    {side:'me',name:'YOU',text:'Moving to cost model.',delay:600,pending:true,last:true},
+  ],
+  5:[
+    {side:'them',name:'UNKNOWN',text:'Cost model complete. Now the critical question.',delay:400,cls:'cls'},
+    {side:'them',name:'UNKNOWN',text:'__LEADERBOARD__',delay:600},
+    {side:'them',name:'UNKNOWN',text:'Can you make money selling this? Target costing will tell you.',delay:800,cls:'urg'},
+    {side:'me',name:'YOU',text:'Running the numbers now.',delay:600,pending:true,last:true},
+  ],
+  6:[
+    {side:'them',name:'UNKNOWN',text:'Costing analysis done.',delay:400,cls:'cls'},
+    {side:'them',name:'UNKNOWN',text:'__LEADERBOARD__',delay:600},
+    {side:'them',name:'UNKNOWN',text:'Some of you are over budget. Hard choices ahead. This is the real work of product development.',delay:900,cls:'urg'},
+    {side:'me',name:'YOU',text:'Ready to make the trade-offs.',delay:600,pending:true,last:true},
+  ],
+  7:[
+    {side:'them',name:'UNKNOWN',text:'Spec sheets finalized. One last test.',delay:400,cls:'cls'},
+    {side:'them',name:'UNKNOWN',text:'__LEADERBOARD__',delay:600},
+    {side:'them',name:'UNKNOWN',text:'Prove you understood not just the task — but the theory behind it.',delay:800},
+    {side:'me',name:'YOU',text:'Ready for the final quiz.',delay:600,pending:true,last:true},
+  ],
+};
+
+let chatQ=[],chatI=0,chatCB=null;
+function runChat(lines,cb){
+  chatCB=cb;chatQ=lines;chatI=0;
+  document.getElementById('chat-msgs').innerHTML='';
+  document.getElementById('chat-typing').style.display='none';
+  document.getElementById('chat-cta').textContent='';
+  go('s-hchat');
+  nextChatMsg();
+}
+function nextChatMsg(){
+  if(chatI>=chatQ.length){
+    if(chatCB){const f=chatCB;chatCB=null;f();}
+    return;
+  }
+  const msg=chatQ[chatI];
+  document.getElementById('chat-cta').textContent='';
+
+  if(msg.side==='me'&&msg.pending){
+    // show as clickable pending bubble
+    const wrap=document.getElementById('chat-msgs');
+    const pd=document.createElement('div');
+    pd.className='cmsg-pending';
+    pd.innerHTML=`<div class="cpending-label">TAP TO SEND ↓</div><div class="cpending-bubble" onclick="sendPending(this,'${escQ(msg.text)}','${msg.name}')">${msg.text}</div>`;
+    wrap.appendChild(pd);scrollChat();
+    document.getElementById('chat-cta').textContent='👆 tap the message to send it';
+    return; // wait for click
+  }
+
+  // auto message
+  if(msg.side==='them'){
+    document.getElementById('chat-typing').style.display='block';scrollChat();
+    const dur=msg.typing||(msg.text.length*26+350);
+    setTimeout(()=>{
+      document.getElementById('chat-typing').style.display='none';
+      renderMsg(msg);
+      chatI++;
+      const nextDelay=(chatQ[chatI]?chatQ[chatI].delay:400)||400;
+      setTimeout(nextChatMsg,nextDelay);
+    },dur);
+  } else {
+    // me auto (no pending)
+    setTimeout(()=>{renderMsg(msg);chatI++;
+      const nd=(chatQ[chatI]?chatQ[chatI].delay:400)||400;
+      setTimeout(nextChatMsg,nd);
+    },80);
+  }
+}
+function escQ(s){return s.replace(/'/g,"\\'");}
+function sendPending(el,text,name){
+  sfxClick();
+  const pd=el.closest('.cmsg-pending');
+  if(pd){
+    // replace with real bubble
+    const div=document.createElement('div');div.className='cmsg me';
+    div.innerHTML=`<div class="cname">${name}</div><div class="cbubble">${text}</div>`;
+    pd.replaceWith(div);scrollChat();
+  }
+  tone(600,'sine',.05,.035);
+  chatI++;
+  const msg=chatQ[chatI-1];
+  if(msg&&msg.last){
+    // done
+    document.getElementById('chat-cta').textContent='';
+    setTimeout(()=>{if(chatCB){const f=chatCB;chatCB=null;f();}},600);
+    return;
+  }
+  const nd=(chatQ[chatI]?chatQ[chatI].delay:400)||400;
+  setTimeout(nextChatMsg,nd);
+}
+function renderMsg(msg){
+  // handle leaderboard placeholder
+  if(msg.text==='__LEADERBOARD__'){renderLeaderboardMsg();return;}
+  const wrap=document.getElementById('chat-msgs');
+  const div=document.createElement('div');div.className='cmsg '+msg.side;
+  div.innerHTML=`<div class="cname">${msg.name}</div><div class="cbubble${msg.cls?' '+msg.cls:''}">${msg.text}</div>`;
+  wrap.appendChild(div);scrollChat();
+  if(msg.side==='them')tone(440+Math.random()*60,'sine',.06,.038);
+}
+function renderLeaderboardMsg(){
+  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
+  if(!sorted.length)return;
+  const lines=sorted.map(([n,d],i)=>`${['🥇','🥈','🥉'][i]||'·'} ${n}: ${d.score||0} pts`).join('<br>');
+  const wrap=document.getElementById('chat-msgs');
+  const div=document.createElement('div');div.className='cmsg them';
+  div.innerHTML=`<div class="cname">UNKNOWN</div><div class="cbubble cls" style="font-family:var(--mono);font-size:.76rem;line-height:1.9;">${lines}</div>`;
+  wrap.appendChild(div);scrollChat();
+}
+function scrollChat(){setTimeout(()=>{const w=document.getElementById('chat-msgs');if(w)w.scrollTop=w.scrollHeight;},50);}
+
+// ══════════════════════════════════
 // UI HELPERS
-// ═══════════════════════════════════
+// ══════════════════════════════════
 let myScore=0;
 function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));const el=document.getElementById(id);if(el)el.classList.add('on');}
-function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),dur);}
-function addPts(n){myScore+=n;document.getElementById('mob-pts').textContent=myScore+' pts';document.getElementById('mw-score').textContent=myScore;if(n>0)toast('+'+n+' pts 🎯');}
-function setMobHUD(label,pct){document.getElementById('mob-hud').classList.add('on');document.getElementById('mob-step-lbl').textContent=label;document.getElementById('mob-bar-fill').style.width=pct+'%';}
+function toast(msg,dur=2400){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),dur);}
+function addPts(n){myScore+=n;document.getElementById('mhpts').textContent=myScore+' pts';document.getElementById('mw-score').textContent=myScore;if(n>0)toast('+'+n+' pts 🎯');}
+function setMobHUD(lbl,pct){document.getElementById('mob-hud').classList.add('on');document.getElementById('mhl').textContent=lbl;document.getElementById('mhfill').style.width=pct+'%';}
+function showSpyToast(msg){
+  const t=document.getElementById('spy-toast');
+  t.innerHTML='<div style="font-size:.54rem;color:var(--mut);margin-bottom:3px;letter-spacing:.12em;">// HANDLER //</div>'+msg;
+  t.classList.add('on');setTimeout(()=>t.classList.remove('on'),4000);
+}
+function showFb(id,cls,html){const el=document.getElementById(id);if(!el)return;el.style.display='block';el.className='fb '+cls;el.innerHTML=html;}
 function confetti(){const cols=['#00e5ff','#ffc400','#00e676','#ff3d5a','#b366ff','#fff'];for(let i=0;i<52;i++){const c=document.createElement('div');c.className='cf';c.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]};animation-delay:${Math.random()*1.5}s;animation-duration:${2+Math.random()*1.5}s;border-radius:${Math.random()>.5?'50%':'2px'}`;document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}}
-function showFb(id,ok,html){const el=document.getElementById(id);if(!el)return;el.style.display='block';el.className='fb '+(ok?'ok':'bad');el.innerHTML=html;}
 
 let timerInt=null;
-function startTimer(s,urgAt=12){
+function startTimer(s){
   clearInterval(timerInt);
   document.getElementById('timer-strip').style.display='block';
-  const fill=document.getElementById('timer-fill');
-  const start=Date.now();
+  const fill=document.getElementById('timer-fill'),start=Date.now();
   timerInt=setInterval(()=>{
-    const el=(Date.now()-start)/1000;
-    const pct=Math.max(0,(s-el)/s*100);
-    fill.style.width=pct+'%';
-    fill.classList.toggle('urgent',el>s-urgAt);
+    const el=(Date.now()-start)/1000,pct=Math.max(0,(s-el)/s*100);
+    fill.style.width=pct+'%';fill.classList.toggle('urg',el>s-15);
     if(el>=s)clearInterval(timerInt);
   },200);
 }
 function stopTimer(){clearInterval(timerInt);document.getElementById('timer-strip').style.display='none';}
 
-// ═══════════════════════════════════
+// ══════════════════════════════════
 // ABLY
-// ═══════════════════════════════════
+// ══════════════════════════════════
 const ABLY_KEY='xC3oQQ.lm_9hg:boqSp-TCWIv_mIHQzAxWLI7KZcsMUjE7U7tAd6cZDbM';
 let ably=null,ch=null,myNick='',myRoom='';
 let players={};
@@ -963,7 +1100,7 @@ async function connectAbly(room){
   try{
     if(ably){try{ably.close();}catch(e){}}
     ably=new Ably.Realtime({key:ABLY_KEY,clientId:myNick+'_'+Date.now()});
-    ch=ably.channels.get('sme4-'+room);
+    ch=ably.channels.get('sme5-'+room);
     await new Promise((res,rej)=>{
       ably.connection.on('connected',res);
       ably.connection.on('failed',()=>rej(new Error('failed')));
@@ -972,420 +1109,209 @@ async function connectAbly(room){
     return true;
   }catch(e){console.error('Ably:',e.message);return false;}
 }
-function pub(ev,data){if(ch)ch.publish(ev,data).catch(e=>console.error(e));}
+function pub(ev,data){if(ch)ch.publish(ev,data).catch(()=>{});}
 function sub(ev,fn){if(ch)ch.subscribe(ev,msg=>fn(msg.data));}
 
-// ═══════════════════════════════════
-// LANDING
-// ═══════════════════════════════════
-
-// ═══════════════════════════════════
-// CHAT INTRO — spy messenger
-// ═══════════════════════════════════
-const CHAT_SCRIPT = [
-  // {side:'them'/'me', name, text, delay_before, cls:'urgent'/'classified'/null, btn:'label'/null}
-  {side:'them', name:'UNKNOWN', text:'...', delay:800, typing:1200},
-  {side:'them', name:'UNKNOWN', text:'Connection established.', delay:300},
-  {side:'them', name:'UNKNOWN', text:'Encrypted. Level 5.', delay:600, cls:'classified'},
-  {side:'me', name:'YOU', text:'Who is this?', delay:900},
-  {side:'them', name:'UNKNOWN', text:'Someone who has been watching your class for three weeks.', delay:1000},
-  {side:'them', name:'UNKNOWN', text:'Digital Innovation and Management. University of Bergamo.', delay:700},
-  {side:'them', name:'UNKNOWN', text:'You study how products are built. From customer need to final specification.', delay:800},
-  {side:'me', name:'YOU', text:'...how do you know that?', delay:1100},
-  {side:'them', name:'UNKNOWN', text:'We know a lot of things.', delay:600},
-  {side:'them', name:'UNKNOWN', text:'Right now what matters is this:', delay:500, btn:'WHAT?'},
-
-  {side:'them', name:'UNKNOWN', text:'We have an operative in the field. Codename: OMEGA.', delay:700, cls:'classified'},
-  {side:'them', name:'UNKNOWN', text:'She is embedded in a high-noise environment — factory district, heavy machinery, 24/7.', delay:900},
-  {side:'them', name:'UNKNOWN', text:'She has lost communication. Her standard equipment cannot handle the noise.', delay:800, cls:'urgent'},
-  {side:'me', name:'YOU', text:'What does this have to do with me?', delay:1000},
-  {side:'them', name:'UNKNOWN', text:'She needs a custom pair of noise-cancelling headphones.', delay:600},
-  {side:'them', name:'UNKNOWN', text:'Field-grade. Untraceable. Built to exact specifications.', delay:700},
-  {side:'them', name:'UNKNOWN', text:'No off-the-shelf product meets the requirements.', delay:600, cls:'urgent'},
-  {side:'them', name:'UNKNOWN', text:'Someone needs to spec them from scratch.', delay:500, btn:'AND that someone is me.'},
-
-  {side:'them', name:'UNKNOWN', text:'You and your team, yes.', delay:600},
-  {side:'them', name:'UNKNOWN', text:'Each of you will build a complete specification sheet.', delay:700},
-  {side:'them', name:'UNKNOWN', text:'The best one gets approved for production.', delay:600},
-  {side:"me", name:"YOU", text:"I've never done this for real before.", delay:1000},
-  {side:'them', name:'UNKNOWN', text:'That is why we chose students. Fresh eyes. No assumptions.', delay:800},
-  {side:'them', name:'UNKNOWN', text:'But understand this:', delay:400, cls:'urgent'},
-  {side:'them', name:'UNKNOWN', text:'Specifications are not wishes. They are precise, measurable, testable targets.', delay:700, cls:'urgent'},
-  {side:'them', name:'UNKNOWN', text:'Get them wrong — the headphones fail. OMEGA is compromised. The mission is over.', delay:900, cls:'urgent'},
-  {side:'me', name:'YOU', text:'Understood. What do I need to do?', delay:1100, btn:'UNDERSTOOD. WHAT DO I DO?'},
-
-  {side:'them', name:'UNKNOWN', text:'Seven steps. Your team does them simultaneously on their phones.', delay:700},
-  {side:'them', name:'UNKNOWN', text:'01 — Identify the correct specifications from the client brief.', delay:600},
-  {side:'them', name:'UNKNOWN', text:'02 — Map each customer need to its measurable metric.', delay:600},
-  {side:'them', name:'UNKNOWN', text:'03 — Study the competitive market. Choose where to position.', delay:600},
-  {side:'them', name:'UNKNOWN', text:'04 — Build a cost model. Every spec choice has a cost.', delay:600},
-  {side:'them', name:'UNKNOWN', text:'05 — Apply target costing. Can you make it profitable?', delay:600},
-  {side:'them', name:'UNKNOWN', text:'06 — Make the hard trade-offs. You cannot have everything.', delay:600},
-  {side:'them', name:'UNKNOWN', text:'07 — Final verification. Prove you understood Chapter 6.', delay:700},
-  {side:'them', name:'UNKNOWN', text:'You control the pace. Launch each step when ready.', delay:600, cls:'classified'},
-  {side:'them', name:'UNKNOWN', text:'OMEGA is counting on you.', delay:500, cls:'urgent'},
-  {side:'them', name:'UNKNOWN', text:'Do not fail her.', delay:400, cls:'urgent', btn:'BEGIN OPERATION →'},
-];
-
-let chatIdx = 0;
-let chatAutoRunning = false;
-
-function initChat() {
-  document.getElementById('chat-msgs').innerHTML = '';
-  document.getElementById('chat-typing').style.display = 'none';
-  document.getElementById('chat-btn').style.display = 'none';
-  chatIdx = 0;
-  // start with a delay
-  setTimeout(() => {
-    document.getElementById('signal-dot').classList.add('live');
-    document.getElementById('signal-txt').textContent = 'ENCRYPTED CHANNEL · ACTIVE';
-    runChatStep();
-  }, 800);
-}
-
-function runChatStep() {
-  if (chatIdx >= CHAT_SCRIPT.length) {
-    // done — go to lobby
-    goLobby();
-    return;
-  }
-  const msg = CHAT_SCRIPT[chatIdx];
-
-  // hide button while processing
-  document.getElementById('chat-btn').style.display = 'none';
-
-  // show typing indicator if 'them'
-  const showTyping = msg.side === 'them';
-  if (showTyping) {
-    document.getElementById('chat-typing').style.display = 'block';
-    scrollChat();
-  }
-
-  const typingDuration = msg.typing || (msg.text.length * 28 + 400);
-
-  setTimeout(() => {
-    document.getElementById('chat-typing').style.display = 'none';
-    appendChatMsg(msg);
-    chatIdx++;
-
-    if (msg.btn) {
-      // pause and wait for tap
-      const btn = document.getElementById('chat-btn');
-      btn.textContent = msg.btn === true ? 'TAP TO CONTINUE ↓' : msg.btn;
-      btn.className = (msg.side === 'me') ? 'gold' : '';
-      btn.style.display = 'block';
-    } else {
-      // auto-advance
-      const nextDelay = (CHAT_SCRIPT[chatIdx] ? CHAT_SCRIPT[chatIdx].delay : 500) || 600;
-      setTimeout(runChatStep, nextDelay);
-    }
-  }, showTyping ? typingDuration : 100);
-}
-
-function chatNext() {
-  sfxClick();
-  document.getElementById('chat-btn').style.display = 'none';
-  const nextDelay = (CHAT_SCRIPT[chatIdx] ? CHAT_SCRIPT[chatIdx].delay : 400) || 400;
-  setTimeout(runChatStep, nextDelay);
-}
-
-function appendChatMsg(msg) {
-  const wrap = document.getElementById('chat-msgs');
-  const div = document.createElement('div');
-  div.className = 'cmsg ' + msg.side;
-  const clsCss = msg.cls ? ' ' + msg.cls : '';
-  div.innerHTML =
-    '<div class="cmsg-name">' + msg.name + '</div>' +
-    '<div class="cmsg-bubble' + clsCss + '">' + msg.text + '</div>';
-  wrap.appendChild(div);
-  scrollChat();
-  // play sound
-  if (msg.side === 'them') tone(440 + Math.random()*80, 'sine', .06, .04);
-  else tone(600, 'sine', .05, .035);
-}
-
-function scrollChat() {
-  const w = document.getElementById('chat-msgs');
-  setTimeout(() => { w.scrollTop = w.scrollHeight; }, 50);
-}
-
-function startHost(){
-  sfxClick();
-  myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);
-  go('s-hintro');
-  startMusic(0);
-  setTimeout(initChat, 400);
-}
-function goLobby(){
-  sfxClick();
-  launchHost();
-}
-function startJoin(){
-  sfxClick();
-  const params=new URLSearchParams(location.search);
-  const room=params.get('room');
-  if(room) document.getElementById('m-code').value=room.toUpperCase();
-  // pre-fill nick field but keep empty for user to fill
-  go('s-mjoin');
-}
-
-// ═══════════════════════════════════
+// ══════════════════════════════════
 // HOST FLOW
-// ═══════════════════════════════════
+// ══════════════════════════════════
 let currentStep=0;
-let stepDone={};// {nick: bool} per step
-async function launchHost(){
-  myRoom=genRoom();
+const STEP_NAMES=['READY','STEP 1','STEP 2','STEP 3','—','STEP 5','STEP 6','STEP 7','STEP 8','DONE'];
+const STEP_PCT=[0,11,22,33,44,55,66,77,88,100];
+
+function startHost(){sfxClick();myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);go('s-hlobby');launchHostDirect();}
+function startJoin(){sfxClick();const p=new URLSearchParams(location.search);const r=p.get('room');if(r)document.getElementById('m-code').value=r.toUpperCase();go('s-mjoin');}
+
+async function launchHostDirect(){
+  myRoom=myRoom||genRoom();
   document.getElementById('room-disp').textContent=myRoom;
   buildQR();
-  go('s-hlobby');
   const ok=await connectAbly(myRoom);
-  if(!ok){toast('⚠️ Running offline — no multiplayer');}
+  if(!ok){toast('⚠️ Offline mode');}
   else{
-    sub('join',d=>{
-      players[d.nick]={score:0,step:0};
-      renderPList();toast('🕵️ '+d.nick+' joined!');
-    });
+    sub('join',d=>{players[d.nick]={score:0,step:0};renderPList();toast('🕵️ '+d.nick+' joined!');});
     sub('step-result',d=>{
       if(!players[d.nick])players[d.nick]={score:0,step:0};
-      Object.assign(players[d.nick],d.data,{step:d.step,score:d.score});
-      updateProgress();
-      broadcastSpyComment(d.nick,d.step,d.score);
+      Object.assign(players[d.nick],d.data,{step:d.step,score:d.score||0});
+      updateProgress();broadcastSpyComment(d.nick,d.step,d.score||0);
     });
-    sub('quiz-ans',d=>{
-      if(players[d.nick]&&d.correct) players[d.nick].quizPts=(players[d.nick].quizPts||0)+100;
-      updateProgress();
-    });
+    sub('quiz-ans',d=>{if(players[d.nick]&&d.correct)players[d.nick].quizPts=(players[d.nick].quizPts||0)+100;updateProgress();});
   }
 }
 function buildQR(){
   const base='https://lruggeri8-wq.github.io/specmaster/';
   const url=encodeURIComponent(base+'?room='+myRoom+'&role=player');
   document.getElementById('qr-wrap').innerHTML=
-    `<img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${url}&bgcolor=020810&color=00e5ff&margin=8" alt="QR">
-    <div style="font-family:var(--mono);font-size:.52rem;color:var(--mut);text-align:center;margin-top:6px;letter-spacing:.08em;">
-      ${base}<br>code: ${myRoom}
+    `<img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=155x155&data=${url}&bgcolor=020810&color=00e5ff&margin=8" alt="QR">
+    <div style="font-family:var(--mono);font-size:.5rem;color:var(--mut);text-align:center;margin-top:5px;">
+      lruggeri8-wq.github.io/specmaster/?room=${myRoom}
     </div>`;
 }
-function renderPList(){
-  document.getElementById('plist').innerHTML=Object.keys(players).map(n=>`<span class="ppill">🕵️ ${n}</span>`).join('');
-}
+function renderPList(){document.getElementById('plist').innerHTML=Object.keys(players).map(n=>`<span class="ppill">🕵️ ${n}</span>`).join('');}
 function updateProgress(){
-  const count=Object.keys(players).length;
-  const done=Object.values(players).filter(p=>p.step>=currentStep).length;
-  const fill=document.getElementById('hp-prog-fill');
-  const lbl=document.getElementById('hp-prog-lbl');
-  if(fill) fill.style.width=count?Math.round(done/count*100)+'%':'0%';
-  if(lbl) lbl.textContent=done+'/'+count+' done';
+  const count=Object.keys(players).length,done=Object.values(players).filter(p=>p.step>=currentStep).length;
+  const fill=document.getElementById('hp-prog-fill'),lbl=document.getElementById('hp-prog-lbl');
+  if(fill)fill.style.width=(count?Math.round(done/count*100):0)+'%';
+  if(lbl)lbl.textContent=done+'/'+count+' done';
+}
+
+function broadcastSpyComment(nick,step,score){
+  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
+  const rank=sorted.findIndex(([n])=>n===nick)+1;
+  const total=sorted.length;
+  const top=sorted[0]?sorted[0][1].score||0:0;
+  const gap=top-score;
+  let comment='';
+  if(rank===1&&total>1){const p=['Impressive. '+nick+' takes the lead.','Sharp thinking, '+nick+'. Keep it up.',''+nick+' is outperforming the rest. Noted.'];comment=p[Math.floor(Math.random()*p.length)];}
+  else if(gap>0&&gap<50){comment=nick+' is closing in. Only '+gap+' points behind the leader.';}
+  else if(rank===total&&total>1){const p=['Do not give up, '+nick+'. We need every agent.',''+nick+' — you can recover. Stay focused.','Everyone has a bad step. Keep moving, '+nick+'.'];comment=p[Math.floor(Math.random()*p.length)];}
+  else if(total>1){const p=['Solid work, '+nick+'.',''+nick+' — promising. We are watching.','Mid-pack. '+nick+' has more to give.'];comment=p[Math.floor(Math.random()*p.length)];}
+  if(comment){appendTerm([{t:'> HANDLER: '+comment,c:'y',p:0}]);pub('spy-msg',{msg:comment});}
 }
 
 function hostLaunch(){
-  sfxBig();startMusic(0);
-  pub('game-start',{});
-  go('s-hgame');
+  sfxBig();startMusic(0);pub('game-start',{});
   const n=Object.keys(players).length;
   runTerm([
-    {t:'WARNING: UNIDENTIFIED SIGNAL DETECTED ON THIS MACHINE',c:'r',p:80,fast:true},
-    {t:'FIREWALL BREACH IN PROGRESS...',c:'r',p:60,fast:true},
-    {t:'ACCESS GRANTED — REMOTE CONNECTION ESTABLISHED',c:'r',p:80,fast:true},
-    {t:'',p:120},
-    {t:'> CHANNEL: OMEGA-7 // EYES ONLY // NO RECORD',c:'y',p:140},
-    {t:'> FROM: [REDACTED]  TO: DIM UNIT — '+n+' AGENTS',c:'c',p:120},
-    {t:'> RE: OPERATION SILENT EAR  //  PRIORITY: CRITICAL',c:'r',p:120},
+    {t:'WARNING: UNAUTHORIZED SIGNAL ON THIS MACHINE',c:'r',p:60,fast:true},
+    {t:'FIREWALL BYPASS DETECTED — REMOTE ACCESS GRANTED',c:'r',p:60,fast:true},
     {t:'',p:100},
-    {t:'> OPERATIVE OMEGA — STATUS: COMPROMISED',c:'r',p:140},
-    {t:'> She is in. We cannot extract her without comms.',p:120},
-    {t:'> Standard equipment fails in high-noise environments.',p:100},
-    {t:'> She needs custom headphones. Spec-d from scratch.',p:100},
-    {t:'> Your team has 7 steps. Build the spec sheet.',c:'y',p:120},
-    {t:'> The best one goes into production.',p:100},
+    {t:'> CHANNEL: OMEGA-7 // EYES ONLY // NO RECORD',c:'y',p:100},
+    {t:'> FROM: [REDACTED]   RE: OPERATION SILENT EAR',c:'y',p:100},
+    {t:'> AGENTS CLEARED: '+n+'  //  PRIORITY: CRITICAL',c:'c',p:120},
     {t:'',p:80},
-    {t:'> Do not fail her.  — OMEGA HANDLER',c:'r',p:100},
+    {t:'> OMEGA is in the field. Equipment has failed.',c:'r',p:100},
+    {t:'> Your team must build her spec sheet. Now.',p:100},
+    {t:'> 7 steps. Do not fail her.',c:'r',p:80},
     {t:'',p:60},
     {t:'> STEP 1 LOADING...',c:'g',p:0},
   ],()=>showHostStep(1),18);
 }
 
-// HOST STEP DEFINITIONS
 const HOST_STEPS={
-  1:{
-    title:'STEP 1 — WHAT ARE SPECIFICATIONS?',
-    theory:`A <strong>specification</strong> = <span style="color:var(--cyan)">metric</span> + <span style="color:var(--gold)">value</span>.<br>
-    Metric = what you measure &nbsp;·&nbsp; Value = the target number + unit.<br><br>
-    <span style="font-size:.8rem;color:#5a8aa8;">Need: "blocks noise" → vague<br>Spec: ANC ≥ 35 dB at 1 kHz → precise, testable</span>`,
-    task:'Read the mission brief on your phones. Select ONLY the specs that match the client needs. Too many picks or near-duplicates lose points.',
-    term:[
-      {t:'> STEP 1 LAUNCHED: SPECIFICATION SELECTION',c:'c',p:200},
-      {t:'> Agents are reading the client brief...',p:150},
-      {t:'> They must identify correct specs from a list of 13.',p:150},
-      {t:'> Selecting near-duplicates or irrelevant specs = penalty.',c:'y',p:0},
-    ]
-  },
-  2:{
-    title:'STEP 2 — NEEDS → METRICS',
-    theory:`A <strong>metric</strong> is an objective, measurable quantity that reflects how well a need is satisfied.<br><br>
-    <span style="font-size:.8rem;color:#5a8aa8;">Must be: objective · testable · measures WHAT not HOW</span>`,
+  1:{title:'STEP 1 — WHAT ARE SPECIFICATIONS?',
+    def:`A <strong>specification</strong> = <span style="color:var(--cyan)">metric</span> + <span style="color:var(--gold)">value</span>.<br>
+    Metric = what you measure &nbsp;·&nbsp; Value = the target number + unit.<br>
+    Specs must be <strong>objective, testable, dependent variables</strong> — they say WHAT, not HOW.<br>
+    <em style="font-size:.78rem;color:#5a8aa8;">Need: "blocks noise" &nbsp;→&nbsp; Spec: ANC ≥ 35 dB at 1 kHz</em>`,
+    task:'Read OMEGA\'s brief. Select the correct specs from the list. Too many or near-duplicates = penalty. "Feel premium" is NOT a spec.',
+    term:[{t:'> STEP 1: SPECIFICATION SELECTION — AGENTS ACTIVE',c:'c',p:0}]},
+  2:{title:'STEP 2 — NEEDS → METRICS',
+    def:`A <strong>metric</strong> is an objective, measurable quantity. It must be a <strong>dependent variable</strong> — it reflects what the product delivers, not how it is designed.<br>
+    <em style="font-size:.78rem;color:#5a8aa8;">Bad: "Material = Carbon Fiber" (independent var) &nbsp;→&nbsp; Good: "Mass < 280g" (dependent var)</em>`,
     task:'Match each customer need to its correct engineering metric.',
-    term:[
-      {t:'> STEP 2 LAUNCHED: NEEDS → METRICS MAPPING',c:'c',p:200},
-      {t:'> Agents are translating customer language into measurable metrics.',p:150},
-      {t:'> A metric must be objective and testable — not subjective.',c:'y',p:0},
-    ]
-  },
-  3:{
-    title:'STEPS 3+4 — BENCHMARKING & TARGET VALUES',
-    theory:`Study competitor products on the map to find the <strong>trade-off curve</strong>.<br><br>
-    Then set: <span style="color:var(--cyan)">Ideal value</span> = best achievable &nbsp;·&nbsp; <span style="color:var(--gold)">Marginal value</span> = minimum to compete`,
-    task:'Study the competitive map. Choose your target ANC and retail price. This price sets your cost budget in Step 6.',
-    term:[
-      {t:'> STEP 3+4 LAUNCHED: COMPETITIVE POSITIONING',c:'c',p:200},
-      {t:'> Agents are studying the competitive landscape.',p:150},
-      {t:'> They choose ANC target and retail price.',p:150},
-      {t:'> This price becomes their cost budget in Step 6.',c:'y',p:0},
-    ]
-  },
-  5:{
-    title:'STEP 5 — TECHNICAL MODELS & COST MODEL',
-    theory:`After concept selection, engineers build <strong>technical performance models</strong> linking design variables to performance metrics.<br><br>
-    A <strong>cost model</strong> estimates manufacturing cost from spec values:<br>
-    • ANC +1dB above 25 → +€1.80 (chip complexity)<br>
-    • Battery +1h → +€0.90, +2g (larger cell)<br>
-    • Carbon Fiber → −80g but +€58 material cost<br>
-    • Driver +5mm above 35mm → +€4.00<br><br>
-    This is where <strong>trade-offs become quantitative</strong>.`,
-    task:'<strong>Students:</strong> tune 4 sliders to build their cost model. The model updates live — every change reveals a trade-off.',
-    term:[
-      {t:'> STEP 5 LAUNCHED: TECHNICAL COST MODEL',c:'c',p:200},
-      {t:'> Agents are configuring their headphone specs.',p:150},
-      {t:'> The model calculates weight and manufacturing cost live.',p:150},
-      {t:'> Each agent will have a unique product at the end.',c:'y',p:0},
-    ]
-  },
-  6:{
-    title:'STEP 6 — TARGET COSTING (Appendix p.114)',
-    theory:`Target costing is the <strong>reverse of cost-plus pricing</strong>.<br><br>
-    Cost-plus: cost → add margin → price (ignores market reality)<br>
-    Target costing: market price → subtract margins → max cost<br><br>
-    <span class="formula">C* = P × (1 − M<sub>r</sub>) × (1 − M<sub>m</sub>)</span>
-    P = retail price &nbsp;·&nbsp; M<sub>r</sub> = retailer margin (45%) &nbsp;·&nbsp; M<sub>m</sub> = mfr margin (40%)<br><br>
-    Example: P = €300 → C* = 300 × 0.55 × 0.60 = <strong>€99</strong><br><br>
-    If mfg cost > C* → <strong style="color:var(--red)">UNPROFITABLE</strong> → must make trade-offs.`,
-    task:'<strong>Students:</strong> see if their cost model fits within their C*. Unprofitable agents must make trade-offs in Step 7.',
-    term:[
-      {t:'> STEP 6 LAUNCHED: TARGET COSTING',c:'c',p:200},
-      {t:'> Formula: C* = P × (1 − 0.45) × (1 − 0.40)',c:'y',p:200},
-      {t:'> Agents check if their mfg cost fits their budget.',p:150},
-      {t:'> If cost > C*: unprofitable. Trade-offs required.',c:'r',p:0},
-    ]
-  },
-  7:{
-    title:'STEP 7 — TRADE-OFF DECISIONS',
-    theory:`Setting <strong>final specifications</strong> requires making hard trade-offs among desirable characteristics. Teams must sacrifice some goals to meet constraints.<br><br>
-    This is done in a group session where feasible spec combinations are explored using the technical and cost models, then the cost implications are checked.<br><br>
-    Every product manager must decide what to <strong>prioritise</strong> — and what to sacrifice. There is no objectively correct answer.`,
-    task:'<strong>Students:</strong> make 3 strategic trade-off choices. These define their final specification sheet.',
-    term:[
-      {t:'> STEP 7 LAUNCHED: FINAL TRADE-OFF DECISIONS',c:'c',p:200},
-      {t:'> Agents are making their final strategic choices.',p:150},
-      {t:'> Some will cut ANC. Some will reduce battery.',p:150},
-      {t:'> Some will raise price. Every choice defines the product.',c:'y',p:0},
-    ]
-  },
-  8:{
-    title:'STEP 8 — FINAL THEORY QUIZ',
-    theory:`Three questions to verify understanding of the core Chapter 6 concepts:<br><br>
-    Q1: What is a metric?<br>
-    Q2: When are final specifications set?<br>
-    Q3: What is target costing?<br><br>
-    Each correct answer = +100 points. Fast correct answers score the same — no time pressure here, just accuracy.`,
-    task:'<strong>Students:</strong> answer 3 questions on their phone. Each correct answer = +100 pts.',
-    term:[
-      {t:'> FINAL STEP: THEORY VERIFICATION',c:'c',p:200},
-      {t:'> 3 questions from Chapter 6.',p:150},
-      {t:'> Testing: metrics, spec timing, target costing.',p:150},
-      {t:'> Results will be shown in the final debrief.',c:'g',p:0},
-    ]
-  }
+    term:[{t:'> STEP 2: NEEDS-METRICS MAPPING — AGENTS ACTIVE',c:'c',p:0}]},
+  3:{title:'STEPS 3+4 — BENCHMARKING & TARGET VALUES',
+    def:`Benchmark competitors to find the <strong>trade-off curve</strong> in the market.<br>
+    <span style="color:var(--cyan)">Ideal value</span> = BrandS level (best in market) &nbsp;·&nbsp; <span style="color:var(--gold)">Marginal value</span> = BrandB level (minimum acceptable)<br>
+    Agents choose their <strong>ANC target and retail price</strong> — this directly sets C* in Step 6.`,
+    task:'Study the competitive map. Lock in your target position (ANC + retail price). Going above the trade-off curve requires Carbon Fiber.',
+    term:[{t:'> STEP 3+4: COMPETITIVE POSITIONING — AGENTS ACTIVE',c:'c',p:0}]},
+  5:{title:'STEP 5 — TECHNICAL MODELS & COST MODEL',
+    def:`Engineers build a <strong>cost model</strong> linking spec values to manufacturing cost:<br>
+    ANC +1dB above 25 → +€1.80 &nbsp;·&nbsp; Battery +1h → +€0.90, +2g<br>
+    Carbon Fiber → −80g but +€58 &nbsp;·&nbsp; Driver +5mm above 35mm → +€4`,
+    task:'Tune 4 sliders to build your cost model. Every change reveals a trade-off.',
+    term:[{t:'> STEP 5: COST MODEL CONSTRUCTION — AGENTS ACTIVE',c:'c',p:0}]},
+  6:{title:'STEP 6 — TARGET COSTING (Appendix p.114)',
+    def:`<strong>C* = P × (1 − M<sub>r</sub>) × (1 − M<sub>m</sub>)</strong><br>
+    Start from market price. Subtract retailer margin (45%), then manufacturer margin (40%).<br>
+    <span class="formula" style="font-family:var(--mono);font-size:.78rem;color:var(--cyan);display:block;margin-top:6px;background:rgba(0,229,255,.06);padding:6px 10px;border-radius:6px;">
+    Example: P=€300 → C* = 300×0.55×0.60 = €99</span>
+    If mfg cost > C* → <strong style="color:var(--red)">FINANCIAL DISASTER</strong> → must cut specs or raise price.`,
+    task:'Check if cost model fits within C*. If unprofitable: trade-offs in Step 7.',
+    term:[{t:'> STEP 6: TARGET COSTING — C* = P×0.55×0.60 — AGENTS ACTIVE',c:'c',p:0}]},
+  7:{title:'STEP 7 — TRADE-OFF DECISIONS',
+    def:`Final specs require <strong>hard trade-offs</strong>. Choosing to keep high ANC forces heavy plastic (weight >280g → client need fails). Every decision has a cascade effect.<br>
+    There is no objectively correct answer — only strategic ones.`,
+    task:'Make 3 trade-off decisions. Consequences are real — they affect your final spec sheet.',
+    term:[{t:'> STEP 7: FINAL TRADE-OFFS — AGENTS ACTIVE',c:'c',p:0}]},
+  8:{title:'STEP 8 — FINAL THEORY QUIZ',
+    def:`Three academic questions on Chapter 6 core concepts:<br>
+    Q1 — What is a true metric (dependent variable)?<br>
+    Q2 — Why set target specs before concept selection?<br>
+    Q3 — What is target costing based on?`,
+    task:'Answer 3 questions. Each correct answer = +100 pts.',
+    term:[{t:'> STEP 8: FINAL THEORY VERIFICATION — AGENTS ACTIVE',c:'c',p:0}]},
 };
 
 function showHostStep(step){
-  currentStep=step;
-  setMood(step);
+  currentStep=step;setMood(step);
   const cfg=HOST_STEPS[step];if(!cfg)return;
-  const pct=Math.round((step/8)*100);
-  // update terminal
+  go('s-hgame');
   appendTerm(cfg.term||[]);
-  // render panel
-  const next=step<8?`<button class="btn btn-s btn-sm" style="width:auto;" onclick="showHostStep(${step+1})">Next step →</button>`:'';
-  const prev=step>1?`<button class="btn btn-s btn-sm" style="width:auto;" onclick="showHostStep(${step-1})">← Prev</button>`:'';
+  const prev=step>1?`<button class="btn bs btn-sm" style="width:auto;" onclick="showHostStep(${step-1})">← Prev</button>`:'';
+  const next=step<8?`<button class="btn bp btn-sm" style="width:auto;" onclick="showBetweenStep(${step})">Chat + Next →</button>`:'';
+  const finish=step===8?`<button class="btn bg" style="width:100%;margin-top:8px;" onclick="showHostFinal()">🏆 Final Results</button>`:'';
   document.getElementById('hp-content').innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
-      <div style="font-family:var(--mono);font-size:.58rem;color:var(--cyan);letter-spacing:.14em;">STEP ${step}/8</div>
-      <div style="display:flex;gap:8px;">${prev}${next}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <div class="hp-step-num">STEP ${step}/8 · ${cfg.title.split('—')[0].trim()}</div>
+      <div style="display:flex;gap:7px;">${prev}${next}</div>
     </div>
-    <div class="host-step-title">${cfg.title}</div>
-    <div class="host-theory" style="margin-top:8px;">${cfg.theory}</div>
-    <div class="host-task"><strong>📱 STUDENT TASK: </strong>${cfg.task}</div>
-    <div class="progress-row">
+    <div class="hp-title">${cfg.title}</div>
+    <div class="hp-def" style="margin-top:8px;">${cfg.def}</div>
+    <div class="hp-task"><strong>📱 STUDENT TASK:</strong> ${cfg.task}</div>
+    <div class="prog-row">
       <div class="prog-bar"><div class="prog-fill" id="hp-prog-fill" style="width:0%"></div></div>
       <div class="prog-lbl" id="hp-prog-lbl">0/0 done</div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="btn btn-y" style="flex:1;min-width:140px;" id="launch-btn-${step}" onclick="hostFireStep(${step})">
-        ▶ LAUNCH TO PHONES
-      </button>
-      ${step<8?`<button class="btn btn-p" style="flex:1;min-width:140px;" onclick="showHostStep(${step+1})">NEXT STEP →</button>`:''}
-      ${step===8?`<button class="btn btn-g" style="width:100%;margin-top:4px;" onclick="showHostFinal()">🏆 Show Final Results</button>`:''}
-    </div>`;
+    <div class="hp-btns">
+      <button class="btn by" style="flex:1;min-width:140px;" onclick="hostFireStep(${step})">▶ LAUNCH TO PHONES</button>
+    </div>
+    ${finish}`;
   updateProgress();
+}
+
+function showBetweenStep(completedStep){
+  sfxClick();
+  const nextStep=completedStep===3?5:completedStep+1;
+  const script=CHAT_BETWEEN[completedStep];
+  if(!script){showHostStep(nextStep);return;}
+  // clone and resolve leaderboard placeholder
+  const lines=script.map(l=>({...l}));
+  runChat(lines,()=>showHostStep(nextStep));
 }
 
 function hostFireStep(step){
   sfxBig();
-  pub('launch',{step,dur:step===8?0:120});
-  toast('Step '+step+' launched to all phones!');
-  startMusic(step);
+  pub('launch',{step,dur:step===8?0:150});
+  toast('Step '+step+' launched!');startMusic(step);
 }
 
 function showHostFinal(){
-  sfxWin();confetti();
-  go('s-hdash');
+  sfxWin();confetti();go('s-hdash');
   const sorted=Object.entries(players).sort((a,b)=>((b[1].score||0)+(b[1].quizPts||0))-((a[1].score||0)+(a[1].quizPts||0)));
   const medals=['🥇','🥈','🥉'];
-  // winner message in terminal style
   const winner=sorted[0];
   if(winner){
     appendTerm([
-      {t:'> MISSION DEBRIEF COMPLETE',c:'g',p:300},
-      {t:`> BEST AGENT: ${winner[0].toUpperCase()}`,c:'y',p:200},
-      {t:`> SPEC SHEET APPROVED FOR PRODUCTION.`,c:'g',p:0},
+      {t:'> MISSION DEBRIEF COMPLETE',c:'g',p:200},
+      {t:'> BEST SPEC SHEET: '+winner[0].toUpperCase(),c:'y',p:0},
     ]);
     document.getElementById('hdash-winner').innerHTML=
-      `> Agent <span style="color:var(--gold)">${winner[0]}</span> — your spec sheet has been selected.<br>> We'll be in touch. Do not speak of this mission.`;
+      `> Agent <span style="color:var(--gold)">${winner[0]}</span>, your spec sheet has been approved.<br>> OMEGA will be equipped. The mission proceeds.`;
   }
   document.getElementById('hdash-lb').innerHTML=sorted.map(([n,d],i)=>`
-    <div class="lb-row" style="animation-delay:${i*.1}s;">
-      <div style="font-size:1.2rem;width:28px;">${medals[i]||i+1}</div>
+    <div class="lbrow" style="animation-delay:${i*.1}s;">
+      <div style="font-size:1.1rem;width:26px;">${medals[i]||i+1}</div>
       <div style="flex:1;font-weight:700;">${n}</div>
-      <div style="font-family:var(--mono);color:var(--gold);">${((d.score||0)+(d.quizPts||0)).toLocaleString()} pts</div>
+      <div style="font-family:var(--mono);color:var(--gold);">${((d.score||0)+(d.quizPts||0))} pts</div>
     </div>`).join('');
   document.getElementById('hdash-cards').innerHTML=sorted.map(([n,d])=>`
     <div class="agent-card">
-      <div class="aname">🕵️ ${n} · ${((d.score||0)+(d.quizPts||0))} pts</div>
-      <div style="font-size:.72rem;color:var(--mut);margin-bottom:8px;">
-        Retail: €${d.position?.price||'—'} · Material: ${d.model?.mat?'Carbon Fiber':'Plastic'} · Driver: ${d.model?.drv||40}mm
-      </div>
-      ${[['ANC','cyan',d.model?.anc||30,50,'dB'],['Battery','gold',d.model?.bat||24,60,'h'],['Cost','',d.cost||112,250,'€',true]].map(([l,col,v,max,unit,inv])=>`
+      <div class="aname">🕵️ ${n} · ${(d.score||0)+(d.quizPts||0)} pts</div>
+      <div style="font-size:.7rem;color:var(--mut);margin-bottom:7px;">Price: €${d.position?.price||'—'} · Material: ${d.model?.mat?'Carbon Fiber':'Plastic'} · ANC: ${d.model?.anc||30}dB</div>
+      ${[['ANC','cyan',d.model?.anc||30,50,'dB'],['Battery','gold',d.model?.bat||24,60,'h'],['Cost','',d.cost||112,250,'€',true]].map(([l,col,v,max,unit])=>`
         <div class="bar-row">
-          <div class="bar-lbl">${l} ${unit==='€'?unit:''}${unit!=='€'?v:''}${unit!=='€'?unit:v}</div>
+          <div class="bar-lbl">${l} ${unit==='€'?'€'+v:v+unit}</div>
           <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,(v/max)*100)}%;background:${col?'var(--'+col+')':v>150?'var(--red)':'var(--grn)'};"></div></div>
         </div>`).join('')}
     </div>`).join('');
 }
 
-// ═══════════════════════════════════
+// ══════════════════════════════════
 // MOBILE FLOW
-// ═══════════════════════════════════
+// ══════════════════════════════════
 let mNick='',mRoom='',mStep=0;
 let mPosition={anc:30,price:250};
 let mModel={anc:30,bat:24,mat:0,drv:40};
@@ -1396,42 +1322,19 @@ async function mobileJoin(){
   mNick=(document.getElementById('m-nick').value.trim()||'AGENT'+Math.floor(Math.random()*99)).substring(0,16);
   mRoom=(document.getElementById('m-code').value||'').trim().toUpperCase();
   if(!mRoom){toast('Enter a room code!');return;}
-
   toast('Connecting…');
-  const ok=await connectAbly(mRoom);
-  if(!ok){
-    toast('Retrying…');
-    await new Promise(r=>setTimeout(r,2000));
-    const ok2=await connectAbly(mRoom);
-    if(!ok2){toast('❌ Cannot connect. Check WiFi and retry.');return;}
-  }
-
+  let ok=await connectAbly(mRoom);
+  if(!ok){await new Promise(r=>setTimeout(r,2000));ok=await connectAbly(mRoom);}
+  if(!ok){toast('❌ Cannot connect. Check WiFi.');return;}
   pub('join',{nick:mNick});
   setMobHUD('CONNECTED',0);
-
-  sub('game-start',()=>{setMobWait('CONNECTED','Mission starting…','The host is briefing the class');});
-  sub('launch',d=>{
-    mStep=d.step;
-    setMood(d.step);
-    setMobHUD('STEP '+d.step,Math.round(d.step/8*100));
-    if(d.dur>0) startTimer(d.dur);
-    launchMobStep(d.step);
-  });
-  sub('spy-msg',d=>{
-    // show as a special themed toast
-    showSpyToast(d.msg);
-  });
-
-  go('s-mwait');
-  setMobWait('CONNECTED','Waiting for host…','Stand by — mission brief incoming');
-  toast('✅ Joined! Codename: '+mNick);
-  startMusic(0);
+  sub('game-start',()=>{go('s-mwait');setMobWait('STANDBY','Mission starting…','Stand by');});
+  sub('launch',d=>{mStep=d.step;setMood(d.step);setMobHUD('STEP '+d.step,Math.round(d.step/8*100));if(d.dur>0)startTimer(d.dur);launchMobStep(d.step);});
+  sub('spy-msg',d=>showSpyToast(d.msg));
+  go('s-mwait');setMobWait('CONNECTED','Waiting for host…','Stand by — mission brief incoming');
+  toast('✅ Joined! Codename: '+mNick);startMusic(0);
 }
-function setMobWait(step,title,sub){
-  document.getElementById('mw-step').textContent=step;
-  document.getElementById('mw-title').textContent=title;
-  document.getElementById('mw-sub').textContent=sub;
-}
+function setMobWait(s,t,sub){document.getElementById('mw-step').textContent=s;document.getElementById('mw-title').textContent=t;document.getElementById('mw-sub').textContent=sub;}
 function launchMobStep(s){
   if(s===1){initS1();go('s-m1');}
   else if(s===2){initS2();go('s-m2');}
@@ -1440,121 +1343,122 @@ function launchMobStep(s){
   else if(s===6){initS6();go('s-m6');}
   else if(s===7){initS7();go('s-m7');}
   else if(s===8){initS8();go('s-m8');}
-  else{go('s-mwait');setMobWait('STEP '+s,'Coming soon…','Wait for next step');}
+  else{go('s-mwait');setMobWait('STEP '+s,'Step '+s,'Waiting...');}
 }
-
-// ── SPY COMMENTARY ──
-function broadcastSpyComment(nick,step,score){
-  // sort players by score to find rank
-  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
-  const rank=sorted.findIndex(([n])=>n===nick)+1;
-  const total=sorted.length;
-  const topScore=sorted[0]?sorted[0][1].score||0:0;
-  const myS=score||0;
-  const gap=topScore-myS;
-
-  let comment='';
-  if(rank===1){
-    const praise=['Impressive.',`${nick} leads the pack.`,`${nick} — sharp. Very sharp.`,`First place. ${nick} knows what they are doing.`];
-    comment=praise[Math.floor(Math.random()*praise.length)];
-  } else if(gap<40){
-    comment=`${nick} is closing in. Only ${gap} points behind. Do not underestimate them.`;
-  } else if(rank===total){
-    const enc=['Keep going. We need every agent.','Everyone starts somewhere.',`${nick} — you can recover. Focus.`];
-    comment=enc[Math.floor(Math.random()*enc.length)];
-  } else {
-    const mid=[`${nick} — solid. Keep pushing.`,`${nick} — promising. We are watching.`,`Mid-pack. ${nick} has more to give.`];
-    comment=mid[Math.floor(Math.random()*mid.length)];
-  }
-
-  if(comment){
-    // append to terminal
-    appendTerm([{t:'> HANDLER: '+comment,c:'y',p:0}]);
-    // send to all players as a toast
-    pub('spy-msg',{msg:comment});
-  }
-}
-
 function doneStep(step,data){
   pub('step-result',{nick:mNick,step,score:myScore,data});
-  stopTimer();
-  go('s-mwait');
-  setMobWait('STEP '+step+' DONE ✓','Stand by…','Waiting for host to launch next step');
+  stopTimer();go('s-mwait');
+  setMobWait('STEP '+step+' ✓','Stand by…','Waiting for host to continue');
 }
 
 // ── STEP 1 ──
-const S1_OPTS=[
-  // ✅ CORRECT — each maps directly to a client need with a clear metric + value
-  {t:'ANC attenuation ≥ 35 dB at 1 kHz',v:'ok',pts:20,
-   w:'✅ CORRECT — metric: attenuation level · value: ≥35 dB · maps to "eliminate background noise"'},
-  {t:'Battery playback ≥ 8 h at 50% volume',v:'ok',pts:20,
-   w:'✅ CORRECT — metric: playback hours · value: ≥8h · maps exactly to "8-hour operation"'},
-  {t:'Total assembled mass < 280 g',v:'ok',pts:20,
-   w:'✅ CORRECT — metric: total mass · value: <280g · maps to "weight is critical"'},
-  {t:'Bluetooth 5.x — initial pairing time < 1 s',v:'ok',pts:20,
-   w:'✅ CORRECT — metric: pairing time · value: <1s · maps to "pairs instantly with any device"'},
-  {t:'Total harmonic distortion + noise < 0.5%',v:'ok',pts:20,
-   w:'✅ CORRECT — metric: THD+N · value: <0.5% · maps to "crystal-clear audio for instructions"'},
-  // ⚠️ NEAR-DUPLICATE — same metric, different (conflicting) value
-  {t:'ANC attenuation ≥ 30 dB at 1 kHz',v:'warn',pts:-10,
-   w:'⚠️ NEAR-DUPLICATE — same metric as the 35 dB spec. Two values for one metric = contradiction. Pick one.'},
-  {t:'ANC attenuation ≥ 40 dB broadband',v:'warn',pts:-10,
-   w:'⚠️ NEAR-DUPLICATE — third ANC spec. Redundancy weakens the spec sheet. One metric, one value.'},
-  {t:'Battery playback ≥ 10 h at 50% volume',v:'warn',pts:-10,
-   w:'⚠️ NEAR-DUPLICATE — client said 8 hours. Adding ≥10h contradicts the brief without justification.'},
-  {t:'Bluetooth pairing time < 3 s',v:'warn',pts:-10,
-   w:'⚠️ NEAR-DUPLICATE — weaker version of the <1s spec. Keeping both creates ambiguity: which is the real target?'},
-  // ❌ WRONG — not a specification (no metric+value) or irrelevant to client needs
-  {t:'Available in matte black and olive drab',v:'bad',pts:-15,
-   w:'❌ WRONG — colour is a cosmetic preference, not a performance specification. No customer need maps to this.'},
-  {t:'Price competitive with Sony and Bose',v:'bad',pts:-15,
-   w:'❌ WRONG — price targets belong in the Target Costing phase, not the spec sheet.'},
-  {t:'Should feel premium when worn',v:'bad',pts:-15,
-   w:'❌ WRONG — "feel premium" is a customer need, not a specification. Where is the metric? Where is the value?'},
-  {t:'Meets CE and FCC regulatory standards',v:'bad',pts:-15,
-   w:'❌ WRONG — compliance is a constraint, not a product specification. Not derived from any client need here.'},
+const S1=[
+  // ✅ correct
+  {t:'ANC attenuation ≥ 35 dB at 1 kHz',v:'ok',pts:20},
+  {t:'Battery playback ≥ 8 h',v:'ok',pts:20},
+  {t:'Total assembled mass < 280 g',v:'ok',pts:20},
+  {t:'Bluetooth pairing time < 1 s',v:'ok',pts:20},
+  {t:'Total harmonic distortion + noise (THD+N) < 0.5%',v:'ok',pts:20},
+  // ⚠️ near-duplicate
+  {t:'ANC attenuation ≥ 30 dB at 1 kHz',v:'warn',pts:-10,fb:'⚠️ Near-duplicate — same metric as the 35 dB spec. Two values for one metric = contradiction. A spec sheet needs ONE target per metric.'},
+  {t:'ANC attenuation ≥ 40 dB broadband',v:'warn',pts:-10,fb:'⚠️ Near-duplicate — a third ANC spec. Redundancy weakens the spec sheet. One metric, one value.'},
+  {t:'Battery playback ≥ 10 h',v:'warn',pts:-10,fb:'⚠️ Near-duplicate — client said 8 hours. Adding ≥10h contradicts the brief without justification.'},
+  {t:'Bluetooth pairing time < 3 s',v:'warn',pts:-10,fb:'⚠️ Near-duplicate — weaker version of the <1s spec. Which is the real target? Both cannot coexist.'},
+  // ❌ wrong
+  {t:'Available in matte black and olive drab',v:'bad',pts:-15,fb:'❌ WRONG — colour is a cosmetic preference. No engineering metric, no measurable value.'},
+  {t:'Price competitive with Sony and Bose',v:'bad',pts:-15,fb:'❌ WRONG — price targets belong in Target Costing (Step 6), not the spec sheet.'},
+  {t:'Should feel premium when worn',v:'bad',pts:-15,lang:true,fb:'❌ LANGUAGE OF THE CUSTOMER! "Feel premium" is a customer need — not a spec. Where is the metric? Where is the value?'},
+  {t:'Meets CE and FCC regulatory standards',v:'bad',pts:-15,fb:'❌ WRONG — compliance is a legal constraint, not a product specification derived from OMEGA\'s needs.'},
 ];
-let s1sel=new Set();
-function initS1(){s1sel=new Set();document.getElementById('s1-fb').style.display='none';document.getElementById('s1-count').textContent='Selected: 0';const p=document.getElementById('s1-pool');p.innerHTML='';[...S1_OPTS].sort(()=>Math.random()-.5).forEach((o,i)=>{const c=document.createElement('span');c.className='chip';c.textContent=o.t;c.dataset.i=i;c.addEventListener('click',()=>{sfxClick();if(s1sel.has(i)){s1sel.delete(i);c.classList.remove('sel');}else{s1sel.add(i);c.classList.add('sel');}document.getElementById('s1-count').textContent='Selected: '+s1sel.size+(s1sel.size>6?' ⚠️ Too many!':'');});p.appendChild(c);});}
+let s1sel=new Set(),s1locked=false;
+function initS1(){
+  s1sel=new Set();s1locked=false;
+  document.getElementById('s1-fb').style.display='none';
+  document.getElementById('s1-inline-fb').innerHTML='';
+  document.getElementById('s1-count').textContent='Selected: 0';
+  const p=document.getElementById('s1-pool');p.innerHTML='';
+  [...S1].sort(()=>Math.random()-.5).forEach((o,i)=>{
+    const c=document.createElement('span');c.className='chip';c.textContent=o.t;c.dataset.i=i;
+    c.addEventListener('click',()=>{
+      if(s1locked)return;sfxClick();
+      if(s1sel.has(i)){s1sel.delete(i);c.classList.remove('sel','ok','warn','bad');}
+      else{
+        s1sel.add(i);
+        // immediate feedback if wrong
+        if(o.v==='bad'||o.v==='warn'){
+          c.classList.add(o.v);
+          const fb=document.createElement('div');
+          fb.className='chip-fb '+(o.lang?'lang':o.v);
+          fb.textContent=o.fb||(o.v==='warn'?'⚠️ Near-duplicate':'❌ Wrong');
+          document.getElementById('s1-inline-fb').appendChild(fb);
+          fb.style.display='block';
+          setTimeout(()=>fb.remove(),3500);
+          if(o.lang)sfxBad();
+        } else {
+          c.classList.add('sel');
+        }
+      }
+      document.getElementById('s1-count').textContent='Selected: '+s1sel.size+(s1sel.size>6?' ⚠️':'');
+    });
+    p.appendChild(c);
+  });
+}
 function submitS1(){
   if(!s1sel.size){toast('Select at least one spec!');return;}
-  sfxClick();
+  sfxClick();s1locked=true;
   let pts=0,ok=0,warn=0,bad=0;
-  s1sel.forEach(i=>{const o=S1_OPTS[i];pts+=o.pts;if(o.v==='ok')ok++;else if(o.v==='warn')warn++;else bad++;});
+  s1sel.forEach(i=>{const o=S1[i];pts+=o.pts;if(o.v==='ok')ok++;else if(o.v==='warn')warn++;else bad++;});
   if(ok===5&&warn===0&&bad===0)pts+=50;
   pts=Math.max(0,pts);addPts(pts);
-  s1sel.forEach(i=>{const c=document.querySelector(`#s1-pool .chip[data-i="${i}"]`);if(c){c.classList.remove('sel');c.classList.add(S1_OPTS[i].v);}});
+  s1sel.forEach(i=>{const c=document.querySelector(`#s1-pool .chip[data-i="${i}"]`);if(c){c.classList.remove('sel');c.classList.add(S1[i].v);}});
   document.querySelectorAll('#s1-pool .chip:not(.ok):not(.warn):not(.bad)').forEach(c=>c.style.opacity='.3');
-  if(pts>0)sfxOk();else sfxBad();
-  showFb('s1-fb',ok>=3,`${ok}/5 correct · ${warn} near-duplicates · ${bad} wrong · +${pts} pts<br><small>Tip: each spec = 1 metric + 1 target value. Near-duplicates weaken the spec sheet.</small>`);
-  setTimeout(()=>doneStep(1,{specs:Array.from(s1sel).filter(i=>S1_OPTS[i].v==='ok').map(i=>S1_OPTS[i].t)}),2600);
+  if(pts>50)sfxOk();else sfxBad();
+  showFb('s1-fb',ok>=4?'ok':'bad',`${ok}/5 correct · ${warn} near-duplicates · ${bad} wrong · +${pts} pts<br><small>Remember: one metric, one value. Customer feelings are needs, not specs.</small>`);
+  setTimeout(()=>doneStep(1,{specs:Array.from(s1sel).filter(i=>S1[i].v==='ok').map(i=>S1[i].t)}),2600);
 }
 
 // ── STEP 2 ──
 const S2=[
-  {need:'"Completely eliminates background noise"',opts:['ANC attenuation at 1 kHz (dB)','Speaker impedance (ohms)','Ear pad foam density','Headband spring force (N)'],c:0},
-  {need:'"Lasts through an 8-hour mission"',opts:['Charge cable length (m)','Battery playback time (hours)','Headphone weight (g)','Bluetooth version'],c:1},
-  {need:'"Does not slow the agent down"',opts:['Colour finish options','Total mass (grams)','Cable type','Driver diameter (mm)'],c:1},
-  {need:'"Crystal-clear audio for instructions"',opts:['Total harmonic distortion + noise (%)','Box material','Logo emboss depth','Warranty period (months)'],c:0},
-  {need:'"Pairs instantly with any device"',opts:['Headband material','App list','Bluetooth pairing time (seconds)','Hinge material'],c:2},
+  {need:'"Completely eliminates background noise"',
+   opts:['ANC attenuation at 1 kHz (dB)','Speaker impedance (ohms)','Ear pad foam density (kg/m³)','Headband spring force (N)'],c:0},
+  {need:'"Lasts through an 8-hour mission"',
+   opts:['Charge cable type','Battery playback time (hours)','Headphone mass (g)','Bluetooth codec version'],c:1},
+  {need:'"Does not slow the agent down"',
+   opts:['Colour finish options','Total mass (grams)','Cable connector type','Driver diameter (mm)'],c:1},
+  {need:'"Crystal-clear audio for instructions"',
+   opts:['Total harmonic distortion + noise (%)','Box packaging material','Logo size (mm)','Hinge material'],c:0},
+  {need:'"Pairs instantly with any device"',
+   opts:['Headband width','App compatibility list','Bluetooth initial pairing time (s)','Ear cup shape'],c:2},
 ];
-function initS2(){document.getElementById('s2-fb').style.display='none';document.getElementById('s2-rows').innerHTML=S2.map((m,i)=>`<div class="mc" style="margin-bottom:10px;"><div style="font-size:.68rem;font-family:var(--mono);color:var(--mut);margin-bottom:4px;">CLIENT NEED:</div><div style="font-weight:700;font-size:.88rem;margin-bottom:10px;">${m.need}</div><div style="font-size:.68rem;font-family:var(--mono);color:var(--cyan);margin-bottom:6px;">BEST METRIC →</div><select id="s2-${i}" class="gsel" onchange="sfxClick()"><option value="">— choose —</option>${[...m.opts].sort(()=>Math.random()-.5).map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div>`).join('');}
+function initS2(){
+  document.getElementById('s2-fb').style.display='none';
+  document.getElementById('s2-rows').innerHTML=S2.map((m,i)=>`
+    <div class="mc" style="margin-bottom:9px;">
+      <div style="font-size:.66rem;font-family:var(--mono);color:var(--mut);margin-bottom:3px;">CLIENT NEED:</div>
+      <div style="font-weight:700;font-size:.86rem;margin-bottom:9px;">${m.need}</div>
+      <div style="font-size:.66rem;font-family:var(--mono);color:var(--cyan);margin-bottom:5px;">CORRECT METRIC →</div>
+      <select id="s2-${i}" class="gsel" onchange="sfxClick()">
+        <option value="">— choose —</option>
+        ${[...m.opts].sort(()=>Math.random()-.5).map(o=>`<option value="${o}">${o}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
 function submitS2(){
   sfxClick();let ok=0;
   S2.forEach((m,i)=>{const s=document.getElementById('s2-'+i);const good=s.value===m.opts[m.c];if(good)ok++;s.style.borderColor=good?'var(--grn)':'var(--red)';s.style.color=good?'var(--grn)':'var(--red)';});
   const pts=ok*44;addPts(pts);if(ok>=4)sfxOk();else sfxBad();
-  showFb('s2-fb',ok>=4,`${ok}/${S2.length} correct · +${pts} pts<br><small>Metrics must measure WHAT the product does, not HOW it achieves it.</small>`);
+  showFb('s2-fb',ok>=4?'ok':'bad',`${ok}/${S2.length} correct · +${pts} pts<br><small>Metrics must be dependent variables — measuring WHAT the product delivers, not HOW it is built.</small>`);
   setTimeout(()=>doneStep(2,{}),2400);
 }
 
 // ── STEP 3 ──
 const COMPS=[
-  {name:'BrandB',col:'#ff5252',anc:16,price:89,lbl:'Budget'},
-  {name:'BrandX',col:'#ff9100',anc:28,price:149,lbl:'Mid'},
-  {name:'BrandZ',col:'#ffc400',anc:35,price:229,lbl:'Upper-mid'},
-  {name:'BrandS',col:'#b366ff',anc:44,price:380,lbl:'Premium'},
+  {name:'BrandB',col:'#ff5252',anc:16,price:89,role:'marginal'},
+  {name:'BrandX',col:'#ff9100',anc:28,price:149,role:''},
+  {name:'BrandZ',col:'#ffc400',anc:35,price:229,role:''},
+  {name:'BrandS',col:'#b366ff',anc:44,price:380,role:'ideal'},
 ];
-function initS3(){updS3();}
+function initS3(){drawScatter();updS3();}
 function updS3(){
   mPosition.anc=+document.getElementById('s3-anc').value;
   mPosition.price=+document.getElementById('s3-price').value;
@@ -1563,32 +1467,70 @@ function updS3(){
   drawScatter();
   const tc=Math.round(mPosition.price*0.55*0.6);
   const v=document.getElementById('s3-verdict');
-  if(mPosition.anc>=35&&mPosition.price>=200){v.style.cssText='background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.25);color:#5eea9a;';v.textContent='✅ Meets client requirement (≥35 dB). C* = €'+tc+' — enough room to build quality.';}
-  else if(mPosition.anc<30){v.style.cssText='background:rgba(255,61,90,.06);border:1px solid rgba(255,61,90,.25);color:#ff7a8a;';v.textContent='⚠️ ANC below 30 dB — won\'t satisfy the client\'s brief.';}
-  else if(mPosition.price<150){v.style.cssText='background:rgba(255,196,0,.06);border:1px solid rgba(255,196,0,.25);color:#e8c060;';v.textContent='⚠️ Very low price → C* = €'+tc+' — very tight budget. Hard to build good specs.';}
-  else{v.style.cssText='background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.18);color:#7ab8d4;';v.textContent='🔄 Competitive position. C* = €'+tc+'. Check if your cost model fits in Step 6.';}
+  const impos=document.getElementById('s3-impossible');
+  // trade-off curve value at this ANC
+  const curvePrice=Math.round(50+mPosition.anc*8);
+  const impossible=mPosition.price<curvePrice*0.7&&mPosition.anc>35;
+  impos.style.display=impossible?'block':'none';
+  if(impossible){v.style.cssText='';v.textContent='';}
+  else if(mPosition.anc>=35&&mPosition.price>=200){
+    v.style.cssText='background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.25);color:#5eea9a;padding:10px 12px;border-radius:10px;';
+    v.textContent='✅ Meets client requirement (≥35 dB). C* = €'+tc+' — enough room to build to spec.';
+  } else if(mPosition.anc<30){
+    v.style.cssText='background:rgba(255,61,90,.06);border:1px solid rgba(255,61,90,.25);color:#ff7a8a;padding:10px 12px;border-radius:10px;';
+    v.textContent='⚠️ ANC below 30 dB — will not satisfy OMEGA\'s requirement. BrandB is the marginal minimum.';
+  } else if(mPosition.price<150){
+    v.style.cssText='background:rgba(255,196,0,.06);border:1px solid rgba(255,196,0,.25);color:#e8c060;padding:10px 12px;border-radius:10px;';
+    v.textContent='⚠️ Very low price → C* = €'+tc+' — extremely tight budget.';
+  } else {
+    v.style.cssText='background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.18);color:#7ab8d4;padding:10px 12px;border-radius:10px;';
+    v.textContent='Position noted. C* = €'+tc+'. Check profitability in Step 6.';
+  }
 }
 function drawScatter(){
   const canvas=document.getElementById('scatter');
-  const W=Math.min(340,window.innerWidth-32);canvas.width=W;canvas.height=Math.round(W*.62);
+  const W=Math.min(340,window.innerWidth-28);canvas.width=W;canvas.height=Math.round(W*.62);
   const ctx=canvas.getContext('2d');
-  const pad={l:38,r:12,t:12,b:30};
+  const pad={l:40,r:12,t:12,b:30};
   const pw=W-pad.l-pad.r,ph=canvas.height-pad.t-pad.b;
   ctx.fillStyle='#07111e';ctx.fillRect(0,0,W,canvas.height);
-  ctx.strokeStyle='rgba(26,46,72,.8)';ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(26,46,72,.7)';ctx.lineWidth=1;
   for(let i=0;i<=5;i++){const y=pad.t+i*(ph/5);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pw,y);ctx.stroke();const x=pad.l+i*(pw/5);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();}
   ctx.fillStyle='#2e4a62';ctx.font='9px Share Tech Mono,monospace';ctx.textAlign='center';
   ctx.fillText('ANC (dB)',pad.l+pw/2,canvas.height-3);
-  ctx.save();ctx.translate(10,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Price (€)',0,0);ctx.restore();
-  ctx.strokeStyle='rgba(0,229,255,.18)';ctx.lineWidth=1.6;ctx.setLineDash([5,5]);
-  ctx.beginPath();for(let a=10;a<=50;a++){const p=50+a*8;const x=pad.l+(a-10)/40*pw,y=pad.t+ph-(Math.min(p,500)-50)/450*ph;a===10?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.save();ctx.translate(11,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Price (€)',0,0);ctx.restore();
+  // trade-off curve
+  ctx.strokeStyle='rgba(0,229,255,.25)';ctx.lineWidth=2;ctx.setLineDash([5,5]);
+  ctx.beginPath();
+  for(let a=10;a<=50;a++){const p=50+a*8;const x=pad.l+(a-10)/40*pw,y=pad.t+ph-(Math.min(p,500)-50)/450*ph;a===10?ctx.moveTo(x,y):ctx.lineTo(x,y);}
   ctx.stroke();ctx.setLineDash([]);
-  COMPS.forEach(c=>{const x=pad.l+(c.anc-10)/40*pw,y=pad.t+ph-(c.price-50)/450*ph;ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.fillStyle=c.col+'28';ctx.fill();ctx.strokeStyle=c.col;ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=c.col;ctx.font='8px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText(c.name,x,y-11);});
+  ctx.fillStyle='rgba(0,229,255,.18)';ctx.font='8px Share Tech Mono,monospace';ctx.textAlign='left';
+  ctx.fillText('trade-off curve',pad.l+4,pad.t+11);
+  // ideal/marginal zones
+  const bsX=pad.l+(COMPS[3].anc-10)/40*pw,bbX=pad.l+(COMPS[0].anc-10)/40*pw;
+  ctx.strokeStyle='rgba(179,102,255,.3)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(bsX,pad.t);ctx.lineTo(bsX,pad.t+ph);ctx.stroke();
+  ctx.fillStyle='rgba(179,102,255,.5)';ctx.font='8px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText('IDEAL',bsX,pad.t+8);
+  ctx.strokeStyle='rgba(255,196,0,.3)';
+  ctx.beginPath();ctx.moveTo(bbX,pad.t);ctx.lineTo(bbX,pad.t+ph);ctx.stroke();
+  ctx.fillStyle='rgba(255,196,0,.5)';ctx.fillText('MARGINAL',bbX+18,pad.t+8);
+  ctx.setLineDash([]);
+  // competitors
+  COMPS.forEach(c=>{
+    const x=pad.l+(c.anc-10)/40*pw,y=pad.t+ph-(c.price-50)/450*ph;
+    ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.fillStyle=c.col+'28';ctx.fill();
+    ctx.strokeStyle=c.col;ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=c.col;ctx.font='8px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText(c.name,x,y-11);
+  });
+  // user
   const ux=pad.l+(mPosition.anc-10)/40*pw,uy=pad.t+ph-(mPosition.price-50)/450*ph;
-  ctx.beginPath();ctx.arc(ux,uy,10,0,Math.PI*2);ctx.fillStyle='rgba(0,229,255,.15)';ctx.fill();ctx.strokeStyle='#00e5ff';ctx.lineWidth=2.5;ctx.stroke();
+  ctx.beginPath();ctx.arc(ux,uy,10,0,Math.PI*2);ctx.fillStyle='rgba(0,229,255,.14)';ctx.fill();
+  ctx.strokeStyle='#00e5ff';ctx.lineWidth=2.5;ctx.stroke();
   ctx.fillStyle='#00e5ff';ctx.font='bold 8px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText('YOU',ux,uy-13);
-  [10,20,30,40,50].forEach(v=>{ctx.fillStyle='#2e4a62';ctx.font='8px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText(v,pad.l+(v-10)/40*pw,pad.t+ph+12);});
-  ctx.textAlign='right';[50,150,250,350,450].forEach(v=>{const y=pad.t+ph-(v-50)/450*ph;ctx.fillStyle='#2e4a62';ctx.font='8px Share Tech Mono,monospace';ctx.fillText('€'+v,pad.l-4,y+3);});
+  // axis ticks
+  ctx.fillStyle='#2e4a62';ctx.font='8px Share Tech Mono,monospace';ctx.textAlign='center';
+  [10,20,30,40,50].forEach(v=>{ctx.fillText(v,pad.l+(v-10)/40*pw,pad.t+ph+12);});
+  ctx.textAlign='right';[50,150,250,350,450].forEach(v=>{ctx.fillText('€'+v,pad.l-4,pad.t+ph-(v-50)/450*ph+3);});
 }
 function submitS3(){sfxOk();addPts(120);doneStep(3,{position:{...mPosition}});}
 
@@ -1596,92 +1538,157 @@ function submitS3(){sfxOk();addPts(120);doneStep(3,{position:{...mPosition}});}
 function calcCost(m){return Math.round(55+(m.anc-10)*1.8+(m.bat-8)*0.9+(m.mat?58:0)+(m.drv-30)*0.8);}
 function calcWeight(m){return Math.round(310+(m.bat-8)*2.1+(m.mat?-78:0)+(m.drv-30)*0.5);}
 function calcAudio(m){return Math.min(10,((m.anc/50)*4+(m.drv/60)*6)).toFixed(1);}
-function initS5(){
-  document.getElementById('s5-anc').value=mPosition.anc||30;
-  updS5();
-}
+function initS5(){document.getElementById('r5-anc').value=mPosition.anc||30;updS5();}
 function updS5(){
-  mModel.anc=+document.getElementById('s5-anc').value;
-  mModel.bat=+document.getElementById('s5-bat').value;
-  mModel.mat=+document.getElementById('s5-mat').value;
-  mModel.drv=+document.getElementById('s5-drv').value;
-  document.getElementById('s5-anc-v').textContent=mModel.anc+' dB';
-  document.getElementById('s5-bat-v').textContent=mModel.bat+' h';
-  document.getElementById('s5-mat-v').textContent=mModel.mat?'Carbon Fiber':'Plastic';
-  document.getElementById('s5-drv-v').textContent=mModel.drv+' mm';
+  mModel.anc=+document.getElementById('r5-anc').value;
+  mModel.bat=+document.getElementById('r5-bat').value;
+  mModel.mat=+document.getElementById('r5-mat').value;
+  mModel.drv=+document.getElementById('r5-drv').value;
+  document.getElementById('v5-anc').textContent=mModel.anc+' dB';
+  document.getElementById('v5-bat').textContent=mModel.bat+' h';
+  document.getElementById('v5-mat').textContent=mModel.mat?'Carbon Fiber':'Plastic';
+  document.getElementById('v5-drv').textContent=mModel.drv+' mm';
   mCost=calcCost(mModel);
   const w=calcWeight(mModel),audio=calcAudio(mModel);
-  document.getElementById('s5-weight').textContent=w+'g';
-  const cel=document.getElementById('s5-cost');cel.textContent='€'+mCost;cel.style.color=mCost>160?'var(--red)':mCost>110?'var(--gold)':'var(--grn)';
-  document.getElementById('s5-audio').textContent=audio+'/10';
+  document.getElementById('v5-weight').textContent=w+'g';
+  const cel=document.getElementById('v5-cost');
+  cel.textContent='€'+mCost;cel.style.color=mCost>160?'var(--red)':mCost>110?'var(--gold)':'var(--grn)';
+  document.getElementById('v5-audio').textContent=audio+'/10';
   const tc=Math.round(mPosition.price*0.55*0.6);
-  const ins=document.getElementById('s5-insight');
-  if(mCost>tc*1.15)ins.textContent=`⚠️ Cost €${mCost} is well above your C* (€${tc}). You'll need trade-offs in Step 7.`;
-  else if(mCost>tc)ins.textContent=`⚡ Cost €${mCost} slightly above C* €${tc}. Close — a small trade-off may be enough.`;
-  else ins.textContent=`✅ Cost €${mCost} fits within C* €${tc}. On track for profitability.`;
+  const ins=document.getElementById('v5-insight');
+  if(mCost>tc*1.2)ins.textContent='⚠️ Cost €'+mCost+' is well above C* €'+tc+'. Significant trade-offs needed in Step 7.';
+  else if(mCost>tc)ins.textContent='⚡ Cost €'+mCost+' slightly above C* €'+tc+'. Small adjustment may be enough.';
+  else ins.textContent='✅ Cost €'+mCost+' fits within C* €'+tc+'. On track.';
 }
 function submitS5(){sfxOk();mCost=calcCost(mModel);addPts(130);doneStep(5,{model:{...mModel},cost:mCost});}
 
 // ── STEP 6 ──
 function initS6(){
-  const P=mPosition.price||250;const Mr=0.45,Mm=0.40;
+  const P=mPosition.price||250,Mr=0.45,Mm=0.40;
   const rc=P*Mr,mp=P*(1-Mr),mc=mp*Mm,tc=P*(1-Mr)*(1-Mm);
   const gap=mCost-tc;
   document.getElementById('s6-chain').innerHTML=`
     <div class="crow"><div><div>🏷️ Retail price (P) — from Step 3</div></div><span class="camt">€${P}</span></div>
-    <div class="crow"><div><div>🏪 Retailer margin (M<sub>r</sub> = 45%)</div><div style="font-size:.68rem;color:var(--mut);margin-top:2px;">Consumer electronics: 30–50% (Exhibit 6-13)</div></div><span class="camt" style="color:var(--red);">−€${Math.round(rc)}</span></div>
+    <div class="crow"><div><div>🏪 Retailer margin M<sub>r</sub> = 45%</div><div style="font-size:.65rem;color:var(--mut);margin-top:1px;">Electronics retailers: 30–50% (Exhibit 6-13)</div></div><span class="camt" style="color:var(--red);">−€${Math.round(rc)}</span></div>
     <div class="crow"><span>Price to manufacturer</span><span class="camt">€${Math.round(mp)}</span></div>
-    <div class="crow"><div><div>🏭 Manufacturer margin (M<sub>m</sub> = 40%)</div><div style="font-size:.68rem;color:var(--mut);margin-top:2px;">Consumer electronics mfg: 35–50% (Exhibit 6-13)</div></div><span class="camt" style="color:var(--red);">−€${Math.round(mc)}</span></div>
-    <div class="crow ${gap>0?'cr':'cg'}"><div style="font-weight:700;">✅ Allowable Cost C* = P × 0.55 × 0.60</div><span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${Math.round(tc)}</span></div>
-    <div class="crow ${gap>0?'cr':'cg'}"><span>Your mfg. cost (from Step 5)</span><span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${mCost}</span></div>`;
-  const v=document.getElementById('s6-verdict');v.style.display='block';
-  if(gap>0){v.style.cssText='padding:14px;border-radius:12px;text-align:center;margin-bottom:14px;font-size:.84rem;line-height:1.55;width:100%;background:rgba(255,61,90,.07);border:2px solid var(--red);color:#ff7a8a;';v.innerHTML=`⚠️ <strong>UNPROFITABLE</strong><br>Cost €${mCost} exceeds C* €${Math.round(tc)} by €${Math.round(gap)}<br><small>You must make trade-offs in Step 7 to close the gap.</small>`;}
-  else{v.style.cssText='padding:14px;border-radius:12px;text-align:center;margin-bottom:14px;font-size:.84rem;line-height:1.55;width:100%;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.3);color:var(--grn);';v.innerHTML=`✅ <strong>PROFITABLE</strong><br>Cost €${mCost} ≤ C* €${Math.round(tc)}<br><small>Margin of safety: €${Math.round(-gap)}. You still choose trade-offs in Step 7.</small>`;}
+    <div class="crow"><div><div>🏭 Manufacturer margin M<sub>m</sub> = 40%</div><div style="font-size:.65rem;color:var(--mut);margin-top:1px;">Electronics mfg: 35–50% (Exhibit 6-13)</div></div><span class="camt" style="color:var(--red);">−€${Math.round(mc)}</span></div>
+    <div class="crow ${gap>0?'cr':'cg'}"><div><strong>C* = P × (1−0.45) × (1−0.40)</strong><div style="font-size:.65rem;color:var(--mut);margin-top:1px;">Maximum allowable manufacturing cost</div></div><span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${Math.round(tc)}</span></div>
+    <div class="crow ${gap>0?'cr':'cg'}"><span>Your mfg. cost (Step 5)</span><span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${mCost}</span></div>`;
+  const ban=document.getElementById('disaster-banner');
+  const verd=document.getElementById('s6-verdict');verd.style.display='block';
+  if(gap>0){
+    ban.classList.add('show');
+    document.getElementById('disaster-sub').textContent='Your cost €'+mCost+' exceeds C* €'+Math.round(tc)+' by €'+Math.round(gap)+'. The retailer and manufacturer margins eat all your profit. You MUST make trade-offs in Step 7.';
+    verd.style.cssText='display:block;padding:13px;border-radius:12px;text-align:center;margin-bottom:12px;font-size:.82rem;line-height:1.55;width:100%;background:rgba(255,61,90,.07);border:2px solid var(--red);color:#ff7a8a;';
+    verd.innerHTML='⚠️ <strong>UNPROFITABLE</strong> — Gap: €'+Math.round(gap)+'<br><small>Go to Step 7 and make the hard choices.</small>';
+    sfxBad();
+  } else {
+    ban.classList.remove('show');
+    verd.style.cssText='display:block;padding:13px;border-radius:12px;text-align:center;margin-bottom:12px;font-size:.82rem;line-height:1.55;width:100%;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.3);color:var(--grn);';
+    verd.innerHTML='✅ <strong>PROFITABLE</strong> — Margin of safety: €'+Math.round(-gap)+'<br><small>You still choose trade-offs in Step 7.</small>';
+  }
 }
 function submitS6(){
-  const P=mPosition.price||250;const tc=P*0.55*0.6;const gap=mCost-tc;
-  const pts=gap<=0?200:100;addPts(pts);if(gap<=0)sfxOk();else sfxBad();
-  doneStep(6,{targetCost:Math.round(tc),cost:mCost});
+  const P=mPosition.price||250,tc=P*0.55*0.6,gap=mCost-tc;
+  const pts=gap<=0?200:100;addPts(pts);if(gap<=0)sfxOk();
+  doneStep(6,{targetCost:Math.round(tc),cost:mCost,gap:Math.round(gap)});
 }
 
 // ── STEP 7 ──
 const TRADES=[
-  {a:'Reduce ANC to 25 dB (saves ~€9)',b:'Keep ANC at target level',ea:'−5dB ANC',eb:'no change'},
-  {a:'Cut battery to 16 h (saves ~€7, −16g)',b:'Keep battery at target',ea:'−8h battery',eb:'no change'},
-  {a:'Raise retail price by €50',b:'Hold current retail price',ea:'+€50 retail',eb:'tighter C*'},
+  {
+    a:'Reduce ANC to 25 dB (−€9)',
+    b:'Keep ANC at target',
+    cons_a:'✅ Saves €9 cost — but ANC drops below OMEGA\'s minimum requirement. Mission risk increases.',
+    cons_b:'⚠️ High ANC maintained — but cost stays high. You may need to cut elsewhere to stay profitable.',
+    effect_a:{cost:-9},effect_b:{}
+  },
+  {
+    a:'Cut battery to 16 h (saves €7, −16g)',
+    b:'Keep battery at target',
+    cons_a:'✅ Saves €7 and reduces weight — but battery drops to 2× the client minimum. Acceptable trade.',
+    cons_b:'⚠️ Full battery maintained. Cost stays higher. Combined with high ANC this may be unprofitable.',
+    effect_a:{cost:-7,weight:-16},effect_b:{}
+  },
+  {
+    a:'Raise retail price by €50',
+    b:'Hold current price (client expectation)',
+    cons_a:'✅ Raises C* — more room for quality specs. But higher price may reduce market reach.',
+    cons_b:'⚠️ Price held. Tighter C*. If you are over budget, you must cut specs to compensate.',
+    effect_a:{price:+50},effect_b:{}
+  },
 ];
-let t7ch=[];
+let t7ch=[],t7conseq=[];
 function initS7(){
   t7ch=Array(TRADES.length).fill(null);
+  t7conseq=Array(TRADES.length).fill('');
   document.getElementById('s7-fb').style.display='none';
-  const P=mPosition.price||250;const tc=Math.round(P*0.55*0.6);const gap=mCost-tc;
+  document.getElementById('s7-outcome').style.display='none';
+  const P=mPosition.price||250,tc=Math.round(P*0.55*0.6),gap=mCost-tc;
   document.getElementById('s7-intro').innerHTML=gap>0
-    ?`You are <strong style="color:var(--red)">€${Math.round(gap)} over budget</strong>. Make trade-off choices below to close the gap — or raise your price.`
-    :`You are profitable! You still need to make <strong>final trade-off decisions</strong> — these define your spec sheet.`;
+    ?`You are <strong style="color:var(--red)">€${Math.round(gap)} over budget</strong>. Make choices below to close the gap. Watch the consequences cascade.`
+    :`You are profitable. But you still must make final trade-off decisions — these define your spec sheet.`;
   document.getElementById('s7-trades').innerHTML=TRADES.map((t,i)=>`
-    <div style="margin-bottom:12px;">
-      <div style="font-size:.65rem;font-family:var(--mono);color:var(--mut);margin-bottom:6px;">CHOICE ${i+1}:</div>
+    <div style="margin-bottom:10px;">
+      <div style="font-size:.62rem;font-family:var(--mono);color:var(--mut);margin-bottom:5px;">CHOICE ${i+1}:</div>
       <div class="trow">
-        <div class="tcell" id="t7a-${i}" onclick="pickT7(${i},'a')">${t.a}<br><span style="font-size:.65rem;color:var(--mut);">${t.ea}</span></div>
+        <div class="tcell" id="t7a-${i}" onclick="pickT7(${i},'a')">${t.a}</div>
         <div class="tvs">VS</div>
-        <div class="tcell" id="t7b-${i}" onclick="pickT7(${i},'b')">${t.b}<br><span style="font-size:.65rem;color:var(--mut);">${t.eb}</span></div>
+        <div class="tcell" id="t7b-${i}" onclick="pickT7(${i},'b')">${t.b}</div>
       </div>
+      <div class="trade-conseq" id="tc-${i}"></div>
     </div>`).join('');
 }
-function pickT7(i,s){sfxClick();t7ch[i]=s;document.getElementById('t7a-'+i).classList.toggle('pick',s==='a');document.getElementById('t7b-'+i).classList.toggle('pick',s==='b');}
+function pickT7(i,s){
+  sfxClick();t7ch[i]=s;
+  document.getElementById('t7a-'+i).classList.toggle('pick',s==='a');
+  document.getElementById('t7b-'+i).classList.toggle('pick',s==='b');
+  const t=TRADES[i];const msg=s==='a'?t.cons_a:t.cons_b;
+  const el=document.getElementById('tc-'+i);
+  el.textContent=msg;el.className='trade-conseq show '+(s==='a'?'ok':'bad');
+  t7conseq[i]=msg;
+  // check cascade: if keeping high ANC + plastic material → weight warning
+  checkT7Cascade();
+}
+function checkT7Cascade(){
+  const keepAnc=t7ch[0]==='b';const keepPlastic=mModel.mat===0;
+  const out=document.getElementById('s7-outcome');
+  if(keepAnc&&keepPlastic&&mModel.anc>=35){
+    const w=calcWeight(mModel);
+    out.style.display='block';
+    out.innerHTML='⚠️ CASCADE WARNING: You kept high ANC with plastic housing → Weight = '+w+'g. This exceeds the client\'s 280g limit. OMEGA\'s mission is at risk. Consider Carbon Fiber or reducing ANC.';
+  } else {out.style.display='none';}
+}
 function submitS7(){
   if(t7ch.includes(null)){toast('Make all 3 choices first!');return;}
-  sfxOk();addPts(180);ptcl();
-  showFb('s7-fb',true,`Decisions locked! +180 pts<br><small>Final specs are set. Your spec sheet is now ready for production.</small>`);
-  setTimeout(()=>doneStep(7,{tradeoffs:t7ch}),2200);
+  sfxClick();
+  // apply effects
+  t7ch.forEach((s,i)=>{
+    const eff=s==='a'?TRADES[i].effect_a:TRADES[i].effect_b;
+    if(eff.cost)mCost=Math.max(0,mCost+eff.cost);
+    if(eff.price)mPosition.price+=eff.price;
+  });
+  addPts(180);sfxOk();
+  const finalGap=mCost-mPosition.price*0.55*0.6;
+  let outcome='';
+  if(finalGap>10)outcome='⚠️ Still over budget after trade-offs. Client satisfaction is reduced. −50 pts';
+  else outcome='✅ Spec sheet balanced. Good work.';
+  if(finalGap>10)addPts(-50);
+  showFb('s7-fb','warn',outcome+'<br><small>Final specs locked. These are the constraints your engineers will build to.</small>');
+  setTimeout(()=>doneStep(7,{tradeoffs:t7ch,finalCost:mCost}),2400);
 }
-function ptcl(){const emojis=['✅','🎯','⚡'];emojis.forEach((e,i)=>{setTimeout(()=>{const p=document.createElement('div');p.className='cf';p.style.cssText=`left:${30+i*20}vw;top:30vh;font-size:1.5rem;background:transparent;`;p.textContent=e;document.body.appendChild(p);setTimeout(()=>p.remove(),1200);},i*150);});}
 
 // ── STEP 8 ──
 const QUIZ=[
-  {q:'A specification = metric + value. A "metric" is…',opts:['A subjective customer feeling','An objective, measurable quantity (e.g. dB, grams, seconds)','A competitor\'s price','A design choice'],c:1,why:'A metric is objective, measurable, and directly reflects satisfaction of a customer need. The value sets the target (e.g. ≥35 dB). (Ch.6, p.93)'},
-  {q:'When are FINAL specifications set? (Exhibit 6-3)',opts:['At project kickoff, before anything else','Right after customer interviews','After a concept is selected and tested','When production begins'],c:2,why:'Specs are set twice: target specs early (aspirational), final specs only after concept selection — tech constraints only become clear then. (Ch.6, p.94)'},
-  {q:'Target costing: C* = P × (1−Mr) × (1−Mm). What is P?',opts:['Production cost','Profit margin %','Retail price paid by the end user','Prototype R&D cost'],c:2,why:'P = retail price paid by end user. Strip each channel margin to find C* — the max you can spend making it. (Appendix p.114)'},
+  {q:'A metric should be a dependent variable. Which of these is a TRUE metric (not an independent design variable)?',
+   opts:['Material = Carbon Fiber','Housing colour = matte black','Total mass < 280 g','Driver type = dynamic'],c:2,
+   why:'Total mass is a dependent variable — it results from design choices. Carbon Fiber, colour, and driver type are independent variables: design decisions, not measurable outcomes. (Ch.6, p.96)'},
+  {q:'Why are target specifications set BEFORE a product concept is chosen? (Exhibit 6-3)',
+   opts:['Because the team has no technical knowledge yet','To set aspirational goals without technology constraints','Because final specs are impossible to change later','To satisfy regulatory requirements early'],c:1,
+   why:'Target specs are set before concept selection to define what success looks like, without being constrained by how it will be achieved. Final specs come after concept selection, when technical constraints are known. (Ch.6, p.94)'},
+  {q:'In target costing, the target cost C* is based on…',
+   opts:['The cheapest manufacturing method available','The average cost of competitor products','Market price and required profit margins across the distribution chain','The R&D budget allocated to the project'],c:2,
+   why:'C* = P × (1−Mr) × (1−Mm). It starts from the market price and works backwards through each distribution channel margin. This is the reverse of cost-plus pricing. (Appendix, p.114)'},
 ];
 let qIdx=0,qAnswered=false;
 function initS8(){qIdx=0;qAnswered=false;renderQ();}
@@ -1700,27 +1707,22 @@ function ansQ(idx){
   if(ok){sfxOk();addPts(100);}else sfxBad();
   pub('quiz-ans',{nick:mNick,q:qIdx,ans:idx,correct:ok});
   const exp=document.getElementById('s8-exp');
-  exp.style.display='block';exp.className='fb '+(ok?'ok':'bad');exp.innerHTML=q.why;
+  exp.style.display='block';exp.className='fb '+(ok?'ok':'bad');exp.textContent=q.why;
   setTimeout(()=>{
     qIdx++;
-    if(qIdx<QUIZ.length){renderQ();}
-    else{
-      doneStep(8,{quizScore:myScore});
-      showMobFinal();
-    }
+    if(qIdx<QUIZ.length){renderQ();}else{doneStep(8,{quizScore:myScore});showMobFinal();}
   },2800);
 }
 function showMobFinal(){
-  sfxWin();confetti();
-  go('s-mfinal');
+  sfxWin();confetti();go('s-mfinal');
   document.getElementById('mfinal-score').textContent=myScore;
   document.getElementById('mfinal-title').textContent='Mission Complete, '+mNick+'!';
-  document.getElementById('mfinal-sub').textContent='Your spec sheet has been submitted. Awaiting the final debrief from the host.';
+  document.getElementById('mfinal-sub').textContent='Your spec sheet has been submitted. Stand by for the final debrief.';
 }
 
-// ═══════════════════════════════════
+// ══════════════════════════════════
 // DOM READY
-// ═══════════════════════════════════
+// ══════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
   const p=new URLSearchParams(location.search);
   const room=p.get('room'),role=p.get('role');
@@ -1728,6 +1730,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('m-code').value=room.toUpperCase();
     go('s-mjoin');
   }
+  // start BG canvas
+  document.getElementById('bgC');
 });
 </script>
 </body>
