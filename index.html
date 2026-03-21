@@ -629,35 +629,98 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
 <!-- STEP 5 -->
 <div class="scr" id="s-m5">
   <div class="mob" style="padding-top:58px;">
-    <div class="stag">STEP 5 · COST MODEL</div>
+    <div class="stag">STEP 4 · TECHNICAL REALITY CHECK</div>
     <div class="instr">
-      <span class="itag">🏭 TASK</span>
-      Tune your specs. Every choice has a cost. The model updates live — find the sweet spot. Remember your target position from Step 3!
+      <span class="itag">🏭 THIS IS WHAT YOUR STEP 3 CHOICES MEAN</span>
+      You locked in your ANC target and retail price in Step 3.
+      Now the cost model calculates the <strong>real consequences</strong> of those choices.
+      One decision remains: <strong>which material?</strong>
     </div>
-    <div style="width:100%;">
-      <div class="slrow"><div class="sltop"><span class="slname">🎧 ANC</span><span class="slval" id="v5-anc">30 dB</span></div>
-        <input type="range" id="r5-anc" min="10" max="50" value="30" oninput="updS5()">
-        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">+€1.80/dB above 25 dB</div>
-      </div>
-      <div class="slrow"><div class="sltop"><span class="slname">🔋 Battery</span><span class="slval" id="v5-bat">24 h</span></div>
-        <input type="range" id="r5-bat" min="8" max="60" value="24" oninput="updS5()">
-        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">+€0.90/h +2g/h</div>
-      </div>
-      <div class="slrow"><div class="sltop"><span class="slname">🏗️ Material</span><span class="slval" id="v5-mat">Plastic</span></div>
-        <input type="range" id="r5-mat" min="0" max="1" value="0" step="1" oninput="updS5()">
-        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">Carbon Fiber: −80g but +€58</div>
-      </div>
-      <div class="slrow" style="margin-bottom:4px;"><div class="sltop"><span class="slname">🎵 Driver</span><span class="slval" id="v5-drv">40 mm</span></div>
-        <input type="range" id="r5-drv" min="30" max="60" value="40" step="5" oninput="updS5()">
-        <div style="font-size:.66rem;color:var(--mut);margin-top:3px;">+€4 per 5mm above 35mm</div>
+
+    <!-- Locked values from Step 3 -->
+    <div class="mc" style="width:100%;margin-bottom:10px;border-color:rgba(255,196,0,.3);">
+      <div style="font-size:.62rem;font-family:var(--mono);color:var(--gold);margin-bottom:8px;letter-spacing:.1em;">🔒 LOCKED FROM STEP 3:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="text-align:center;">
+          <div style="font-size:.62rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">ANC TARGET</div>
+          <div style="font-family:var(--mono);font-size:1.3rem;color:var(--cyan);" id="v5-anc-locked">—</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:.62rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">RETAIL PRICE</div>
+          <div style="font-family:var(--mono);font-size:1.3rem;color:var(--cyan);" id="v5-price-locked">—</div>
+        </div>
       </div>
     </div>
-    <div class="statgrid" style="width:100%;">
-      <div class="sbox"><div class="slbl">WEIGHT</div><div class="sval" id="v5-weight">340g</div></div>
-      <div class="sbox"><div class="slbl">MFG COST</div><div class="sval" id="v5-cost" style="color:var(--gold);">€112</div></div>
-      <div class="sbox"><div class="slbl">AUDIO</div><div class="sval" id="v5-audio" style="color:var(--cyan);">6.5</div></div>
+
+    <!-- Material choice — the ONE decision left -->
+    <div class="mc glow" style="width:100%;margin-bottom:10px;">
+      <div style="font-size:.7rem;font-family:var(--mono);color:var(--cyan);margin-bottom:10px;">ONE CHOICE REMAINING — HOUSING MATERIAL:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button id="v5-plastic-btn" onclick="setMaterial(0)"
+          style="padding:14px 8px;border-radius:10px;border:2px solid var(--cyan);
+          background:rgba(0,229,255,.13);color:var(--cyan);font-family:var(--mono);
+          font-size:.72rem;cursor:pointer;transition:all .18s;line-height:1.6;">
+          🏗️ PLASTIC<br>+€0<br>+50g weight
+        </button>
+        <button id="v5-carbon-btn" onclick="setMaterial(1)"
+          style="padding:14px 8px;border-radius:10px;border:2px solid var(--bd);
+          background:var(--s2);color:var(--mut);font-family:var(--mono);
+          font-size:.72rem;cursor:pointer;transition:all .18s;line-height:1.6;">
+          ⚡ CARBON FIBER<br>+€60<br>−80g weight
+        </button>
+      </div>
     </div>
-    <div style="font-size:.74rem;color:var(--mut);text-align:center;margin-bottom:12px;line-height:1.5;" id="v5-insight"></div>
+
+    <!-- Calculated results -->
+    <div style="font-size:.62rem;font-family:var(--mono);color:var(--cyan);
+      letter-spacing:.1em;margin-bottom:8px;width:100%;">📊 CALCULATED RESULTS:</div>
+
+    <!-- Cost breakdown -->
+    <div class="crow" style="width:100%;margin-bottom:5px;">
+      <span>Base cost (headphone electronics)</span>
+      <span class="camt">€50</span>
+    </div>
+    <div class="crow" style="width:100%;margin-bottom:5px;">
+      <div>
+        <div>ANC chip cost</div>
+        <div style="font-size:.65rem;color:var(--mut);">€2.50 × (ANC − 20dB) = €2.50 × <span id="v5-anc-delta">—</span></div>
+      </div>
+      <span class="camt" id="v5-anc-cost">—</span>
+    </div>
+    <div class="crow" style="width:100%;margin-bottom:5px;" id="v5-mat-row">
+      <div>
+        <div>Material cost</div>
+        <div style="font-size:.65rem;color:var(--mut);" id="v5-mat-label">Plastic: +€0</div>
+      </div>
+      <span class="camt" id="v5-mat-cost">+€0</span>
+    </div>
+    <div class="crow cg" style="width:100%;margin-bottom:12px;">
+      <strong>Total Mfg. Cost</strong>
+      <span class="camt" id="v5-total-cost" style="font-size:1.1rem;color:var(--grn);">—</span>
+    </div>
+
+    <!-- Weight breakdown -->
+    <div class="crow" style="width:100%;margin-bottom:5px;">
+      <span>Base weight (electronics + drivers)</span>
+      <span class="camt">250g</span>
+    </div>
+    <div class="crow" style="width:100%;margin-bottom:5px;" id="v5-mat-weight-row">
+      <div>
+        <div id="v5-mat-weight-label">Material weight</div>
+        <div style="font-size:.65rem;color:var(--mut);">Plastic: +50g</div>
+      </div>
+      <span class="camt" id="v5-mat-weight">+50g</span>
+    </div>
+    <div class="crow" style="width:100%;margin-bottom:12px;" id="v5-weight-total-row">
+      <div>
+        <strong>Total Weight</strong>
+        <div style="font-size:.65rem;color:var(--mut);">Client limit: &lt;280g</div>
+      </div>
+      <span class="camt" id="v5-total-weight" style="font-size:1.1rem;">—</span>
+    </div>
+
+    <div style="font-size:.76rem;text-align:center;padding:10px 12px;border-radius:10px;
+      margin-bottom:12px;line-height:1.5;width:100%;" id="v5-insight"></div>
     <button class="btn bp" style="width:100%;" onclick="submitS5()">LOCK COST MODEL →</button>
   </div>
 </div>
@@ -681,15 +744,40 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
   </div>
 </div>
 
-<!-- STEP 7 -->
+<!-- STEP 7 — TRADE-OFFS -->
 <div class="scr" id="s-m7">
   <div class="mob" style="padding-top:58px;">
-    <div class="stag">STEP 7 · TRADE-OFFS</div>
+    <div class="stag">STEP 6 · TRADE-OFF DECISIONS</div>
     <div class="instr">
-      <span class="itag">⚖️ TASK</span>
+      <span class="itag">⚖️ YOUR SITUATION</span>
       <span id="s7-intro"></span>
     </div>
-    <div id="s7-trades" style="width:100%;margin-bottom:12px;"></div>
+
+    <!-- Live spec tracker -->
+    <div style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;
+      padding:12px 14px;width:100%;margin-bottom:12px;">
+      <div style="font-size:.62rem;font-family:var(--mono);color:var(--cyan);
+        letter-spacing:.1em;margin-bottom:8px;">📊 YOUR CURRENT SPECS:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;">
+        <div>
+          <div style="font-size:.58rem;color:var(--mut);font-family:var(--mono);">MFG COST</div>
+          <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;" id="t7-cost">—</div>
+        </div>
+        <div>
+          <div style="font-size:.58rem;color:var(--mut);font-family:var(--mono);">C* TARGET</div>
+          <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--cyan);" id="t7-cstar">—</div>
+        </div>
+        <div>
+          <div style="font-size:.58rem;color:var(--mut);font-family:var(--mono);">GAP</div>
+          <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;" id="t7-gap">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:.7rem;color:var(--mut);margin-bottom:10px;width:100%;
+      font-family:var(--mono);letter-spacing:.08em;">CHOOSE ONE OR MORE OPTIONS:</div>
+
+    <div id="s7-trades" style="width:100%;margin-bottom:10px;"></div>
     <div id="s7-outcome" style="display:none;" class="fb warn"></div>
     <div class="g8"></div>
     <button class="btn bp" style="width:100%;" onclick="submitS7()">FINALIZE SPECS →</button>
@@ -934,40 +1022,40 @@ document.head.insertAdjacentHTML('beforeend','<style>.tc{color:var(--cyan)}.ty{c
 // ══════════════════════════════════
 // CHAT_SCRIPT: {side, name, text, delay, typing, cls, pending (= show as clickable blue btn first)}
 const CHAT_INTRO=[
-  {side:'them',name:'UNKNOWN',text:'...',delay:1080,typing:1400},
-  {side:'them',name:'UNKNOWN',text:'Connection established.',delay:540},
-  {side:'them',name:'UNKNOWN',text:'Encrypted. Level 5.',delay:900,cls:'cls'},
-  {side:'me',name:'YOU',text:'Who is this?',delay:1260,pending:true},
-  {side:'them',name:'UNKNOWN',text:'Someone who has been watching your class for three weeks.',delay:1620,typing:1200},
-  {side:'them',name:'UNKNOWN',text:'Digital Innovation and Management. University of Bergamo.',delay:1260},
-  {side:'them',name:'UNKNOWN',text:'You study how products are built. From customer need to final specification.',delay:1440},
-  {side:'me',name:'YOU',text:'...how do you know that?',delay:1620,pending:true},
-  {side:'them',name:'UNKNOWN',text:'We know a lot of things.',delay:900,typing:900},
-  {side:'them',name:'UNKNOWN',text:'Right now what matters is this:',delay:720},
-  {side:'them',name:'UNKNOWN',text:'We have an operative in the field. Codename: OMEGA.',delay:1260,cls:'cls'},
-  {side:'them',name:'UNKNOWN',text:'She is embedded in a hostile environment. Heavy machinery. Constant noise. 24/7.',delay:1440},
-  {side:'them',name:'UNKNOWN',text:'She has lost communication. Her standard equipment cannot handle it.',delay:1260,cls:'urg'},
-  {side:'me',name:'YOU',text:'What does this have to do with me?',delay:1620,pending:true},
-  {side:'them',name:'UNKNOWN',text:'She needs custom noise-cancelling headphones.',delay:900,typing:1000},
-  {side:'them',name:'UNKNOWN',text:'Field-grade. Untraceable. Built to exact specifications.',delay:1080},
-  {side:'them',name:'UNKNOWN',text:'No off-the-shelf product meets the requirements.',delay:1080,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'Someone needs to spec them from scratch. Your team has that knowledge.',delay:1260},
-  {side:'me',name:'YOU',text:"I've never done this for real before.",delay:1800,pending:true},
-  {side:'them',name:'UNKNOWN',text:'That is why we chose students. Fresh eyes. No assumptions.',delay:1440,typing:1100},
-  {side:'them',name:'UNKNOWN',text:'But understand this clearly:',delay:720,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'Specifications are not wishes. They are precise, measurable, testable targets.',delay:1260,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'Get them wrong — the headphones fail. OMEGA is compromised. The mission is over.',delay:1620,cls:'urg'},
-  {side:'me',name:'YOU',text:'Understood. What do I need to do?',delay:1800,pending:true},
-  {side:'them',name:'UNKNOWN',text:'Seven steps. Each agent on their phone. You control the pace.',delay:1260,typing:1100},
-  {side:'them',name:'UNKNOWN',text:'Step 1 — identify correct specs from the client brief.',delay:900},
-  {side:'them',name:'UNKNOWN',text:'Step 2 — map each need to its measurable metric.',delay:900},
-  {side:'them',name:'UNKNOWN',text:'Step 3 — benchmark the market. Choose where to position.',delay:900},
-  {side:'them',name:'UNKNOWN',text:'Steps 5 and 6 — build the cost model. Apply target costing.',delay:1080},
-  {side:'them',name:'UNKNOWN',text:'Step 7 — make the hard trade-offs. You cannot have everything.',delay:1080},
-  {side:'them',name:'UNKNOWN',text:'Step 8 — final verification. Prove you understood the theory.',delay:1080},
-  {side:'them',name:'UNKNOWN',text:'OMEGA is counting on your team.',delay:900,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'Do not fail her.',delay:540,cls:'urg'},
-  {side:'me',name:'YOU',text:"Let's begin.",delay:1260,pending:true,last:true},
+  {side:'them',name:'UNKNOWN',text:'...',delay:600,typing:1400},
+  {side:'them',name:'UNKNOWN',text:'Connection established.',delay:300},
+  {side:'them',name:'UNKNOWN',text:'Encrypted. Level 5.',delay:500,cls:'cls'},
+  {side:'me',name:'YOU',text:'Who is this?',delay:700,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Someone who has been watching your class for three weeks.',delay:900,typing:1200},
+  {side:'them',name:'UNKNOWN',text:'Digital Innovation and Management. University of Bergamo.',delay:700},
+  {side:'them',name:'UNKNOWN',text:'You study how products are built. From customer need to final specification.',delay:800},
+  {side:'me',name:'YOU',text:'...how do you know that?',delay:900,pending:true},
+  {side:'them',name:'UNKNOWN',text:'We know a lot of things.',delay:500,typing:900},
+  {side:'them',name:'UNKNOWN',text:'Right now what matters is this:',delay:400},
+  {side:'them',name:'UNKNOWN',text:'We have an operative in the field. Codename: OMEGA.',delay:700,cls:'cls'},
+  {side:'them',name:'UNKNOWN',text:'She is embedded in a hostile environment. Heavy machinery. Constant noise. 24/7.',delay:800},
+  {side:'them',name:'UNKNOWN',text:'She has lost communication. Her standard equipment cannot handle it.',delay:700,cls:'urg'},
+  {side:'me',name:'YOU',text:'What does this have to do with me?',delay:900,pending:true},
+  {side:'them',name:'UNKNOWN',text:'She needs custom noise-cancelling headphones.',delay:500,typing:1000},
+  {side:'them',name:'UNKNOWN',text:'Field-grade. Untraceable. Built to exact specifications.',delay:600},
+  {side:'them',name:'UNKNOWN',text:'No off-the-shelf product meets the requirements.',delay:600,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Someone needs to spec them from scratch. Your team has that knowledge.',delay:700},
+  {side:'me',name:'YOU',text:"I've never done this for real before.",delay:1000,pending:true},
+  {side:'them',name:'UNKNOWN',text:'That is why we chose students. Fresh eyes. No assumptions.',delay:800,typing:1100},
+  {side:'them',name:'UNKNOWN',text:'But understand this clearly:',delay:400,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Specifications are not wishes. They are precise, measurable, testable targets.',delay:700,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Get them wrong — the headphones fail. OMEGA is compromised. The mission is over.',delay:900,cls:'urg'},
+  {side:'me',name:'YOU',text:'Understood. What do I need to do?',delay:1000,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Seven steps. Each agent on their phone. You control the pace.',delay:700,typing:1100},
+  {side:'them',name:'UNKNOWN',text:'Step 1 — identify correct specs from the client brief.',delay:500},
+  {side:'them',name:'UNKNOWN',text:'Step 2 — map each need to its measurable metric.',delay:500},
+  {side:'them',name:'UNKNOWN',text:'Step 3 — benchmark the market. Choose where to position.',delay:500},
+  {side:'them',name:'UNKNOWN',text:'Steps 5 and 6 — build the cost model. Apply target costing.',delay:600},
+  {side:'them',name:'UNKNOWN',text:'Step 7 — make the hard trade-offs. You cannot have everything.',delay:600},
+  {side:'them',name:'UNKNOWN',text:'Step 8 — final verification. Prove you understood the theory.',delay:600},
+  {side:'them',name:'UNKNOWN',text:'OMEGA is counting on your team.',delay:500,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Do not fail her.',delay:300,cls:'urg'},
+  {side:'me',name:'YOU',text:"Let's begin.",delay:700,pending:true,last:true},
 ];
 
 // Between-step chat scripts (keyed by step just completed)
@@ -1041,18 +1129,18 @@ function nextChatMsg(){
   // auto message
   if(msg.side==='them'){
     document.getElementById('chat-typing').style.display='block';scrollChat();
-    const dur=msg.typing||(msg.text.length*55+700);
+    const dur=msg.typing||(msg.text.length*35+450);
     setTimeout(()=>{
       document.getElementById('chat-typing').style.display='none';
       renderMsg(msg);
       chatI++;
-      const nextDelay=(chatQ[chatI]?chatQ[chatI].delay:600)||600;
+      const nextDelay=(chatQ[chatI]?chatQ[chatI].delay:400)||400;
       setTimeout(nextChatMsg,nextDelay);
     },dur);
   } else {
     // me auto (no pending)
     setTimeout(()=>{renderMsg(msg);chatI++;
-      const nd=(chatQ[chatI]?chatQ[chatI].delay:600)||600;
+      const nd=(chatQ[chatI]?chatQ[chatI].delay:400)||400;
       setTimeout(nextChatMsg,nd);
     },80);
   }
@@ -1242,42 +1330,29 @@ const HOST_STEPS={
     task:'Read OMEGA\'s brief. Select the correct specs from the list. Too many or near-duplicates = penalty. "Feel premium" is NOT a spec.',
     term:[{t:'> STEP 1: SPECIFICATION SELECTION — AGENTS ACTIVE',c:'c',p:0}]},
   2:{title:'STEP 2 — NEEDS → METRICS',
-    def:`A <strong>metric</strong> is an objective, measurable quantity. It must be a <strong>dependent variable</strong> — it reflects what the product delivers, not how it is designed.<br>
-    <em style="font-size:.78rem;color:#5a8aa8;">Bad: "Material = Carbon Fiber" (independent var) &nbsp;→&nbsp; Good: "Mass < 280g" (dependent var)</em>`,
-    task:'Match each customer need to its correct engineering metric.',
+    theory:'A <strong>metric</strong> is a dependent variable — it measures what the product delivers, not how it is built. "Mass < 280g" is a metric. "Material = Carbon Fiber" is an independent design variable, not a metric.',
+    instructions:'1. Read each customer need (what OMEGA said).<br>2. From the dropdown, choose the correct engineering metric.<br>3. The metric must be objective and testable.<br>4. Do not confuse HOW with WHAT.',
     term:[{t:'> STEP 2: NEEDS-METRICS MAPPING — AGENTS ACTIVE',c:'c',p:0}]},
-  3:{title:'STEPS 3+4 — BENCHMARKING & TARGET VALUES',
-    def:`Benchmark competitors to find the <strong>trade-off curve</strong> in the market.<br>
-    <span style="color:var(--cyan)">Ideal value</span> = BrandS level (best in market) &nbsp;·&nbsp; <span style="color:var(--gold)">Marginal value</span> = BrandB level (minimum acceptable)<br>
-    Agents choose their <strong>ANC target and retail price</strong> — this directly sets C* in Step 6.`,
-    task:'Study the competitive map. Lock in your target position (ANC + retail price). Going above the trade-off curve requires Carbon Fiber.',
-    term:[{t:'> STEP 3+4: COMPETITIVE POSITIONING — AGENTS ACTIVE',c:'c',p:0}]},
-  5:{title:'STEP 5 — TECHNICAL MODELS & COST MODEL',
-    def:`Engineers build a <strong>cost model</strong> linking spec values to manufacturing cost:<br>
-    ANC +1dB above 25 → +€1.80 &nbsp;·&nbsp; Battery +1h → +€0.90, +2g<br>
-    Carbon Fiber → −80g but +€58 &nbsp;·&nbsp; Driver +5mm above 35mm → +€4`,
-    task:'Tune 4 sliders to build your cost model. Every change reveals a trade-off.',
-    term:[{t:'> STEP 5: COST MODEL CONSTRUCTION — AGENTS ACTIVE',c:'c',p:0}]},
-  6:{title:'STEP 6 — TARGET COSTING (Appendix p.114)',
-    def:`<strong>C* = P × (1 − M<sub>r</sub>) × (1 − M<sub>m</sub>)</strong><br>
-    Start from market price. Subtract retailer margin (45%), then manufacturer margin (40%).<br>
-    <span class="formula" style="font-family:var(--mono);font-size:.78rem;color:var(--cyan);display:block;margin-top:6px;background:rgba(0,229,255,.06);padding:6px 10px;border-radius:6px;">
-    Example: P=€300 → C* = 300×0.55×0.60 = €99</span>
-    If mfg cost > C* → <strong style="color:var(--red)">FINANCIAL DISASTER</strong> → must cut specs or raise price.`,
-    task:'Check if cost model fits within C*. If unprofitable: trade-offs in Step 7.',
-    term:[{t:'> STEP 6: TARGET COSTING — C* = P×0.55×0.60 — AGENTS ACTIVE',c:'c',p:0}]},
-  7:{title:'STEP 7 — TRADE-OFF DECISIONS',
-    def:`Final specs require <strong>hard trade-offs</strong>. Choosing to keep high ANC forces heavy plastic (weight >280g → client need fails). Every decision has a cascade effect.<br>
-    There is no objectively correct answer — only strategic ones.`,
-    task:'Make 3 trade-off decisions. Consequences are real — they affect your final spec sheet.',
-    term:[{t:'> STEP 7: FINAL TRADE-OFFS — AGENTS ACTIVE',c:'c',p:0}]},
-  8:{title:'STEP 8 — FINAL THEORY QUIZ',
-    def:`Three academic questions on Chapter 6 core concepts:<br>
-    Q1 — What is a true metric (dependent variable)?<br>
-    Q2 — Why set target specs before concept selection?<br>
-    Q3 — What is target costing based on?`,
-    task:'Answer 3 questions. Each correct answer = +100 pts.',
-    term:[{t:'> STEP 8: FINAL THEORY VERIFICATION — AGENTS ACTIVE',c:'c',p:0}]},
+  3:{title:'STEP 3 — BENCHMARK & LOCK TARGET',
+    theory:"Target specifications represent the team's aspirations before technical constraints are known. They are set by studying the competitive landscape: BrandS = ideal benchmark, BrandB = marginal minimum acceptable.",
+    instructions:"1. Study the competitive map — find where BrandS (ideal) and BrandB (marginal) sit.<br>2. Choose your ANC target (≥35dB to meet OMEGA's requirement).<br>3. Choose your retail price — this DIRECTLY sets your C* allowable cost later.<br>4. Lock your position.",
+    term:[{t:'> STEP 3: COMPETITIVE POSITIONING — AGENTS ACTIVE',c:'c',p:0}]},
+  5:{title:'STEP 4 — TECHNICAL REALITY CHECK',
+    theory:'After setting target specs, engineers build a cost model. The formula: Cost = €50 base + €2.50 per dB above 20dB + material cost. This is the moment when aspirations meet technical constraints.',
+    instructions:'1. Your ANC target from Step 3 is locked — it drives the cost automatically.<br>2. Choose your material: Plastic (+50g, free) or Carbon Fiber (−80g, +€60).<br>3. See whether your weight is under 280g and your cost is under C*.<br>4. Lock your model.',
+    term:[{t:'> STEP 4: COST MODEL — AGENTS ACTIVE',c:'c',p:0}]},
+  6:{title:'STEP 5 — TARGET COSTING',
+    theory:'Target costing is the reverse of cost-plus pricing. Formula (Appendix p.114): C* = P × 0.55 × 0.60. Start from market price, subtract retailer margin (45%), then manufacturer margin (40%). What remains is the maximum you can spend making the product.',
+    instructions:'1. Your retail price from Step 3 feeds in automatically.<br>2. Watch the chain: Price → minus retailer margin → minus mfr margin → C*.<br>3. Compare C* to your mfg cost from Step 4.<br>4. If cost > C*: Financial Disaster — trade-offs are coming.',
+    term:[{t:'> STEP 5: TARGET COSTING — C* = P×0.55×0.60 — AGENTS ACTIVE',c:'c',p:0}]},
+  7:{title:'STEP 6 — TRADE-OFF DECISIONS',
+    theory:'Final specifications require hard trade-offs. Three options: A) Sacrifice ANC (cheaper but may breach client requirement), B) Upgrade to Carbon Fiber (lighter but more expensive), C) Raise retail price (more budget but weaker competitive position). Every choice has a cascade effect.',
+    instructions:'1. Check your live Cost vs C* tracker at the top.<br>2. Option A: ANC −5dB, Cost −€12.50 (risky if ANC drops below 35dB).<br>3. Option B: Carbon Fiber, Cost +€60, Weight −80g (good if overweight).<br>4. Option C: Price +€50, raises C* (good if over budget).<br>5. Your final spec sheet appears after submission.',
+    term:[{t:'> STEP 6: TRADE-OFF DECISIONS — AGENTS ACTIVE',c:'c',p:0}]},
+  8:{title:'STEP 7 — FINAL THEORY QUIZ',
+    theory:'Three academic questions to verify understanding of Chapter 6 core concepts: the difference between metric and value, dependent vs independent variables, and target costing starting from market price.',
+    instructions:'1. Read each question carefully.<br>2. Select the best answer.<br>3. Each correct answer = +100 pts.<br>4. Explanation appears after each answer.',
+    term:[{t:'> STEP 7: FINAL THEORY VERIFICATION — AGENTS ACTIVE',c:'c',p:0}]},
 };
 
 function showHostStep(step){
@@ -1289,13 +1364,29 @@ function showHostStep(step){
   const next=step<8?`<button class="btn bp btn-sm" style="width:auto;" onclick="showBetweenStep(${step})">Chat + Next →</button>`:'';
   const finish=step===8?`<button class="btn bg" style="width:100%;margin-top:8px;" onclick="showHostFinal()">🏆 Final Results</button>`:'';
   document.getElementById('hp-content').innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-      <div class="hp-step-num">STEP ${step}/8 · ${cfg.title.split('—')[0].trim()}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div style="font-family:var(--mono);font-size:.58rem;color:var(--cyan);letter-spacing:.14em;">
+        STEP ${step}/8
+      </div>
       <div style="display:flex;gap:7px;">${prev}${next}</div>
     </div>
     <div class="hp-title">${cfg.title}</div>
-    <div class="hp-def" style="margin-top:8px;">${cfg.def}</div>
-    <div class="hp-task"><strong>📱 STUDENT TASK:</strong> ${cfg.task}</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;">
+      <div style="background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.18);
+        border-left:3px solid var(--cyan);border-radius:0 10px 10px 0;padding:12px 14px;">
+        <div style="font-family:var(--mono);font-size:.58rem;color:var(--cyan);
+          letter-spacing:.14em;margin-bottom:8px;">📖 THE THEORY (WHY)</div>
+        <div style="font-size:.82rem;line-height:1.65;color:#8ab8d4;">${cfg.theory}</div>
+      </div>
+      <div style="background:rgba(255,196,0,.04);border:1px solid rgba(255,196,0,.2);
+        border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:12px 14px;">
+        <div style="font-family:var(--mono);font-size:.58rem;color:var(--gold);
+          letter-spacing:.14em;margin-bottom:8px;">📱 INSTRUCTIONS (HOW)</div>
+        <div style="font-size:.82rem;line-height:1.75;color:#e8c060;">${cfg.instructions}</div>
+      </div>
+    </div>
+
     <div class="prog-row">
       <div class="prog-bar"><div class="prog-fill" id="hp-prog-fill" style="width:0%"></div></div>
       <div class="prog-lbl" id="hp-prog-lbl">0/0 done</div>
@@ -1579,33 +1670,112 @@ function drawScatter(){
 }
 function submitS3(){sfxOk();addPts(120);doneStep(3,{position:{...mPosition}});}
 
-// ── STEP 5 ──
-function calcCost(m){return Math.round(55+(m.anc-10)*1.8+(m.bat-8)*0.9+(m.mat?58:0)+(m.drv-30)*0.8);}
-function calcWeight(m){return Math.round(310+(m.bat-8)*2.1+(m.mat?-78:0)+(m.drv-30)*0.5);}
-function calcAudio(m){return Math.min(10,((m.anc/50)*4+(m.drv/60)*6)).toFixed(1);}
-function initS5(){document.getElementById('r5-anc').value=mPosition.anc||30;updS5();}
-function updS5(){
-  mModel.anc=+document.getElementById('r5-anc').value;
-  mModel.bat=+document.getElementById('r5-bat').value;
-  mModel.mat=+document.getElementById('r5-mat').value;
-  mModel.drv=+document.getElementById('r5-drv').value;
-  document.getElementById('v5-anc').textContent=mModel.anc+' dB';
-  document.getElementById('v5-bat').textContent=mModel.bat+' h';
-  document.getElementById('v5-mat').textContent=mModel.mat?'Carbon Fiber':'Plastic';
-  document.getElementById('v5-drv').textContent=mModel.drv+' mm';
-  mCost=calcCost(mModel);
-  const w=calcWeight(mModel),audio=calcAudio(mModel);
-  document.getElementById('v5-weight').textContent=w+'g';
-  const cel=document.getElementById('v5-cost');
-  cel.textContent='€'+mCost;cel.style.color=mCost>160?'var(--red)':mCost>110?'var(--gold)':'var(--grn)';
-  document.getElementById('v5-audio').textContent=audio+'/10';
-  const tc=Math.round(mPosition.price*0.55*0.6);
-  const ins=document.getElementById('v5-insight');
-  if(mCost>tc*1.2)ins.textContent='⚠️ Cost €'+mCost+' is well above C* €'+tc+'. Significant trade-offs needed in Step 7.';
-  else if(mCost>tc)ins.textContent='⚡ Cost €'+mCost+' slightly above C* €'+tc+'. Small adjustment may be enough.';
-  else ins.textContent='✅ Cost €'+mCost+' fits within C* €'+tc+'. On track.';
+// ── STEP 4/5: COST MODEL (auto-calculated from Step 3) ──
+// Formula: Cost = €50 base + €2.50 per dB above 20dB + material
+// Weight = 250g base + material
+let mMat=0;// 0=plastic, 1=carbon
+
+function calcCostFromPosition(anc, mat){
+  const ancExtra=Math.max(0,anc-20)*2.5;
+  const matCost=mat?60:0;
+  return Math.round(50+ancExtra+matCost);
 }
-function submitS5(){sfxOk();mCost=calcCost(mModel);addPts(130);doneStep(5,{model:{...mModel},cost:mCost});}
+function calcWeightFromPosition(mat){
+  return mat?(250-80):(250+50);// carbon: 170g, plastic: 300g
+}
+
+function initS5(){
+  mMat=0;
+  document.getElementById('v5-anc-locked').textContent=mPosition.anc+' dB';
+  document.getElementById('v5-price-locked').textContent='€'+mPosition.price;
+  setMaterial(0);// default plastic, triggers full recalc
+}
+
+function setMaterial(mat){
+  mMat=mat;
+  // update button styles
+  const pb=document.getElementById('v5-plastic-btn');
+  const cb=document.getElementById('v5-carbon-btn');
+  if(pb&&cb){
+    if(mat===0){
+      pb.style.borderColor='var(--cyan)';pb.style.background='rgba(0,229,255,.13)';pb.style.color='var(--cyan)';
+      cb.style.borderColor='var(--bd)';cb.style.background='var(--s2)';cb.style.color='var(--mut)';
+    } else {
+      cb.style.borderColor='var(--cyan)';cb.style.background='rgba(0,229,255,.13)';cb.style.color='var(--cyan)';
+      pb.style.borderColor='var(--bd)';pb.style.background='var(--s2)';pb.style.color='var(--mut)';
+    }
+  }
+  updS5();
+}
+
+function updS5(){
+  const anc=mPosition.anc||30;
+  const ancDelta=Math.max(0,anc-20);
+  const ancCostExtra=ancDelta*2.5;
+  const matCost=mMat?60:0;
+  mCost=Math.round(50+ancCostExtra+matCost);
+  const weight=calcWeightFromPosition(mMat);
+  const cstar=Math.round(mPosition.price*0.55*0.6);
+
+  // update breakdown
+  const delta=document.getElementById('v5-anc-delta');
+  const ancC=document.getElementById('v5-anc-cost');
+  if(delta) delta.textContent=ancDelta+'dB';
+  if(ancC) ancC.textContent='+€'+ancCostExtra.toFixed(0);
+
+  const matL=document.getElementById('v5-mat-label');
+  const matC=document.getElementById('v5-mat-cost');
+  const matWL=document.getElementById('v5-mat-weight-row');
+  if(matL) matL.textContent=mMat?'Carbon Fiber: +€60':'Plastic: +€0';
+  if(matC) matC.textContent=mMat?'+€60':'+€0';
+
+  // weight
+  const matWeightEl=document.getElementById('v5-mat-weight');
+  const matWeightLbl=document.getElementById('v5-mat-weight-label');
+  const totWeightEl=document.getElementById('v5-total-weight');
+  if(matWeightEl) matWeightEl.textContent=mMat?'−80g':'+50g';
+  if(matWeightLbl) matWeightLbl.textContent=mMat?'Carbon Fiber weight saving':'Plastic shell weight';
+  if(totWeightEl){
+    totWeightEl.textContent=weight+'g';
+    const overweight=weight>=280;
+    totWeightEl.style.color=overweight?'var(--red)':'var(--grn)';
+    if(matWL) matWL.style.borderColor=overweight?'rgba(255,61,90,.4)':'rgba(0,230,118,.3)';
+  }
+
+  // total cost
+  const totCost=document.getElementById('v5-total-cost');
+  if(totCost){
+    totCost.textContent='€'+mCost;
+    totCost.style.color=mCost>cstar?'var(--red)':mCost>cstar*.9?'var(--gold)':'var(--grn)';
+  }
+
+  // insight
+  const ins=document.getElementById('v5-insight');
+  if(ins){
+    const gap=mCost-cstar;
+    const overW=weight>=280;
+    if(gap>0&&overW){
+      ins.style.cssText='font-size:.76rem;text-align:center;padding:10px 12px;border-radius:10px;margin-bottom:12px;line-height:1.5;width:100%;background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.3);color:#ff7a8a;';
+      ins.textContent='❌ DOUBLE PROBLEM: Cost €'+mCost+' > C* €'+cstar+' AND weight '+weight+'g ≥ 280g. Trade-offs are mandatory.';
+    } else if(gap>0){
+      ins.style.cssText='font-size:.76rem;text-align:center;padding:10px 12px;border-radius:10px;margin-bottom:12px;line-height:1.5;width:100%;background:rgba(255,196,0,.07);border:1px solid rgba(255,196,0,.25);color:#e8c060;';
+      ins.textContent='⚠️ Cost €'+mCost+' exceeds C* €'+cstar+' by €'+gap+'. You need trade-offs in Step 6.';
+    } else if(overW){
+      ins.style.cssText='font-size:.76rem;text-align:center;padding:10px 12px;border-radius:10px;margin-bottom:12px;line-height:1.5;width:100%;background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.3);color:#ff7a8a;';
+      ins.textContent='⚠️ Cost is fine, but weight '+weight+'g exceeds the 280g limit. Switch to Carbon Fiber to fix this.';
+    } else {
+      ins.style.cssText='font-size:.76rem;text-align:center;padding:10px 12px;border-radius:10px;margin-bottom:12px;line-height:1.5;width:100%;background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.25);color:#5eea9a;';
+      ins.textContent='✅ Cost €'+mCost+' ≤ C* €'+cstar+' and weight '+weight+'g < 280g. On track — proceed to Step 5.';
+    }
+  }
+}
+
+function submitS5(){
+  sfxOk();
+  mModel={anc:mPosition.anc,bat:24,mat:mMat,drv:40};// lock model
+  addPts(130);
+  doneStep(5,{model:{...mModel},cost:mCost,weight:calcWeightFromPosition(mMat)});
+}
 
 // ── STEP 6 ──
 function initS6(){
@@ -1642,25 +1812,28 @@ function submitS6(){
 // ── STEP 7 ──
 const TRADES=[
   {
-    a:'Reduce ANC to 25 dB (−€9)',
-    b:'Keep ANC at target',
-    cons_a:'✅ Saves €9 cost — but ANC drops below OMEGA\'s minimum requirement. Mission risk increases.',
-    cons_b:'⚠️ High ANC maintained — but cost stays high. You may need to cut elsewhere to stay profitable.',
-    effect_a:{cost:-9},effect_b:{}
+    label:'Option A — SACRIFICE NOISE',
+    a:'Apply Option A (ANC −5 dB, Cost −€12.50)',
+    b:'Skip Option A',
+    cons_a:'⚠️ ANC drops by 5dB. If this pushes below 35dB, OMEGA mission at risk. But saves €12.50.',
+    cons_b:'ANC unchanged. Cost unchanged.',
+    effect_a:{ancDelta:-5,costDelta:-12.5},effect_b:{}
   },
   {
-    a:'Cut battery to 16 h (saves €7, −16g)',
-    b:'Keep battery at target',
-    cons_a:'✅ Saves €7 and reduces weight — but battery drops to 2× the client minimum. Acceptable trade.',
-    cons_b:'⚠️ Full battery maintained. Cost stays higher. Combined with high ANC this may be unprofitable.',
-    effect_a:{cost:-7,weight:-16},effect_b:{}
+    label:'Option B — UPGRADE MATERIALS',
+    a:'Apply Option B (Carbon Fiber +€60, Weight −80g)',
+    b:'Skip Option B (keep Plastic)',
+    cons_a:'✅ Weight drops to 170g — well under 280g limit. But +€60 manufacturing cost.',
+    cons_b:'Plastic stays. Weight stays at 300g.',
+    effect_a:{costDelta:+60,matChange:1},effect_b:{}
   },
   {
-    a:'Raise retail price by €50',
-    b:'Hold current price (client expectation)',
-    cons_a:'✅ Raises C* — more room for quality specs. But higher price may reduce market reach.',
-    cons_b:'⚠️ Price held. Tighter C*. If you are over budget, you must cut specs to compensate.',
-    effect_a:{price:+50},effect_b:{}
+    label:'Option C — RAISE PRICE',
+    a:'Apply Option C (Retail Price +€50, raises C*)',
+    b:'Skip Option C (hold price)',
+    cons_a:'✅ C* increases — more budget room. But higher price weakens competitive position.',
+    cons_b:'Price and C* stay unchanged.',
+    effect_a:{priceDelta:+50},effect_b:{}
   },
 ];
 let t7ch=[],t7conseq=[];
@@ -1669,13 +1842,37 @@ function initS7(){
   t7conseq=Array(TRADES.length).fill('');
   document.getElementById('s7-fb').style.display='none';
   document.getElementById('s7-outcome').style.display='none';
-  const P=mPosition.price||250,tc=Math.round(P*0.55*0.6),gap=mCost-tc;
-  document.getElementById('s7-intro').innerHTML=gap>0
-    ?`You are <strong style="color:var(--red)">€${Math.round(gap)} over budget</strong>. Make choices below to close the gap. Watch the consequences cascade.`
-    :`You are profitable. But you still must make final trade-off decisions — these define your spec sheet.`;
+
+  const P=mPosition.price||250;
+  const tc=Math.round(P*0.55*0.6);
+  const gap=mCost-tc;
+  const weight=calcWeightFromPosition(mMat);
+  const overBudget=gap>0,overWeight=weight>=280;
+
+  // update live tracker
+  const costEl=document.getElementById('t7-cost');
+  const cstarEl=document.getElementById('t7-cstar');
+  const gapEl=document.getElementById('t7-gap');
+  if(costEl) costEl.textContent='€'+mCost;
+  if(costEl) costEl.style.color=overBudget?'var(--red)':'var(--grn)';
+  if(cstarEl) cstarEl.textContent='€'+tc;
+  if(gapEl){
+    gapEl.textContent=gap>0?'+€'+Math.round(gap):'−€'+Math.round(-gap);
+    gapEl.style.color=gap>0?'var(--red)':'var(--grn)';
+  }
+
+  let intro='';
+  if(overBudget&&overWeight) intro=`⚠️ <strong style="color:var(--red)">Two problems:</strong> €${Math.round(gap)} over budget AND ${weight}g overweight. Use the options below to fix both.`;
+  else if(overBudget) intro=`💸 <strong style="color:var(--red)">€${Math.round(gap)} over C*</strong>. The retailer and manufacturer margins eat your profit. Choose options to close the gap.`;
+  else if(overWeight) intro=`⚖️ <strong style="color:var(--gold)">Cost is fine</strong> but weight is ${weight}g ≥ 280g. OMEGA cannot carry this. Use Option B to reduce weight.`;
+  else intro=`✅ <strong style="color:var(--grn)">You are profitable</strong> (margin: €${Math.round(-gap)}) and within weight limit. You can still apply options to improve your position.`;
+  document.getElementById('s7-intro').innerHTML=intro;
+
   document.getElementById('s7-trades').innerHTML=TRADES.map((t,i)=>`
-    <div style="margin-bottom:10px;">
-      <div style="font-size:.62rem;font-family:var(--mono);color:var(--mut);margin-bottom:5px;">CHOICE ${i+1}:</div>
+    <div style="margin-bottom:12px;background:var(--s2);border:1px solid var(--bd);
+      border-radius:12px;padding:12px;width:100%;">
+      <div style="font-size:.62rem;font-family:var(--mono);color:var(--cyan);
+        letter-spacing:.1em;margin-bottom:8px;">${t.label}:</div>
       <div class="trow">
         <div class="tcell" id="t7a-${i}" onclick="pickT7(${i},'a')">${t.a}</div>
         <div class="tvs">VS</div>
@@ -1688,39 +1885,112 @@ function pickT7(i,s){
   sfxClick();t7ch[i]=s;
   document.getElementById('t7a-'+i).classList.toggle('pick',s==='a');
   document.getElementById('t7b-'+i).classList.toggle('pick',s==='b');
-  const t=TRADES[i];const msg=s==='a'?t.cons_a:t.cons_b;
+  const t=TRADES[i];
+  const msg=s==='a'?t.cons_a:t.cons_b;
   const el=document.getElementById('tc-'+i);
-  el.textContent=msg;el.className='trade-conseq show '+(s==='a'?'ok':'bad');
+  el.innerHTML=msg;
+  const isPositive=(i===1&&s==='a')||(i===2&&s==='a');
+  el.className='trade-conseq show '+(isPositive?'ok':(s==='a'&&i===0)?'bad':'ok');
   t7conseq[i]=msg;
-  // check cascade: if keeping high ANC + plastic material → weight warning
-  checkT7Cascade();
+  updateT7Tracker();
 }
-function checkT7Cascade(){
-  const keepAnc=t7ch[0]==='b';const keepPlastic=mModel.mat===0;
+function updateT7Tracker(){
+  let simCost=mCost,simPrice=mPosition.price,simMat=mMat,simAnc=mPosition.anc||30;
+  t7ch.forEach((s,i)=>{
+    if(s==='a'){
+      const eff=TRADES[i].effect_a;
+      if(eff.costDelta) simCost=Math.round(simCost+eff.costDelta);
+      if(eff.priceDelta) simPrice+=eff.priceDelta;
+      if(eff.matChange!==undefined) simMat=eff.matChange;
+      if(eff.ancDelta) simAnc=Math.max(10,simAnc+eff.ancDelta);
+    }
+  });
+  const simCstar=Math.round(simPrice*0.55*0.6);
+  const simGap=simCost-simCstar;
+  const simWeight=simMat?170:300;
+  const costEl=document.getElementById('t7-cost');
+  const gapEl=document.getElementById('t7-gap');
+  if(costEl){costEl.textContent='€'+simCost;costEl.style.color=simCost>simCstar?'var(--red)':'var(--grn)';}
+  if(gapEl){gapEl.textContent=simGap>0?'+€'+simGap:'OK';gapEl.style.color=simGap>0?'var(--red)':'var(--grn)';}
   const out=document.getElementById('s7-outcome');
-  if(keepAnc&&keepPlastic&&mModel.anc>=35){
-    const w=calcWeight(mModel);
-    out.style.display='block';
-    out.innerHTML='⚠️ CASCADE WARNING: You kept high ANC with plastic housing → Weight = '+w+'g. This exceeds the client\'s 280g limit. OMEGA\'s mission is at risk. Consider Carbon Fiber or reducing ANC.';
-  } else {out.style.display='none';}
+  const warnings=[];
+  if(simAnc<35) warnings.push('⚠️ ANC now '+simAnc+'dB — below 35dB requirement!');
+  if(simWeight>=280) warnings.push('⚠️ Weight '+simWeight+'g still over 280g limit.');
+  if(simGap>0) warnings.push('⚠️ Still €'+simGap+' over C* = €'+simCstar+'.');
+  if(warnings.length>0){out.style.display='block';out.className='fb bad';out.innerHTML=warnings.join('<br>');}
+  else if(t7ch.some(v=>v!==null)){out.style.display='block';out.className='fb ok';out.innerHTML='✅ All constraints met!';}
 }
 function submitS7(){
   if(t7ch.includes(null)){toast('Make all 3 choices first!');return;}
   sfxClick();
-  // apply effects
+  // apply all chosen effects
+  let finalAnc=mPosition.anc;
+  let finalMat=mMat;
   t7ch.forEach((s,i)=>{
-    const eff=s==='a'?TRADES[i].effect_a:TRADES[i].effect_b;
-    if(eff.cost)mCost=Math.max(0,mCost+eff.cost);
-    if(eff.price)mPosition.price+=eff.price;
+    if(s==='a'){
+      const eff=TRADES[i].effect_a;
+      if(eff.ancDelta) finalAnc=Math.max(10,finalAnc+eff.ancDelta);
+      if(eff.costDelta) mCost=Math.max(0,Math.round(mCost+eff.costDelta));
+      if(eff.priceDelta) mPosition.price+=eff.priceDelta;
+      if(eff.matChange!==undefined) finalMat=eff.matChange;
+    }
   });
-  addPts(180);sfxOk();
-  const finalGap=mCost-mPosition.price*0.55*0.6;
-  let outcome='';
-  if(finalGap>10)outcome='⚠️ Still over budget after trade-offs. Client satisfaction is reduced. −50 pts';
-  else outcome='✅ Spec sheet balanced. Good work.';
-  if(finalGap>10)addPts(-50);
-  showFb('s7-fb','warn',outcome+'<br><small>Final specs locked. These are the constraints your engineers will build to.</small>');
-  setTimeout(()=>doneStep(7,{tradeoffs:t7ch,finalCost:mCost}),2400);
+  // recalc final cost with actual values
+  mCost=calcCostFromPosition(finalAnc,finalMat);
+  const finalWeight=calcWeightFromPosition(finalMat);
+  const finalCstar=Math.round(mPosition.price*0.55*0.6);
+  const finalGap=mCost-finalCstar;
+  const ancOk=finalAnc>=35,weightOk=finalWeight<280,costOk=finalGap<=0;
+
+  addPts(180);
+  if(!costOk) addPts(-50);
+  if(!ancOk) addPts(-50);
+  if(!weightOk) addPts(-30);
+  if(costOk&&ancOk&&weightOk) sfxOk(); else sfxBad();
+
+  // Final spec sheet
+  const sheet=`
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;
+      padding:14px;margin-top:10px;width:100%;">
+      <div style="font-family:var(--mono);font-size:.62rem;color:var(--cyan);
+        letter-spacing:.1em;margin-bottom:10px;">📋 YOUR FINAL SPEC SHEET:</div>
+      <div class="crow" style="margin-bottom:5px;">
+        <span>ANC Target</span>
+        <span class="camt" style="color:${ancOk?'var(--grn)':'var(--red)'};">${finalAnc} dB ${ancOk?'✅':'❌ below 35dB'}</span>
+      </div>
+      <div class="crow" style="margin-bottom:5px;">
+        <span>Weight</span>
+        <span class="camt" style="color:${weightOk?'var(--grn)':'var(--red)'};">${finalWeight}g ${weightOk?'✅':'❌ over 280g'}</span>
+      </div>
+      <div class="crow" style="margin-bottom:5px;">
+        <span>Material</span>
+        <span class="camt" style="color:var(--cyan);">${finalMat?'Carbon Fiber':'Plastic'}</span>
+      </div>
+      <div class="crow" style="margin-bottom:5px;">
+        <span>Retail Price</span>
+        <span class="camt">€${mPosition.price}</span>
+      </div>
+      <div class="crow" style="margin-bottom:5px;">
+        <span>Mfg. Cost</span>
+        <span class="camt" style="color:${costOk?'var(--grn)':'var(--red)'};">€${mCost}</span>
+      </div>
+      <div class="crow cg" style="margin-bottom:0;">
+        <span>C* (Allowable Cost)</span>
+        <span class="camt" style="color:${costOk?'var(--grn)':'var(--red)'};">€${finalCstar} ${costOk?'✅':'❌ over budget'}</span>
+      </div>
+    </div>`;
+
+  const s7fb=document.getElementById('s7-fb');
+  s7fb.style.display='block';
+  const allOk=costOk&&ancOk&&weightOk;
+  s7fb.className='fb '+(allOk?'ok':'bad');
+  s7fb.innerHTML=(allOk?'✅ <strong>MISSION READY</strong> — all constraints met!':
+    '⚠️ <strong>COMPROMISED</strong> — constraints violated. OMEGA accepts the risk.')+sheet;
+
+  setTimeout(()=>doneStep(7,{
+    finalAnc,finalMat,finalWeight,finalCost:mCost,
+    finalCstar,finalGap,ancOk,weightOk,costOk
+  }),3500);
 }
 
 // ── STEP 8 ──
