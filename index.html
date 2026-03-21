@@ -447,6 +447,12 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
   </div>
   <button class="kh-btn" id="kh-start-btn" onclick="startKahootBreach()">▶ START QUIZ</button>
   <div class="kh-footer">Hosted by Prof. · Digital Innovation &amp; Management · UniBg</div>
+  <div style="margin-top:14px;">
+    <button onclick="skipToLobby()" style="background:transparent;border:1px solid #ccc;
+      border-radius:8px;padding:7px 18px;color:#999;font-size:.72rem;cursor:pointer;">
+      ⏭ Skip intro (dev mode)
+    </button>
+  </div>
 </div>
 
 <!-- ══════════════ LANDING (fallback) ══════════════ -->
@@ -850,6 +856,11 @@ function ambLoop(){
 // FAKE KAHOOT BREACH
 // ══════════════════════════════════
 let breachDone=false;
+function skipToLobby(){
+  breachDone=true;startMusic(0);
+  myNick=myNick||'HOST';myRoom=myRoom||genRoom();
+  go('s-hlobby');launchHostDirect();
+}
 function startKahootBreach(){
   if(breachDone)return;
   breachDone=true;
@@ -1230,6 +1241,24 @@ function startHost(){sfxClick();myNick=(document.getElementById('nick').value.tr
   go('s-hchat');runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostDirect();});
 }
 function startJoin(){sfxClick();const p=new URLSearchParams(location.search);const r=p.get('room');if(r)document.getElementById('m-code').value=r.toUpperCase();go('s-mjoin');}
+
+async function mobileJoin(){
+  sfxClick();
+  mNick=(document.getElementById('m-nick').value.trim()||'AGENT'+Math.floor(Math.random()*99)).substring(0,16);
+  mRoom=(document.getElementById('m-code').value||'').trim().toUpperCase();
+  if(!mRoom){toast('Enter a room code!');return;}
+  toast('Connecting…');
+  let ok=await connectAbly(mRoom);
+  if(!ok){await new Promise(r=>setTimeout(r,2000));ok=await connectAbly(mRoom);}
+  if(!ok){toast('❌ Cannot connect. Check WiFi.');return;}
+  pub('join',{nick:mNick});
+  document.getElementById('mob-hud').classList.add('on');
+  sub('game-start',()=>{go('s-mwait');setMobWait('STANDBY','Mission starting…','Stand by');});
+  sub('launch',d=>{mStep=d.step;setMood(d.step);if(d.dur>0)startTimer(d.dur);launchMobStep(d.step);});
+  sub('spy-msg',d=>showSpyToast(d.msg));
+  go('s-mwait');setMobWait('CONNECTED','Waiting for host…','Stand by — mission incoming');
+  toast('✅ Joined as '+mNick);startMusic(0);
+}
 
 async function launchHostDirect(){
   myRoom=myRoom||genRoom();
