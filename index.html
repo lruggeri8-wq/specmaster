@@ -331,6 +331,117 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
   .trow{grid-template-columns:1fr 22px 1fr;}
   .tcell{font-size:.72rem;padding:9px 7px;}
 }
+
+/* ── CHAT INTRO ── */
+#s-hintro{
+  display:flex;flex-direction:column;
+  background:var(--bg);
+  padding:0;
+}
+#chat-wrap{
+  flex:1;display:flex;flex-direction:column;
+  max-width:680px;width:100%;margin:0 auto;
+  padding:0 0 12px;
+  overflow:hidden;
+}
+#chat-header{
+  padding:16px 20px 14px;
+  background:rgba(7,17,30,.98);
+  border-bottom:1px solid var(--bd);
+  flex-shrink:0;
+}
+#chat-signal{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:.58rem;
+  letter-spacing:.14em;color:var(--mut);margin-bottom:4px;
+}
+#signal-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--red);
+  animation:sigpulse 1s ease-in-out infinite;
+}
+#signal-dot.live{background:var(--grn);}
+@keyframes sigpulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+#chat-from{
+  font-family:'Orbitron',monospace;font-size:.75rem;
+  font-weight:700;color:var(--cyan);
+  text-shadow:0 0 14px rgba(0,229,255,.5);
+}
+#chat-msgs{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:20px 16px 8px;
+  display:flex;flex-direction:column;gap:12px;
+  scroll-behavior:smooth;
+}
+#chat-msgs::-webkit-scrollbar{display:none;}
+/* message bubbles */
+.cmsg{
+  max-width:78%;animation:msgpop .35s cubic-bezier(.34,1.4,.64,1) both;
+}
+@keyframes msgpop{from{opacity:0;transform:translateY(8px) scale(.95);}to{opacity:1;transform:none;}}
+.cmsg.them{align-self:flex-start;}
+.cmsg.me{align-self:flex-end;}
+.cmsg-name{
+  font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;
+  color:var(--mut);margin-bottom:4px;padding:0 4px;
+}
+.cmsg.me .cmsg-name{text-align:right;color:rgba(0,229,255,.5);}
+.cmsg-bubble{
+  padding:11px 15px;border-radius:18px;
+  font-size:.88rem;line-height:1.6;
+}
+.cmsg.them .cmsg-bubble{
+  background:var(--s1);border:1px solid var(--bd);
+  color:var(--txt);border-bottom-left-radius:5px;
+}
+.cmsg.me .cmsg-bubble{
+  background:rgba(0,229,255,.12);
+  border:1px solid rgba(0,229,255,.25);
+  color:#b8e8f8;border-bottom-right-radius:5px;
+}
+.cmsg.them .cmsg-bubble.urgent{
+  border-color:rgba(255,61,90,.5);
+  background:rgba(255,61,90,.08);
+}
+.cmsg.them .cmsg-bubble.classified{
+  border-color:rgba(255,196,0,.4);
+  background:rgba(255,196,0,.06);
+  font-family:var(--mono);font-size:.78rem;
+  color:var(--gold);
+}
+/* typing indicator */
+#chat-typing{padding:0 16px;}
+.typing-bubble{
+  display:inline-flex;gap:4px;align-items:center;
+  background:var(--s1);border:1px solid var(--bd);
+  padding:10px 16px;border-radius:18px;border-bottom-left-radius:5px;
+}
+.typing-bubble span{
+  width:6px;height:6px;background:var(--mut);
+  border-radius:50%;animation:tdot 1.2s infinite;
+}
+.typing-bubble span:nth-child(2){animation-delay:.2s;}
+.typing-bubble span:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,80%,100%{transform:scale(1);opacity:.4;}40%{transform:scale(1.3);opacity:1;}}
+/* footer */
+#chat-footer{
+  padding:14px 16px;border-top:1px solid var(--bd);
+  background:rgba(7,17,30,.95);flex-shrink:0;
+  max-width:680px;width:100%;margin:0 auto;
+}
+#chat-btn{
+  width:100%;padding:15px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--cyan),#0099bb);
+  color:#000;font-family:'Orbitron',monospace;
+  font-size:.75rem;font-weight:700;letter-spacing:.1em;cursor:pointer;
+  transition:all .18s;box-shadow:0 0 24px rgba(0,229,255,.3);
+}
+#chat-btn:active{transform:scale(.97);}
+#chat-btn.gold{
+  background:linear-gradient(135deg,var(--gold),#cc7000);
+  box-shadow:0 0 24px rgba(255,196,0,.3);
+}
+
 </style>
 </head>
 <body>
@@ -385,48 +496,26 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
 <!-- ═══════════════════════════════════════════
      HOST — INTRO / NARRATIVE
 ═══════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════
+     HOST — CHAT INTRO
+═══════════════════════════════════════════ -->
 <div class="scr" id="s-hintro">
-  <div class="intro-classified">⚠ CLASSIFIED · LEVEL 5 CLEARANCE REQUIRED</div>
-  <div class="intro-title">OPERATION<br>SILENT EAR</div>
-  <div class="intro-sub">SPECMASTER · PRODUCT SPECIFICATIONS DIVISION</div>
-
-  <div class="intro-block">
-    <h3>// WHO YOU ARE</h3>
-    <p>You are a student of <strong>Digital Innovation and Management</strong> at the University of Bergamo.</p>
-    <p>Three days ago, an anonymous message appeared on your university portal. No sender. No subject line.
-    Just coordinates and a time.</p>
-    <p>You showed up. They were waiting.</p>
-    <p><span class="highlight">"We've been watching your class,"</span> said the figure in the dark.
-    <span class="highlight">"You study how products are built. We need that skill. Tonight."</span></p>
-  </div>
-
-  <div class="intro-block">
-    <h3>// THE MISSION</h3>
-    <p>An undercover operative — codename <strong>OMEGA</strong> — is embedded in a high-noise environment.
-    She needs a custom pair of noise-cancelling headphones. Field-grade. Untraceable. Built to exact specifications.</p>
-    <p>The problem: <strong>no off-the-shelf product meets the requirements.</strong>
-    Someone needs to spec them from scratch. That someone is you.</p>
-    <p><span class="highlight">But specifications are not wishes. They are precise, measurable, testable targets.</span>
-    Get them wrong and the headphones fail. The operative is compromised. The mission is over.</p>
-  </div>
-
-  <div class="intro-block">
-    <h3>// WHAT YOU WILL DO</h3>
-    <div class="intro-steps">
-      <div class="intro-step"><div class="isn">01</div><div class="ise">🎯</div><div class="isl">Identify Specs</div></div>
-      <div class="intro-step"><div class="isn">02</div><div class="ise">📐</div><div class="isl">Map Metrics</div></div>
-      <div class="intro-step"><div class="isn">03</div><div class="ise">🗺️</div><div class="isl">Position vs Market</div></div>
-      <div class="intro-step"><div class="isn">04</div><div class="ise">🏭</div><div class="isl">Cost Model</div></div>
-      <div class="intro-step"><div class="isn">05</div><div class="ise">💰</div><div class="isl">Target Cost</div></div>
-      <div class="intro-step"><div class="isn">06</div><div class="ise">⚖️</div><div class="isl">Trade-offs</div></div>
-      <div class="intro-step"><div class="isn">07</div><div class="ise">🧠</div><div class="isl">Final Quiz</div></div>
+  <div id="chat-wrap">
+    <div id="chat-header">
+      <div id="chat-signal">
+        <span id="signal-dot"></span>
+        <span id="signal-txt">ENCRYPTED CHANNEL · CONNECTING…</span>
+      </div>
+      <div id="chat-from">UNKNOWN · [CLASSIFIED]</div>
     </div>
-    <p style="font-size:.78rem;color:var(--mut);">Each agent builds their own spec sheet. At the end, the best one gets approved for production.</p>
+    <div id="chat-msgs"></div>
+    <div id="chat-typing" style="display:none;">
+      <div class="typing-bubble"><span></span><span></span><span></span></div>
+    </div>
   </div>
-
-  <button class="btn btn-y" onclick="goLobby()" style="max-width:480px;font-size:.85rem;">
-    PROCEED TO LOBBY → CONNECT AGENTS
-  </button>
+  <div id="chat-footer">
+    <button id="chat-btn" onclick="chatNext()" style="display:none;">TAP TO CONTINUE ↓</button>
+  </div>
 </div>
 
 <div class="scr" id="s-hlobby">
@@ -887,11 +976,143 @@ function sub(ev,fn){if(ch)ch.subscribe(ev,msg=>fn(msg.data));}
 // ═══════════════════════════════════
 // LANDING
 // ═══════════════════════════════════
+
+// ═══════════════════════════════════
+// CHAT INTRO — spy messenger
+// ═══════════════════════════════════
+const CHAT_SCRIPT = [
+  // {side:'them'/'me', name, text, delay_before, cls:'urgent'/'classified'/null, btn:'label'/null}
+  {side:'them', name:'UNKNOWN', text:'...', delay:800, typing:1200},
+  {side:'them', name:'UNKNOWN', text:'Connection established.', delay:300},
+  {side:'them', name:'UNKNOWN', text:'Encrypted. Level 5.', delay:600, cls:'classified'},
+  {side:'me', name:'YOU', text:'Who is this?', delay:900},
+  {side:'them', name:'UNKNOWN', text:'Someone who has been watching your class for three weeks.', delay:1000},
+  {side:'them', name:'UNKNOWN', text:'Digital Innovation and Management. University of Bergamo.', delay:700},
+  {side:'them', name:'UNKNOWN', text:'You study how products are built. From customer need to final specification.', delay:800},
+  {side:'me', name:'YOU', text:'...how do you know that?', delay:1100},
+  {side:'them', name:'UNKNOWN', text:'We know a lot of things.', delay:600},
+  {side:'them', name:'UNKNOWN', text:'Right now what matters is this:', delay:500, btn:'WHAT?'},
+
+  {side:'them', name:'UNKNOWN', text:'We have an operative in the field. Codename: OMEGA.', delay:700, cls:'classified'},
+  {side:'them', name:'UNKNOWN', text:'She is embedded in a high-noise environment — factory district, heavy machinery, 24/7.', delay:900},
+  {side:'them', name:'UNKNOWN', text:'She has lost communication. Her standard equipment cannot handle the noise.', delay:800, cls:'urgent'},
+  {side:'me', name:'YOU', text:'What does this have to do with me?', delay:1000},
+  {side:'them', name:'UNKNOWN', text:'She needs a custom pair of noise-cancelling headphones.', delay:600},
+  {side:'them', name:'UNKNOWN', text:'Field-grade. Untraceable. Built to exact specifications.', delay:700},
+  {side:'them', name:'UNKNOWN', text:'No off-the-shelf product meets the requirements.', delay:600, cls:'urgent'},
+  {side:'them', name:'UNKNOWN', text:'Someone needs to spec them from scratch.', delay:500, btn:'AND that someone is me.'},
+
+  {side:'them', name:'UNKNOWN', text:'You and your team, yes.', delay:600},
+  {side:'them', name:'UNKNOWN', text:'Each of you will build a complete specification sheet.', delay:700},
+  {side:'them', name:'UNKNOWN', text:'The best one gets approved for production.', delay:600},
+  {side:"me", name:"YOU", text:"I've never done this for real before.", delay:1000},
+  {side:'them', name:'UNKNOWN', text:'That is why we chose students. Fresh eyes. No assumptions.', delay:800},
+  {side:'them', name:'UNKNOWN', text:'But understand this:', delay:400, cls:'urgent'},
+  {side:'them', name:'UNKNOWN', text:'Specifications are not wishes. They are precise, measurable, testable targets.', delay:700, cls:'urgent'},
+  {side:'them', name:'UNKNOWN', text:'Get them wrong — the headphones fail. OMEGA is compromised. The mission is over.', delay:900, cls:'urgent'},
+  {side:'me', name:'YOU', text:'Understood. What do I need to do?', delay:1100, btn:'UNDERSTOOD. WHAT DO I DO?'},
+
+  {side:'them', name:'UNKNOWN', text:'Seven steps. Your team does them simultaneously on their phones.', delay:700},
+  {side:'them', name:'UNKNOWN', text:'01 — Identify the correct specifications from the client brief.', delay:600},
+  {side:'them', name:'UNKNOWN', text:'02 — Map each customer need to its measurable metric.', delay:600},
+  {side:'them', name:'UNKNOWN', text:'03 — Study the competitive market. Choose where to position.', delay:600},
+  {side:'them', name:'UNKNOWN', text:'04 — Build a cost model. Every spec choice has a cost.', delay:600},
+  {side:'them', name:'UNKNOWN', text:'05 — Apply target costing. Can you make it profitable?', delay:600},
+  {side:'them', name:'UNKNOWN', text:'06 — Make the hard trade-offs. You cannot have everything.', delay:600},
+  {side:'them', name:'UNKNOWN', text:'07 — Final verification. Prove you understood Chapter 6.', delay:700},
+  {side:'them', name:'UNKNOWN', text:'You control the pace. Launch each step when ready.', delay:600, cls:'classified'},
+  {side:'them', name:'UNKNOWN', text:'OMEGA is counting on you.', delay:500, cls:'urgent'},
+  {side:'them', name:'UNKNOWN', text:'Do not fail her.', delay:400, cls:'urgent', btn:'BEGIN OPERATION →'},
+];
+
+let chatIdx = 0;
+let chatAutoRunning = false;
+
+function initChat() {
+  document.getElementById('chat-msgs').innerHTML = '';
+  document.getElementById('chat-typing').style.display = 'none';
+  document.getElementById('chat-btn').style.display = 'none';
+  chatIdx = 0;
+  // start with a delay
+  setTimeout(() => {
+    document.getElementById('signal-dot').classList.add('live');
+    document.getElementById('signal-txt').textContent = 'ENCRYPTED CHANNEL · ACTIVE';
+    runChatStep();
+  }, 800);
+}
+
+function runChatStep() {
+  if (chatIdx >= CHAT_SCRIPT.length) {
+    // done — go to lobby
+    goLobby();
+    return;
+  }
+  const msg = CHAT_SCRIPT[chatIdx];
+
+  // hide button while processing
+  document.getElementById('chat-btn').style.display = 'none';
+
+  // show typing indicator if 'them'
+  const showTyping = msg.side === 'them';
+  if (showTyping) {
+    document.getElementById('chat-typing').style.display = 'block';
+    scrollChat();
+  }
+
+  const typingDuration = msg.typing || (msg.text.length * 28 + 400);
+
+  setTimeout(() => {
+    document.getElementById('chat-typing').style.display = 'none';
+    appendChatMsg(msg);
+    chatIdx++;
+
+    if (msg.btn) {
+      // pause and wait for tap
+      const btn = document.getElementById('chat-btn');
+      btn.textContent = msg.btn === true ? 'TAP TO CONTINUE ↓' : msg.btn;
+      btn.className = (msg.side === 'me') ? 'gold' : '';
+      btn.style.display = 'block';
+    } else {
+      // auto-advance
+      const nextDelay = (CHAT_SCRIPT[chatIdx] ? CHAT_SCRIPT[chatIdx].delay : 500) || 600;
+      setTimeout(runChatStep, nextDelay);
+    }
+  }, showTyping ? typingDuration : 100);
+}
+
+function chatNext() {
+  sfxClick();
+  document.getElementById('chat-btn').style.display = 'none';
+  const nextDelay = (CHAT_SCRIPT[chatIdx] ? CHAT_SCRIPT[chatIdx].delay : 400) || 400;
+  setTimeout(runChatStep, nextDelay);
+}
+
+function appendChatMsg(msg) {
+  const wrap = document.getElementById('chat-msgs');
+  const div = document.createElement('div');
+  div.className = 'cmsg ' + msg.side;
+  const clsCss = msg.cls ? ' ' + msg.cls : '';
+  div.innerHTML =
+    '<div class="cmsg-name">' + msg.name + '</div>' +
+    '<div class="cmsg-bubble' + clsCss + '">' + msg.text + '</div>';
+  wrap.appendChild(div);
+  scrollChat();
+  // play sound
+  if (msg.side === 'them') tone(440 + Math.random()*80, 'sine', .06, .04);
+  else tone(600, 'sine', .05, .035);
+}
+
+function scrollChat() {
+  const w = document.getElementById('chat-msgs');
+  setTimeout(() => { w.scrollTop = w.scrollHeight; }, 50);
+}
+
 function startHost(){
   sfxClick();
   myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);
   go('s-hintro');
   startMusic(0);
+  setTimeout(initChat, 400);
 }
 function goLobby(){
   sfxClick();
