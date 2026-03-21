@@ -785,10 +785,14 @@ async function startHost(){
   });
 }
 function buildQR(){
-  const url=encodeURIComponent(location.href.split('?')[0]+'?room='+myRoom+'&role=player');
+  const base='https://lruggeri8-wq.github.io/specmaster/';
+  const url=encodeURIComponent(base+'?room='+myRoom+'&role=player');
   document.getElementById('qr-wrap').innerHTML=
     `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${url}&bgcolor=030608&color=00e5ff&margin=8"
-      style="border-radius:10px;border:2px solid var(--cyan);width:150px;height:150px;" alt="QR">`;
+      style="border-radius:10px;border:2px solid var(--cyan);width:150px;height:150px;" alt="QR">
+    <div style="font-family:var(--mono);font-size:.55rem;color:var(--mut);text-align:center;margin-top:5px;word-break:break-all;max-width:160px;">
+      ${base}?room=${myRoom}
+    </div>`;
 }
 function renderPList(){
   document.getElementById('plist').innerHTML=
