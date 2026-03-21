@@ -3,1477 +3,1413 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SPECMASTER · OPERATION SILENT EAR</title>
+<title>SPECMASTER · Operation Silent Ear</title>
 <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════
+   SHARED BASE
+═══════════════════════════════════════ */
 :root{
-  --bg:#030608;--s1:#07101a;--s2:#0c1824;--bd:#182438;
-  --cyan:#00e5ff;--gold:#ffc400;--grn:#00e676;--red:#ff1744;--pur:#b366ff;
-  --txt:#cce4f8;--mut:#2a4060;--r:14px;
+  --bg:#020810;--s1:#07111e;--s2:#0c1a2e;--bd:#1a2e48;
+  --cyan:#00e5ff;--gold:#ffc400;--grn:#00e676;--red:#ff3d5a;--pur:#b366ff;
+  --txt:#d4eaf8;--mut:#2e4a62;--r:16px;
   --mono:'Share Tech Mono',monospace;
+  --sans:'Inter',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
-body{font-family:'DM Sans',sans-serif;color:var(--txt);touch-action:manipulation;}
+body{font-family:var(--sans);color:var(--txt);}
 
+/* canvas bg */
 #bgC{position:fixed;inset:0;z-index:0;pointer-events:none;}
 
-/* shadow figures */
-#figs{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;}
-
 /* screens */
-.scr{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;
-  align-items:center;padding:12px 14px 36px;
-  opacity:0;pointer-events:none;transition:opacity .38s;
+.scr{position:absolute;inset:0;z-index:10;
+  opacity:0;pointer-events:none;transition:opacity .35s;
   overflow-y:auto;overflow-x:hidden;}
 .scr::-webkit-scrollbar{display:none;}
 .scr.on{opacity:1;pointer-events:all;}
-.w{width:100%;max-width:460px;}
 
-/* HUD */
-#hud{position:fixed;top:0;left:0;right:0;height:48px;z-index:300;
-  display:flex;align-items:center;padding:0 14px;gap:10px;
-  background:rgba(3,6,8,.95);border-bottom:1px solid var(--bd);
-  backdrop-filter:blur(14px);opacity:0;transition:opacity .3s;pointer-events:none;}
-#hud.on{opacity:1;}
-.hl{font-family:var(--mono);font-size:.58rem;color:var(--cyan);letter-spacing:.14em;}
-.hbar{flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden;}
-.hfill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--pur));border-radius:2px;transition:width .6s ease;}
-.hpts{font-family:var(--mono);font-size:.68rem;color:var(--gold);}
+/* toast */
+#toast{position:fixed;bottom:20px;left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:var(--s2);border:1px solid var(--cyan);border-radius:30px;
+  padding:9px 22px;font-size:.82rem;z-index:900;pointer-events:none;
+  white-space:nowrap;transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+#toast.on{transform:translateX(-50%) translateY(0);}
 
-/* terminal overlay */
-#term{position:fixed;inset:0;z-index:500;background:rgba(3,6,8,.97);
-  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
-  padding:28px 22px;opacity:0;pointer-events:none;transition:opacity .3s;}
-#term.on{opacity:1;pointer-events:all;}
-#term-hdr{font-family:var(--mono);font-size:.58rem;color:var(--cyan);letter-spacing:.18em;opacity:.55;margin-bottom:18px;}
-#term-body{font-family:var(--mono);font-size:.9rem;line-height:2;max-width:520px;color:#8bbbd8;}
-#term-body .c{color:var(--cyan);}
-#term-body .g{color:var(--grn);}
-#term-body .y{color:var(--gold);}
-#term-body .r{color:var(--red);}
-#term-body .w{color:#fff;}
-#tcur{display:inline-block;width:9px;height:1em;background:var(--cyan);
-  animation:tblink .65s step-end infinite;vertical-align:middle;margin-left:2px;}
-@keyframes tblink{0%,100%{opacity:1;}50%{opacity:0;}}
-#tbtn{margin-top:24px;font-family:var(--mono);font-size:.8rem;letter-spacing:.1em;
-  background:transparent;border:1px solid var(--cyan);color:var(--cyan);
-  padding:12px 30px;border-radius:8px;cursor:pointer;display:none;transition:all .2s;}
-#tbtn:hover{background:var(--cyan);color:#000;}
+/* confetti */
+.cf{position:fixed;width:8px;height:8px;z-index:500;pointer-events:none;
+  animation:cffall 2.5s ease-in forwards;}
+@keyframes cffall{0%{opacity:1;transform:translateY(-10px) rotate(0);}
+  100%{opacity:0;transform:translateY(100vh) rotate(600deg);}}
 
-/* cards */
-.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;}
-.card.glow{border-color:rgba(0,229,255,.35);box-shadow:0 0 20px rgba(0,229,255,.08);}
-.card.gold{border-color:rgba(255,196,0,.4);box-shadow:0 0 20px rgba(255,196,0,.08);}
 
-/* instruction */
-.instr{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);
-  border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;
-  margin-bottom:14px;font-size:.8rem;line-height:1.6;color:#7ab8d4;}
-.instr strong{color:var(--cyan);}
-.instr-tag{font-family:var(--mono);font-size:.6rem;color:var(--gold);letter-spacing:.1em;display:block;margin-bottom:5px;}
+/* ═══════════════════════════════════════
+   LANDING (shared)
+═══════════════════════════════════════ */
+#s-land{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.land-hp{width:110px;height:110px;margin:0 auto 18px;animation:hpf 3.2s ease-in-out infinite;}
+@keyframes hpf{0%,100%{transform:translateY(0) rotate(-1.5deg);}50%{transform:translateY(-10px) rotate(1.5deg);}}
+.land-title{font-family:'Orbitron',monospace;font-weight:900;
+  font-size:clamp(2rem,8vw,3.2rem);line-height:1;text-align:center;
+  background:linear-gradient(135deg,#fff 0%,var(--cyan) 45%,var(--pur) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 30px rgba(0,229,255,.45));margin-bottom:4px;}
+.land-sub{font-family:var(--mono);font-size:.58rem;letter-spacing:.22em;
+  color:var(--mut);margin-bottom:28px;}
+.land-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
+  padding:18px;width:100%;max-width:360px;margin-bottom:14px;}
+.land-input{width:100%;background:var(--s2);border:1px solid var(--bd);
+  color:var(--txt);padding:12px 14px;border-radius:10px;
+  font-size:1rem;outline:none;font-family:var(--sans);}
+.land-input:focus{border-color:var(--cyan);}
+.land-btns{width:100%;max-width:360px;display:flex;flex-direction:column;gap:10px;}
 
-/* section label */
-.slabel{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;color:var(--cyan);
-  background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);
-  padding:4px 12px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;}
 
-/* buttons */
+/* ═══════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════ */
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:15px 18px;border-radius:12px;border:none;cursor:pointer;
-  font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;letter-spacing:.1em;
-  transition:all .18s;position:relative;overflow:hidden;}
-.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.07);opacity:0;transition:.15s;}
+  width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
+  font-family:'Orbitron',monospace;font-size:.72rem;font-weight:700;
+  letter-spacing:.1em;transition:all .18s;position:relative;overflow:hidden;}
+.btn::after{content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,.07);opacity:0;transition:.15s;}
 .btn:hover::after,.btn:active::after{opacity:1;}
 .btn:active{transform:scale(.97);}
-.bp{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;box-shadow:0 0 24px rgba(0,229,255,.3);}
-.bs{background:var(--s2);border:1px solid var(--bd);color:var(--txt);}
-.bg{background:linear-gradient(135deg,var(--grn),#007a3d);color:#000;}
-.br{background:linear-gradient(135deg,var(--red),#8b0020);color:#fff;}
-.by{background:linear-gradient(135deg,var(--gold),#cc7000);color:#000;}
-.btn-sm{padding:10px 16px;font-size:.68rem;}
-.g8{height:8px;} .g14{height:14px;} .g20{height:20px;}
+.btn-p{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;
+  box-shadow:0 0 24px rgba(0,229,255,.28);}
+.btn-s{background:var(--s2);border:1px solid var(--bd);color:var(--txt);}
+.btn-g{background:linear-gradient(135deg,var(--grn),#007a3d);color:#000;}
+.btn-y{background:linear-gradient(135deg,var(--gold),#cc7000);color:#000;
+  box-shadow:0 0 24px rgba(255,196,0,.28);}
+.btn-r{background:linear-gradient(135deg,var(--red),#8b0020);color:#fff;}
+.btn-sm{padding:11px 16px;font-size:.65rem;}
+
+
+/* ═══════════════════════════════════════
+   HOST LAYOUT
+═══════════════════════════════════════ */
+#s-hlobby,#s-hgame{
+  display:flex;flex-direction:column;align-items:center;
+  padding:28px 24px 40px;
+}
+
+/* terminal */
+#terminal{
+  width:100%;max-width:640px;
+  background:rgba(7,17,30,.95);border:1px solid var(--bd);
+  border-radius:var(--r);padding:22px 24px;margin-bottom:20px;
+  min-height:160px;position:relative;
+}
+#term-hdr{font-family:var(--mono);font-size:.58rem;color:var(--cyan);
+  letter-spacing:.18em;opacity:.55;margin-bottom:14px;}
+#term-lines{font-family:var(--mono);font-size:.88rem;line-height:1.85;
+  color:#7ab8d4;max-height:260px;overflow:hidden;}
+#term-lines .tc{color:var(--cyan);}
+#term-lines .tg{color:var(--grn);}
+#term-lines .ty{color:var(--gold);}
+#term-lines .tr{color:var(--red);}
+#term-lines .tw{color:#fff;}
+#tcursor{display:inline-block;width:9px;height:.9em;background:var(--cyan);
+  animation:tblink .65s step-end infinite;vertical-align:middle;margin-left:2px;}
+@keyframes tblink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* host step panel */
+#host-panel{
+  width:100%;max-width:640px;
+  background:var(--s1);border:1px solid var(--bd);
+  border-radius:var(--r);padding:22px 24px;
+}
+.host-step-title{font-family:'Orbitron',monospace;font-size:1.1rem;
+  font-weight:700;margin-bottom:4px;}
+.host-theory{font-size:.84rem;line-height:1.7;color:#8ab8d4;margin-bottom:16px;}
+.host-theory strong{color:var(--cyan);}
+.host-theory .formula{
+  font-family:var(--mono);font-size:.82rem;color:var(--cyan);
+  background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);
+  border-radius:8px;padding:8px 12px;margin:8px 0;display:block;
+}
+.host-task{
+  background:rgba(255,196,0,.06);border:1px solid rgba(255,196,0,.2);
+  border-radius:10px;padding:11px 14px;font-size:.8rem;
+  color:#e8c060;margin-bottom:14px;
+}
+.host-task strong{color:var(--gold);}
+.progress-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.prog-bar{flex:1;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--grn);border-radius:3px;transition:width .5s ease;}
+.prog-lbl{font-family:var(--mono);font-size:.72rem;color:var(--grn);white-space:nowrap;}
+
+/* host lobby */
+.room-code{font-family:'Orbitron',monospace;font-size:3rem;
+  color:var(--cyan);letter-spacing:.25em;text-shadow:0 0 30px rgba(0,229,255,.5);}
+.qr-img{border-radius:12px;border:2px solid var(--cyan);
+  width:160px;height:160px;display:block;}
+
+/* host final dashboard */
+.agent-card{background:var(--s2);border:1px solid var(--bd);border-radius:12px;
+  padding:14px 16px;margin-bottom:8px;width:100%;max-width:640px;}
+.agent-card .aname{font-family:var(--mono);font-size:.75rem;
+  color:var(--cyan);margin-bottom:8px;letter-spacing:.08em;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-top:5px;}
+.bar-lbl{font-size:.65rem;color:var(--mut);width:58px;flex-shrink:0;font-family:var(--mono);}
+.bar-bg{flex:1;height:5px;background:var(--bd);border-radius:3px;}
+.bar-fill{height:100%;border-radius:3px;}
+
+/* host lb */
+.lb-row{display:flex;align-items:center;gap:12px;
+  background:var(--s1);border:1px solid var(--bd);border-radius:12px;
+  padding:13px 16px;margin-bottom:7px;width:100%;max-width:640px;
+  animation:sup .4s ease both;}
+@keyframes sup{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+
+/* ═══════════════════════════════════════
+   MOBILE LAYOUT
+═══════════════════════════════════════ */
+/* mobile screens always full height, flex column */
+.mob-scr{
+  display:flex;flex-direction:column;
+  align-items:center;padding:16px 16px 32px;
+}
+
+/* mobile HUD */
+#mob-hud{
+  position:fixed;top:0;left:0;right:0;height:46px;z-index:200;
+  display:flex;align-items:center;padding:0 14px;gap:10px;
+  background:rgba(2,8,16,.95);border-bottom:1px solid var(--bd);
+  backdrop-filter:blur(14px);opacity:0;transition:opacity .3s;pointer-events:none;
+}
+#mob-hud.on{opacity:1;}
+#mob-step-lbl{font-family:var(--mono);font-size:.58rem;color:var(--cyan);letter-spacing:.12em;}
+#mob-bar{flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden;}
+#mob-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--pur));
+  border-radius:2px;transition:width .6s ease;}
+#mob-pts{font-family:var(--mono);font-size:.65rem;color:var(--gold);}
+
+/* timer strip */
+#timer-strip{position:fixed;top:46px;left:0;right:0;height:3px;z-index:199;
+  background:var(--bd);display:none;}
+#timer-fill{height:100%;background:var(--gold);transition:width .5s linear;}
+#timer-fill.urgent{background:var(--red);}
+
+/* mobile wait */
+.mob-wait{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:70vh;text-align:center;gap:12px;}
+.pulse-ring{width:64px;height:64px;border-radius:50%;
+  border:2px solid var(--cyan);
+  animation:pr 2s ease-in-out infinite;margin:0 auto;}
+@keyframes pr{0%,100%{transform:scale(1);opacity:.35;}50%{transform:scale(1.18);opacity:.9;}}
+.wdots span{animation:wd 1.3s infinite;display:inline-block;}
+.wdots span:nth-child(2){animation-delay:.22s;}
+.wdots span:nth-child(3){animation-delay:.44s;}
+@keyframes wd{0%,80%,100%{opacity:.15;}40%{opacity:1;}}
+
+/* mobile card */
+.mc{background:var(--s1);border:1px solid var(--bd);
+  border-radius:var(--r);padding:16px;width:100%;margin-bottom:12px;}
+.mc.glow{border-color:rgba(0,229,255,.35);}
+.mc.gold{border-color:rgba(255,196,0,.35);}
+
+/* instruction box */
+.instr{background:rgba(0,229,255,.05);
+  border:1px solid rgba(0,229,255,.15);
+  border-left:3px solid var(--cyan);border-radius:10px;
+  padding:12px 14px;margin-bottom:14px;
+  font-size:.82rem;line-height:1.6;color:#7ab8d4;width:100%;}
+.instr strong{color:var(--cyan);}
+.itag{font-family:var(--mono);font-size:.6rem;color:var(--gold);
+  letter-spacing:.1em;display:block;margin-bottom:5px;}
+
+/* section tag */
+.stag{font-family:var(--mono);font-size:.58rem;letter-spacing:.15em;
+  color:var(--cyan);background:rgba(0,229,255,.07);
+  border:1px solid rgba(0,229,255,.18);padding:4px 12px;
+  border-radius:20px;margin-bottom:12px;text-transform:uppercase;}
 
 /* chips */
-.chip{display:inline-block;padding:8px 14px;border-radius:24px;font-size:.78rem;
-  font-weight:600;cursor:pointer;background:var(--s2);border:1.5px solid var(--bd);
+.chip{display:inline-block;padding:9px 15px;border-radius:24px;
+  font-size:.82rem;font-weight:600;cursor:pointer;
+  background:var(--s2);border:1.5px solid var(--bd);
   transition:all .18s;user-select:none;margin:4px;}
 .chip:active{transform:scale(.94);}
 .chip.sel{border-color:var(--cyan);background:rgba(0,229,255,.12);color:var(--cyan);}
 .chip.ok{border-color:var(--grn);background:rgba(0,230,118,.1);color:var(--grn);}
-.chip.bad{border-color:var(--red);background:rgba(255,23,68,.1);color:var(--red);}
 .chip.warn{border-color:var(--gold);background:rgba(255,196,0,.1);color:var(--gold);}
+.chip.bad{border-color:var(--red);background:rgba(255,61,90,.1);color:var(--red);}
 
 /* select */
-.gsel{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);
-  padding:11px 14px;border-radius:10px;font-size:.84rem;outline:none;
-  font-family:'DM Sans',sans-serif;appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232a4060' stroke-width='1.8' fill='none'/%3E%3C/svg%3E");
+.gsel{width:100%;background:var(--s2);border:1px solid var(--bd);
+  color:var(--txt);padding:12px 14px;border-radius:10px;
+  font-size:.86rem;outline:none;font-family:var(--sans);
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232e4a62' stroke-width='1.8' fill='none'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
 .gsel:focus{border-color:var(--cyan);}
 
-/* range */
-input[type=range]{width:100%;height:6px;-webkit-appearance:none;appearance:none;
-  background:var(--bd);border-radius:3px;outline:none;cursor:pointer;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;
-  background:var(--cyan);border-radius:50%;border:3px solid var(--bg);
-  box-shadow:0 0 8px rgba(0,229,255,.6);cursor:pointer;transition:transform .12s;}
+/* slider */
+input[type=range]{width:100%;height:6px;-webkit-appearance:none;
+  appearance:none;background:var(--bd);border-radius:3px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
+  width:26px;height:26px;background:var(--cyan);border-radius:50%;
+  border:3px solid var(--bg);box-shadow:0 0 10px rgba(0,229,255,.6);
+  cursor:pointer;transition:transform .12s;}
 input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
-
-/* sl row */
 .slrow{margin-bottom:16px;}
 .sltop{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
-.slname{font-size:.84rem;font-weight:700;}
-.slval{font-family:var(--mono);font-size:.84rem;color:var(--cyan);
-  background:rgba(0,229,255,.1);padding:2px 10px;border-radius:6px;}
+.slname{font-size:.86rem;font-weight:600;}
+.slval{font-family:var(--mono);font-size:.86rem;color:var(--cyan);
+  background:rgba(0,229,255,.1);padding:3px 10px;border-radius:6px;}
 
-/* stat box */
-.statgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bd);
-  border-radius:var(--r);overflow:hidden;margin-bottom:14px;}
-.statbox{background:var(--s1);padding:10px 8px;text-align:center;}
-.statlbl{font-family:var(--mono);font-size:.56rem;color:var(--mut);letter-spacing:.08em;margin-bottom:4px;}
-.statval{font-family:var(--mono);font-size:1rem;font-weight:700;}
+/* stat grid */
+.statgrid{display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:1px;background:var(--bd);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.sbox{background:var(--s1);padding:10px 6px;text-align:center;}
+.slbl{font-family:var(--mono);font-size:.55rem;color:var(--mut);
+  letter-spacing:.07em;margin-bottom:3px;}
+.sval{font-family:var(--mono);font-size:.95rem;font-weight:700;}
 
 /* cost chain */
 .crow{display:flex;justify-content:space-between;align-items:center;
-  background:var(--s2);border:1px solid var(--bd);border-radius:10px;
-  padding:11px 14px;margin-bottom:7px;font-size:.8rem;}
+  background:var(--s2);border:1px solid var(--bd);
+  border-radius:10px;padding:11px 14px;margin-bottom:7px;font-size:.82rem;}
 .crow.cg{border-color:rgba(0,230,118,.4);background:rgba(0,230,118,.05);}
-.crow.cr{border-color:rgba(255,23,68,.4);background:rgba(255,23,68,.05);}
-.camt{font-family:var(--mono);font-size:.85rem;font-weight:700;}
+.crow.cr{border-color:rgba(255,61,90,.4);background:rgba(255,61,90,.05);}
+.camt{font-family:var(--mono);font-size:.86rem;font-weight:700;}
 
-/* scatter */
-#scatter{border-radius:12px;border:1px solid var(--bd);display:block;}
-
-/* trade row */
-.trow{display:grid;grid-template-columns:1fr 28px 1fr;gap:6px;align-items:center;margin-bottom:10px;}
+/* trade buttons */
+.trow{display:grid;grid-template-columns:1fr 26px 1fr;gap:6px;
+  align-items:center;margin-bottom:10px;}
 .tcell{background:var(--s2);border:2px solid var(--bd);border-radius:10px;
-  padding:10px;font-size:.76rem;font-weight:600;text-align:center;cursor:pointer;transition:all .18s;}
+  padding:11px 10px;font-size:.78rem;font-weight:600;text-align:center;
+  cursor:pointer;transition:all .18s;line-height:1.4;}
 .tcell:active{transform:scale(.96);}
 .tcell.pick{border-color:var(--grn);background:rgba(0,230,118,.08);color:var(--grn);}
 .tvs{text-align:center;font-family:var(--mono);font-size:.6rem;color:var(--mut);}
 
 /* quiz */
-.qopt{width:100%;padding:14px 16px;background:var(--s2);
+.qopt{width:100%;padding:15px 16px;background:var(--s2);
   border:2px solid var(--bd);border-radius:12px;margin-bottom:9px;
-  font-size:.88rem;font-weight:600;cursor:pointer;text-align:left;
+  font-size:.9rem;font-weight:600;cursor:pointer;text-align:left;
   color:var(--txt);transition:all .18s;}
 .qopt:active{transform:scale(.98);}
 .qopt.ok{border-color:var(--grn);background:rgba(0,230,118,.1);color:var(--grn);}
-.qopt.bad{border-color:var(--red);background:rgba(255,23,68,.1);color:var(--red);}
+.qopt.bad{border-color:var(--red);background:rgba(255,61,90,.1);color:var(--red);}
 .qopt:disabled{cursor:default;}
 
-/* player pills */
-.ppill{display:inline-flex;align-items:center;gap:5px;background:var(--s2);
-  border:1px solid var(--bd);border-radius:20px;padding:5px 12px;margin:3px;
-  font-size:.78rem;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both;}
-@keyframes pop{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
+/* scatter */
+#scatter{border-radius:12px;border:1px solid var(--bd);
+  display:block;margin:0 auto 12px;}
 
-/* lb */
-.lbrow{display:flex;align-items:center;gap:10px;background:var(--s1);
-  border:1px solid var(--bd);border-radius:12px;padding:12px 16px;margin-bottom:7px;
-  animation:slideup .4s ease both;}
-@keyframes slideup{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+/* feedback */
+.fb{padding:12px 14px;border-radius:10px;font-size:.78rem;
+  line-height:1.55;margin-top:10px;width:100%;}
+.fb.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.25);color:#5eea9a;}
+.fb.bad{background:rgba(255,61,90,.07);border:1px solid rgba(255,61,90,.25);color:#ff7a8a;}
 
-/* waiting spinner */
-.spin{width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--cyan);
-  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;}
-@keyframes spin{to{transform:rotate(360deg);}}
+/* spacers */
+.g8{height:8px;} .g12{height:12px;} .g20{height:20px;}
 
-/* wdots */
-.wdots span{animation:wdot 1.2s infinite;display:inline-block;}
-.wdots span:nth-child(2){animation-delay:.22s;}
-.wdots span:nth-child(3){animation-delay:.44s;}
-@keyframes wdot{0%,80%,100%{opacity:.15;}40%{opacity:1;}}
+/* mobile lb */
+.mob-lb{display:flex;align-items:center;gap:10px;
+  background:var(--s1);border:1px solid var(--bd);border-radius:12px;
+  padding:13px 14px;margin-bottom:7px;width:100%;
+  animation:sup .4s ease both;}
 
-/* toast */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(55px);
-  background:var(--s1);border:1px solid var(--cyan);border-radius:24px;
-  padding:9px 20px;font-size:.8rem;z-index:800;pointer-events:none;white-space:nowrap;
-  transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
-#toast.on{transform:translateX(-50%) translateY(0);}
+/* player pills host lobby */
+.ppill{display:inline-flex;align-items:center;gap:5px;
+  background:var(--s2);border:1px solid var(--bd);border-radius:20px;
+  padding:5px 12px;margin:3px;font-size:.8rem;
+  animation:pop .3s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
 
-/* confetti */
-.cf{position:fixed;width:8px;height:8px;z-index:400;border-radius:2px;
-  animation:cffall 2.6s ease-in forwards;pointer-events:none;}
-@keyframes cffall{0%{opacity:1;transform:translateY(-10px) rotate(0);}100%{opacity:0;transform:translateY(100vh) rotate(600deg);}}
-
-/* ptcl */
-.ptcl{position:fixed;pointer-events:none;z-index:600;font-size:1.3rem;animation:pup 1s ease-out forwards;}
-@keyframes pup{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-70px);}}
-
-/* timer bar */
-#timerbar{position:fixed;top:48px;left:0;right:0;height:3px;z-index:250;background:var(--bd);}
-#timerfill{height:100%;background:var(--gold);border-radius:0 2px 2px 0;transition:width .5s linear;}
-#timerfill.urgent{background:var(--red);}
-
-/* HOST dashboard product card */
-.pcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:12px;
-  margin-bottom:8px;font-size:.78rem;}
-.pcard .pname{font-family:var(--mono);font-size:.7rem;color:var(--cyan);margin-bottom:6px;}
-.pbar-wrap{display:flex;align-items:center;gap:6px;margin-top:4px;}
-.pbar-label{font-size:.65rem;color:var(--mut);width:54px;flex-shrink:0;}
-.pbar-bg{flex:1;height:5px;background:var(--bd);border-radius:3px;}
-.pbar-fill{height:100%;border-radius:3px;}
-
-/* wait screen pulse */
-.pulsering{width:70px;height:70px;border-radius:50%;border:2px solid var(--cyan);
-  animation:pulsering 1.8s ease-in-out infinite;margin:0 auto 16px;}
-@keyframes pulsering{0%,100%{transform:scale(1);opacity:.4;}50%{transform:scale(1.15);opacity:.9;}}
-
-/* step badge for host */
-.step-badge{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;
-  padding:6px 16px;border-radius:20px;display:inline-block;margin-bottom:10px;}
-
-@media(max-width:380px){.slabel{font-size:.52rem;} .trow{grid-template-columns:1fr 24px 1fr;}}
+@media(max-width:380px){
+  .land-title{font-size:1.9rem;}
+  .trow{grid-template-columns:1fr 22px 1fr;}
+  .tcell{font-size:.72rem;padding:9px 7px;}
+}
 </style>
 </head>
 <body>
 <canvas id="bgC"></canvas>
-<div id="figs"></div>
-
-<div id="hud">
-  <div class="hl" id="hud-l">STEP 0</div>
-  <div class="hbar"><div class="hfill" id="hud-f" style="width:0%"></div></div>
-  <div class="hpts" id="hud-p">0 pts</div>
-</div>
-<div id="timerbar"><div id="timerfill" style="width:100%"></div></div>
 <div id="toast"></div>
-<div id="term">
-  <div id="term-hdr">// OPERATION SILENT EAR · ENCRYPTED CHANNEL //</div>
-  <div id="term-body"></div>
-  <button id="tbtn" onclick="termNext()">[ CONTINUE → ]</button>
-</div>
 
-<!-- ═══════════ LANDING ═══════════ -->
+<!-- Mobile HUD -->
+<div id="mob-hud">
+  <div id="mob-step-lbl">STEP 0</div>
+  <div id="mob-bar"><div id="mob-bar-fill" style="width:0%"></div></div>
+  <div id="mob-pts">0 pts</div>
+</div>
+<div id="timer-strip"><div id="timer-fill" style="width:100%"></div></div>
+
+
+<!-- ═══════════════════════════════════════════
+     LANDING
+═══════════════════════════════════════════ -->
 <div class="scr on" id="s-land">
-<div class="w" style="display:flex;flex-direction:column;align-items:center;padding-top:40px;">
-  <svg width="100" height="100" viewBox="0 0 100 100" fill="none" style="margin-bottom:14px;animation:hpfloat 3s ease-in-out infinite;">
-    <style>@keyframes hpfloat{0%,100%{transform:translateY(0) rotate(-1.5deg);}50%{transform:translateY(-9px) rotate(1.5deg);}}</style>
-    <circle cx="50" cy="50" r="48" fill="rgba(0,229,255,.04)" stroke="rgba(0,229,255,.12)" stroke-width="1"/>
-    <path d="M18 50Q18 16 50 16Q82 16 82 50" stroke="#00e5ff" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <ellipse cx="14" cy="54" rx="11" ry="16" fill="#07101a" stroke="#00e5ff" stroke-width="2"/>
-    <ellipse cx="14" cy="54" rx="5" ry="9" fill="rgba(0,229,255,.14)"/>
-    <ellipse cx="86" cy="54" rx="11" ry="16" fill="#07101a" stroke="#00e5ff" stroke-width="2"/>
-    <ellipse cx="86" cy="54" rx="5" ry="9" fill="rgba(0,229,255,.14)"/>
-    <circle cx="14" cy="54" r="2.5" fill="#00e5ff"/><circle cx="86" cy="54" r="2.5" fill="#00e5ff"/>
-    <path d="M38 40Q44 50 38 60" stroke="rgba(0,229,255,.4)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-    <path d="M62 40Q56 50 62 60" stroke="rgba(0,229,255,.4)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <svg class="land-hp" viewBox="0 0 110 110" fill="none">
+    <circle cx="55" cy="55" r="52" fill="rgba(0,229,255,.04)" stroke="rgba(0,229,255,.12)" stroke-width="1"/>
+    <path d="M18 55Q18 18 55 18Q92 18 92 55" stroke="#00e5ff" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="14" cy="59" rx="12" ry="18" fill="#07111e" stroke="#00e5ff" stroke-width="2"/>
+    <ellipse cx="14" cy="59" rx="6" ry="10" fill="rgba(0,229,255,.14)"/>
+    <ellipse cx="96" cy="59" rx="12" ry="18" fill="#07111e" stroke="#00e5ff" stroke-width="2"/>
+    <ellipse cx="96" cy="59" rx="6" ry="10" fill="rgba(0,229,255,.14)"/>
+    <circle cx="14" cy="59" r="3" fill="#00e5ff"/>
+    <circle cx="96" cy="59" r="3" fill="#00e5ff"/>
+    <path d="M42 44Q48 55 42 66" stroke="rgba(0,229,255,.45)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M68 44Q62 55 68 66" stroke="rgba(0,229,255,.45)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
   </svg>
-  <h1 style="font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(1.8rem,7vw,2.8rem);
-    line-height:1;text-align:center;background:linear-gradient(135deg,#fff 0%,var(--cyan) 45%,var(--pur) 100%);
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-    filter:drop-shadow(0 0 30px rgba(0,229,255,.4));margin-bottom:4px;">SPECMASTER</h1>
-  <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--mut);margin-bottom:24px;">OPERATION SILENT EAR</div>
-
-  <div class="card w" style="margin-bottom:12px;">
-    <div style="font-size:.72rem;color:var(--mut);margin-bottom:7px;">Codename (nickname):</div>
-    <input id="nick" placeholder="e.g. AGENT_LEO" maxlength="16"
-      style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);
-      padding:11px;border-radius:9px;font-size:.95rem;outline:none;font-family:'DM Sans',sans-serif;
-      letter-spacing:.04em;">
+  <div class="land-title">SPECMASTER</div>
+  <div class="land-sub">OPERATION SILENT EAR</div>
+  <div class="land-card">
+    <div style="font-size:.72rem;color:var(--mut);margin-bottom:8px;">Your codename:</div>
+    <input class="land-input" id="nick" placeholder="e.g. SHADOW, ACE, VIPER…" maxlength="16" autocomplete="off">
   </div>
-
-  <button class="btn bp w" onclick="startHost()" style="margin-bottom:9px;">
-    📡 HOST — Project to class
-  </button>
-  <button class="btn bs w" onclick="goJoin()">
-    📱 JOIN — I'm a student
-  </button>
-  <div style="font-size:.65rem;color:var(--mut);text-align:center;margin-top:12px;line-height:1.6;max-width:300px;">
-    HOST runs the game on the projector · Students join with a code and play on their phones
+  <div class="land-btns">
+    <button class="btn btn-p" onclick="startHost()">🖥️ HOST — present to class</button>
+    <button class="btn btn-s" onclick="startJoin()">📱 JOIN — I'm a student</button>
+  </div>
+  <div style="font-size:.65rem;color:var(--mut);text-align:center;margin-top:14px;line-height:1.6;max-width:280px;">
+    HOST controls the game on the projector.<br>Students join with the room code shown on screen.
   </div>
 </div>
-</div>
 
-<!-- ═══════════ JOIN ═══════════ -->
-<div class="scr" id="s-join">
-<div class="w" style="display:flex;flex-direction:column;align-items:center;padding-top:60px;">
-  <div class="slabel">STUDENT — JOIN GAME</div>
-  <div style="font-size:.82rem;color:var(--mut);margin-bottom:20px;text-align:center;">Enter the 6-letter room code from the projector</div>
-  <input id="code-in" placeholder="e.g. ECHO77" maxlength="8"
-    style="width:100%;background:var(--s2);border:1.5px solid var(--cyan);color:var(--cyan);
-    padding:14px;border-radius:12px;font-size:1.5rem;text-align:center;font-family:var(--mono);
-    outline:none;letter-spacing:.25em;text-transform:uppercase;margin-bottom:14px;">
-  <button class="btn bp w" onclick="joinGame()">JOIN MISSION →</button>
-  <div class="g14"></div>
-  <button class="btn bs w" onclick="go('s-land')">← Back</button>
-</div>
-</div>
 
-<!-- ═══════════ HOST LOBBY ═══════════ -->
+<!-- ═══════════════════════════════════════════
+     HOST — LOBBY
+═══════════════════════════════════════════ -->
 <div class="scr" id="s-hlobby">
-<div class="w" style="display:flex;flex-direction:column;align-items:center;padding-top:30px;">
-  <div class="slabel">HOST · LOBBY</div>
-  <div style="font-family:var(--mono);font-size:2.6rem;color:var(--cyan);letter-spacing:.22em;margin-bottom:4px;" id="room-disp">———</div>
-  <div style="font-size:.7rem;color:var(--mut);margin-bottom:14px;">Share this code · or scan QR ↓</div>
-  <div id="qr-wrap" style="margin-bottom:14px;"></div>
-  <div class="card w" style="text-align:center;margin-bottom:14px;">
-    <div style="font-size:.7rem;color:var(--mut);margin-bottom:8px;">Agents connected:</div>
-    <div id="plist"></div>
-    <div class="wdots" style="color:var(--mut);font-size:.75rem;margin-top:8px;">Awaiting<span>.</span><span>.</span><span>.</span></div>
+  <div style="text-align:center;margin-bottom:18px;padding-top:20px;">
+    <div style="font-family:var(--mono);font-size:.6rem;color:var(--mut);letter-spacing:.18em;margin-bottom:10px;">ROOM CODE</div>
+    <div class="room-code" id="room-disp">———</div>
+    <div style="font-size:.7rem;color:var(--mut);margin-top:4px;">Share this · or scan QR below</div>
   </div>
-  <button class="btn by w" onclick="hostLaunchGame()">▶ LAUNCH MISSION</button>
-</div>
-</div>
-
-<!-- ═══════════ PLAYER WAIT (between steps) ═══════════ -->
-<div class="scr" id="s-pwait">
-<div class="w" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;">
-  <div class="pulsering"></div>
-  <div style="font-family:var(--mono);font-size:.65rem;letter-spacing:.18em;color:var(--cyan);margin-bottom:8px;" id="pw-step">STEP 0</div>
-  <div style="font-size:1rem;font-weight:700;margin-bottom:8px;" id="pw-title">Standby…</div>
-  <div style="font-size:.8rem;color:var(--mut);text-align:center;" id="pw-sub">Waiting for host to launch step</div>
-  <div class="wdots" style="color:var(--cyan);font-size:1.1rem;margin-top:16px;"><span>●</span><span>●</span><span>●</span></div>
-  <div class="g20"></div>
-  <div style="font-size:.72rem;color:var(--mut);">Your score: <span style="font-family:var(--mono);color:var(--gold);" id="pw-score">0</span> pts</div>
-</div>
-</div>
-
-<!-- ═══════════ HOST STEP CONTROLLER ═══════════ -->
-<div class="scr" id="s-hctrl">
-<div class="w" style="padding-top:58px;">
-  <div id="hctrl-content"></div>
-</div>
-</div>
-
-<!-- ═══════════ PLAYER STEP SCREENS ═══════════ -->
-
-<!-- P-STEP1: Spec selection -->
-<div class="scr" id="s-p1">
-<div class="w" style="padding-top:58px;">
-  <div class="slabel">STEP 1 · SELECT SPECIFICATIONS</div>
-  <div class="instr">
-    <span class="instr-tag">🕵️ MISSION BRIEF</span>
-    A mysterious client contacted you. Read what they said and select the specifications for their headphones.<br>
-    <strong>⚠ Warning:</strong> selecting too many specs or near-duplicates <em>loses points</em>. Be precise.
-  </div>
-  <div class="card w" style="margin-bottom:14px;border-color:rgba(255,196,0,.25);">
-    <div style="font-size:.62rem;font-family:var(--mono);color:var(--gold);margin-bottom:8px;">📞 INTERCEPTED MESSAGE — CLIENT OMEGA</div>
-    <div style="font-size:.85rem;line-height:1.7;color:#aaccdd;font-style:italic;">
-      "…I need headphones that completely eliminate background noise in hostile environments.
-      They must last at least through a full 8-hour operation without recharging.
-      Weight is critical — I can't be slowed down. They need to pair instantly with any device
-      and the audio must be crystal clear for receiving instructions. Cost is not my concern,
-      but they must be deliverable within 6 months. No compromise on discretion —
-      they should look like ordinary consumer headphones…"
+  <div id="qr-wrap" style="margin-bottom:18px;text-align:center;"></div>
+  <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
+    padding:16px 20px;width:100%;max-width:480px;margin-bottom:18px;">
+    <div style="font-size:.65rem;color:var(--mut);font-family:var(--mono);margin-bottom:10px;letter-spacing:.1em;">AGENTS CONNECTED:</div>
+    <div id="plist" style="min-height:32px;"></div>
+    <div class="wdots" style="color:var(--mut);font-size:.78rem;margin-top:10px;">
+      Waiting for agents<span>.</span><span>.</span><span>.</span>
     </div>
   </div>
-  <div style="font-size:.72rem;color:var(--mut);margin-bottom:8px;font-family:var(--mono);">SELECT THE CORRECT SPECS (tap to select/deselect):</div>
-  <div id="spec-pool" style="display:flex;flex-wrap:wrap;gap:0;margin-bottom:14px;"></div>
-  <div style="font-size:.7rem;color:var(--mut);margin-bottom:14px;" id="spec-count-lbl">Selected: 0 specs</div>
-  <button class="btn bp w" onclick="submitStep1()">SUBMIT SPECS →</button>
-  <div id="fb-p1" style="display:none;" class="g14"></div>
-</div>
+  <button class="btn btn-y" onclick="hostLaunch()" style="max-width:480px;">▶ LAUNCH MISSION</button>
 </div>
 
-<!-- P-STEP2: Match need → metric -->
-<div class="scr" id="s-p2">
-<div class="w" style="padding-top:58px;">
-  <div class="slabel">STEP 2 · NEEDS → METRICS</div>
-  <div class="instr">
-    <span class="instr-tag">📐 MISSION BRIEF</span>
-    Customer needs are vague. You must translate each one into a precise, testable <strong>metric</strong> — an objective quantity with a unit of measurement.
-  </div>
-  <div id="match-rows" style="width:100%;"></div>
-  <button class="btn bp w" onclick="submitStep2()">SUBMIT →</button>
-  <div id="fb-p2" style="display:none;"></div>
-</div>
-</div>
 
-<!-- P-STEP3+4: Competitive map + position -->
-<div class="scr" id="s-p34">
-<div class="w" style="padding-top:58px;">
-  <div class="slabel">STEP 3 · COMPETITIVE POSITIONING</div>
-  <div class="instr">
-    <span class="instr-tag">🗺️ MISSION BRIEF</span>
-    Study the competitive landscape. Then set your <strong>target position</strong> — where do you want YOUR headphones to sit on the map?
-    Choose a price range and an ANC quality target. Your choices will drive the cost model.
-  </div>
-  <canvas id="scatter" width="380" height="220" style="max-width:100%;margin-bottom:14px;"></canvas>
-  <div class="card w glow" style="margin-bottom:14px;">
-    <div style="font-size:.7rem;font-family:var(--mono);color:var(--cyan);margin-bottom:10px;">SET YOUR TARGET POSITION:</div>
-    <div class="slrow">
-      <div class="sltop"><span class="slname">🎧 Target ANC Level</span><span class="slval" id="p34-anc-v">30 dB</span></div>
-      <input type="range" id="p34-anc" min="10" max="50" value="30" oninput="upd34()">
-      <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Good ANC ≥ 30 dB · Premium ≥ 40 dB · (Client needs ≥ 35 dB)</div>
+<!-- ═══════════════════════════════════════════
+     HOST — GAME (terminal + panel)
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-hgame">
+  <div style="width:100%;max-width:660px;padding-top:20px;">
+
+    <!-- Terminal always visible -->
+    <div id="terminal">
+      <div id="term-hdr">// SPECMASTER · ENCRYPTED CHANNEL — OPERATION SILENT EAR //</div>
+      <div id="term-lines"><span id="tcursor"></span></div>
     </div>
-    <div class="slrow" style="margin-bottom:0;">
-      <div class="sltop"><span class="slname">💰 Target Retail Price</span><span class="slval" id="p34-price-v">€250</span></div>
-      <input type="range" id="p34-price" min="100" max="600" value="250" step="10" oninput="upd34()">
-      <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">This determines your allowable cost C* in Step 6</div>
+
+    <!-- Step control panel -->
+    <div id="host-panel">
+      <div id="hp-content">
+        <!-- filled dynamically -->
+      </div>
     </div>
+
   </div>
-  <div id="p34-verdict" style="font-size:.78rem;padding:10px 12px;border-radius:10px;margin-bottom:14px;line-height:1.5;"></div>
-  <button class="btn bp w" onclick="submitStep34()">LOCK POSITION →</button>
-</div>
 </div>
 
-<!-- P-STEP5: Cost model / specs -->
-<div class="scr" id="s-p5">
-<div class="w" style="padding-top:58px;">
-  <div class="slabel">STEP 5 · BUILD COST MODEL</div>
-  <div class="instr">
-    <span class="instr-tag">🏭 MISSION BRIEF</span>
-    Your engineers need exact spec values to estimate manufacturing cost and weight.
-    Tune each parameter — the model updates live. Remember your target position from Step 3!
-  </div>
-  <div class="slrow">
-    <div class="sltop"><span class="slname">🎧 ANC Attenuation</span><span class="slval" id="v5-anc">30 dB</span></div>
-    <input type="range" id="r5-anc" min="10" max="50" value="30" oninput="upd5()">
-    <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Each +1 dB above 25 adds ~€1.80 chip cost</div>
-  </div>
-  <div class="slrow">
-    <div class="sltop"><span class="slname">🔋 Battery Life</span><span class="slval" id="v5-bat">24 h</span></div>
-    <input type="range" id="r5-bat" min="8" max="60" value="24" oninput="upd5()">
-    <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Each +1h adds ~2g weight + €0.90 battery cost</div>
-  </div>
-  <div class="slrow">
-    <div class="sltop"><span class="slname">🏗️ Housing Material</span><span class="slval" id="v5-mat">Plastic</span></div>
-    <input type="range" id="r5-mat" min="0" max="1" value="0" step="1" oninput="upd5()">
-    <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Carbon Fiber: −80g weight, +€58 material cost</div>
-  </div>
-  <div class="slrow">
-    <div class="sltop"><span class="slname">🎵 Driver Size</span><span class="slval" id="v5-drv">40 mm</span></div>
-    <input type="range" id="r5-drv" min="30" max="60" value="40" step="5" oninput="upd5()">
-    <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Larger = better audio quality, +€4 per 5mm above 35mm</div>
-  </div>
-  <div class="statgrid w">
-    <div class="statbox">
-      <div class="statlbl">WEIGHT</div>
-      <div class="statval" id="v5-weight">340g</div>
-    </div>
-    <div class="statbox">
-      <div class="statlbl">MFG COST</div>
-      <div class="statval" id="v5-cost" style="color:var(--gold);">€112</div>
-    </div>
-    <div class="statbox">
-      <div class="statlbl">AUDIO SCORE</div>
-      <div class="statval" id="v5-audio" style="color:var(--cyan);">6.5/10</div>
-    </div>
-  </div>
-  <div style="font-size:.75rem;color:var(--mut);text-align:center;line-height:1.5;margin-bottom:14px;" id="v5-insight">Adjust specs to find the right balance.</div>
-  <button class="btn bp w" onclick="submitStep5()">LOCK COST MODEL →</button>
-</div>
-</div>
 
-<!-- P-STEP6: Target costing -->
-<div class="scr" id="s-p6">
-<div class="w" style="padding-top:58px;">
-  <div class="slabel">STEP 6 · TARGET COSTING</div>
-  <div class="instr">
-    <span class="instr-tag">💰 MISSION BRIEF</span>
-    Formula (Appendix p.114): <strong>C* = P × (1 − M<sub>r</sub>) × (1 − M<sub>m</sub>)</strong><br>
-    Start from your retail price, subtract each channel margin. What's left is the max you can spend making it.
-  </div>
-  <div id="p6-chain" style="width:100%;margin-bottom:12px;"></div>
-  <div id="p6-verdict" style="display:none;padding:13px;border-radius:12px;text-align:center;margin-bottom:14px;font-size:.82rem;line-height:1.5;"></div>
-  <button class="btn bp w" onclick="submitStep6()">CONFIRM →</button>
-</div>
-</div>
-
-<!-- P-STEP7: Trade-offs -->
-<div class="scr" id="s-p7">
-<div class="w" style="padding-top:58px;">
-  <div class="slabel">STEP 7 · TRADE-OFF DECISIONS</div>
-  <div class="instr">
-    <span class="instr-tag">⚖️ MISSION BRIEF</span>
-    <span id="p7-intro"></span>
-  </div>
-  <div id="p7-trades" style="width:100%;margin-bottom:14px;"></div>
-  <button class="btn bp w" onclick="submitStep7()">FINALIZE SPECS →</button>
-  <div id="fb-p7" style="display:none;"></div>
-</div>
-</div>
-
-<!-- P-STEP8: Quiz -->
-<div class="scr" id="s-p8">
-<div class="w" style="padding-top:58px;">
-  <div class="slabel" id="p8-num">QUESTION 1/3</div>
-  <div style="font-size:1rem;font-weight:700;line-height:1.45;margin-bottom:18px;text-align:center;" id="p8-q"></div>
-  <div id="p8-opts" style="width:100%;"></div>
-  <div id="p8-wait" style="display:none;color:var(--mut);font-size:.8rem;text-align:center;margin-top:14px;">
-    Submitted! <span class="wdots"><span>.</span><span>.</span><span>.</span></span>
-  </div>
-</div>
-</div>
-
-<!-- HOST FINAL DASHBOARD -->
+<!-- ═══════════════════════════════════════════
+     HOST — FINAL DASHBOARD
+═══════════════════════════════════════════ -->
 <div class="scr" id="s-hdash">
-<div class="w" style="padding-top:58px;">
-  <div class="slabel">MISSION COMPLETE · AGENT DEBRIEF</div>
-  <div id="hdash-msg" style="font-family:var(--mono);font-size:.82rem;color:#7ab8d4;line-height:1.8;margin-bottom:16px;text-align:center;"></div>
-  <div id="hdash-cards" style="width:100%;"></div>
-</div>
+  <div style="width:100%;max-width:660px;padding:20px 0 40px;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;margin-bottom:4px;">MISSION DEBRIEF</div>
+      <div id="hdash-winner" style="font-family:var(--mono);font-size:.82rem;color:var(--cyan);line-height:1.7;"></div>
+    </div>
+    <div id="hdash-lb" style="margin-bottom:20px;"></div>
+    <div style="font-family:var(--mono);font-size:.7rem;color:var(--mut);margin-bottom:10px;letter-spacing:.1em;">ALL AGENT SPEC SHEETS:</div>
+    <div id="hdash-cards"></div>
+    <div class="g20"></div>
+    <button class="btn btn-s" onclick="location.reload()" style="max-width:480px;">NEW MISSION ↺</button>
+  </div>
 </div>
 
-<!-- LEADERBOARD -->
-<div class="scr" id="s-lb">
-<div class="w" style="padding-top:30px;display:flex;flex-direction:column;align-items:center;">
-  <div class="slabel">🏆 OPERATION COMPLETE</div>
-  <h2 style="font-family:'Orbitron',monospace;font-size:1.3rem;text-align:center;margin-bottom:18px;">Agent Rankings</h2>
-  <div id="lb-list" style="width:100%;"></div>
-  <div class="g20"></div>
-  <button class="btn bs w" onclick="location.reload()">NEW MISSION ↺</button>
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — JOIN
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-mjoin">
+  <div class="mob-scr" style="justify-content:center;min-height:100vh;">
+    <svg width="70" height="70" viewBox="0 0 110 110" fill="none" style="margin-bottom:14px;opacity:.7;">
+      <path d="M18 55Q18 18 55 18Q92 18 92 55" stroke="#00e5ff" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="14" cy="59" rx="12" ry="18" fill="#07111e" stroke="#00e5ff" stroke-width="2"/>
+      <ellipse cx="96" cy="59" rx="12" ry="18" fill="#07111e" stroke="#00e5ff" stroke-width="2"/>
+    </svg>
+    <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;margin-bottom:4px;text-align:center;">JOIN MISSION</div>
+    <div style="font-size:.8rem;color:var(--mut);margin-bottom:24px;text-align:center;">Enter your codename to start</div>
+
+    <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <div style="font-size:.72rem;color:var(--mut);margin-bottom:6px;">Your codename:</div>
+        <input class="land-input" id="m-nick" placeholder="e.g. SHADOW, ACE, VIPER…" maxlength="16" autocomplete="off">
+      </div>
+      <div>
+        <div style="font-size:.72rem;color:var(--mut);margin-bottom:6px;">Room code:</div>
+        <input class="land-input" id="m-code" placeholder="e.g. ECHO77" maxlength="8"
+          style="font-family:var(--mono);font-size:1.2rem;letter-spacing:.2em;text-transform:uppercase;text-align:center;">
+      </div>
+      <div class="g8"></div>
+      <button class="btn btn-p" onclick="mobileJoin()">JOIN MISSION →</button>
+      <button class="btn btn-s" onclick="go('s-land')">← Back</button>
+    </div>
+  </div>
 </div>
+
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — WAIT SCREEN
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-mwait">
+  <div class="mob-scr mob-wait">
+    <div class="pulse-ring"></div>
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--cyan);letter-spacing:.15em;" id="mw-step">CONNECTED</div>
+    <div style="font-size:1.1rem;font-weight:700;" id="mw-title">Waiting for host…</div>
+    <div style="font-size:.8rem;color:var(--mut);max-width:260px;text-align:center;line-height:1.5;" id="mw-sub">
+      The host will launch each step. Stand by.
+    </div>
+    <div class="wdots" style="color:var(--cyan);font-size:1rem;margin-top:8px;"><span>●</span><span>●</span><span>●</span></div>
+    <div class="g20"></div>
+    <div style="font-size:.72rem;color:var(--mut);">Score: <span style="font-family:var(--mono);color:var(--gold);" id="mw-score">0</span> pts</div>
+  </div>
 </div>
+
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — STEP 1 (spec selection)
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-m1">
+  <div class="mob-scr" style="padding-top:58px;">
+    <div class="stag">STEP 1 · SPECS</div>
+    <div class="instr">
+      <span class="itag">🕵️ THE CLIENT SAYS:</span>
+      <em>"I need headphones that completely eliminate background noise in hostile environments.
+      They must last at least 8 hours, be lightweight, pair instantly with any device,
+      and deliver crystal-clear audio for receiving instructions."</em>
+    </div>
+    <div class="instr" style="border-left-color:var(--gold);">
+      <span class="itag" style="color:var(--gold);">⚠️ YOUR TASK</span>
+      Select the <strong>correct specifications</strong> from the list below.
+      Too many specs or near-duplicates <strong>lose points</strong>. Be precise.
+    </div>
+    <div style="font-size:.75rem;color:var(--mut);margin-bottom:10px;width:100%;" id="s1-count">Selected: 0</div>
+    <div id="s1-pool" style="width:100%;margin-bottom:14px;"></div>
+    <button class="btn btn-p" style="width:100%;" onclick="submitS1()">SUBMIT →</button>
+    <div id="s1-fb" style="display:none;width:100%;"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — STEP 2 (needs → metrics)
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-m2">
+  <div class="mob-scr" style="padding-top:58px;">
+    <div class="stag">STEP 2 · METRICS</div>
+    <div class="instr">
+      <span class="itag">📐 YOUR TASK</span>
+      A <strong>metric</strong> is an objective, measurable quantity that directly reflects
+      how well the product satisfies a need. Match each customer need to its correct metric.
+    </div>
+    <div id="s2-rows" style="width:100%;"></div>
+    <button class="btn btn-p" style="width:100%;" onclick="submitS2()">SUBMIT →</button>
+    <div id="s2-fb" style="display:none;width:100%;"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — STEP 3 (competitive map + position)
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-m3">
+  <div class="mob-scr" style="padding-top:58px;">
+    <div class="stag">STEP 3 · POSITIONING</div>
+    <div class="instr">
+      <span class="itag">🗺️ YOUR TASK</span>
+      Study the competitive map. Then set <strong>your target position</strong>:
+      choose an ANC level and a retail price. These will determine your budget in Step 6.
+    </div>
+    <canvas id="scatter" width="340" height="210"></canvas>
+    <div class="mc glow" style="width:100%;">
+      <div style="font-size:.7rem;font-family:var(--mono);color:var(--cyan);margin-bottom:10px;">SET YOUR TARGET:</div>
+      <div class="slrow">
+        <div class="sltop"><span class="slname">🎧 Target ANC Level</span><span class="slval" id="s3-anc-v">30 dB</span></div>
+        <input type="range" id="s3-anc" min="10" max="50" value="30" oninput="updS3()">
+        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Client needs ≥ 35 dB · Premium ≥ 40 dB</div>
+      </div>
+      <div class="slrow" style="margin-bottom:0;">
+        <div class="sltop"><span class="slname">💰 Retail Price</span><span class="slval" id="s3-price-v">€250</span></div>
+        <input type="range" id="s3-price" min="100" max="600" value="250" step="10" oninput="updS3()">
+        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Sets your C* in Step 6 via target costing formula</div>
+      </div>
+    </div>
+    <div id="s3-verdict" style="font-size:.8rem;padding:10px 12px;border-radius:10px;
+      margin-bottom:14px;line-height:1.5;width:100%;"></div>
+    <button class="btn btn-p" style="width:100%;" onclick="submitS3()">LOCK POSITION →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — STEP 5 (cost model)
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-m5">
+  <div class="mob-scr" style="padding-top:58px;">
+    <div class="stag">STEP 5 · COST MODEL</div>
+    <div class="instr">
+      <span class="itag">🏭 YOUR TASK</span>
+      Tune your headphone specs. The cost model updates live — every choice has a trade-off.
+      Keep an eye on your target from Step 3!
+    </div>
+    <div style="width:100%;">
+      <div class="slrow">
+        <div class="sltop"><span class="slname">🎧 ANC Level</span><span class="slval" id="s5-anc-v">30 dB</span></div>
+        <input type="range" id="s5-anc" min="10" max="50" value="30" oninput="updS5()">
+        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">+€1.80/dB above 25 dB — chip complexity</div>
+      </div>
+      <div class="slrow">
+        <div class="sltop"><span class="slname">🔋 Battery Life</span><span class="slval" id="s5-bat-v">24 h</span></div>
+        <input type="range" id="s5-bat" min="8" max="60" value="24" oninput="updS5()">
+        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">+€0.90/h +2g/h — bigger cell needed</div>
+      </div>
+      <div class="slrow">
+        <div class="sltop"><span class="slname">🏗️ Material</span><span class="slval" id="s5-mat-v">Plastic</span></div>
+        <input type="range" id="s5-mat" min="0" max="1" value="0" step="1" oninput="updS5()">
+        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">Carbon Fiber: −80g weight but +€58 cost</div>
+      </div>
+      <div class="slrow" style="margin-bottom:4px;">
+        <div class="sltop"><span class="slname">🎵 Driver Size</span><span class="slval" id="s5-drv-v">40 mm</span></div>
+        <input type="range" id="s5-drv" min="30" max="60" value="40" step="5" oninput="updS5()">
+        <div style="font-size:.68rem;color:var(--mut);margin-top:4px;">+€4 per 5mm above 35mm — better audio</div>
+      </div>
+    </div>
+    <div class="statgrid" style="width:100%;">
+      <div class="sbox"><div class="slbl">WEIGHT</div><div class="sval" id="s5-weight">340g</div></div>
+      <div class="sbox"><div class="slbl">MFG COST</div><div class="sval" id="s5-cost" style="color:var(--gold);">€112</div></div>
+      <div class="sbox"><div class="slbl">AUDIO</div><div class="sval" id="s5-audio" style="color:var(--cyan);">6.5/10</div></div>
+    </div>
+    <div style="font-size:.76rem;color:var(--mut);text-align:center;margin-bottom:14px;line-height:1.5;" id="s5-insight"></div>
+    <button class="btn btn-p" style="width:100%;" onclick="submitS5()">LOCK COST MODEL →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — STEP 6 (target costing)
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-m6">
+  <div class="mob-scr" style="padding-top:58px;">
+    <div class="stag">STEP 6 · TARGET COSTING</div>
+    <div class="instr">
+      <span class="itag">💰 FORMULA (Appendix p.114)</span>
+      <strong>C* = P × (1 − M<sub>r</sub>) × (1 − M<sub>m</sub>)</strong><br>
+      Start from your retail price. Subtract the retailer's margin, then the manufacturer's. What's left is the <strong>maximum you can spend</strong> making the product.
+    </div>
+    <div id="s6-chain" style="width:100%;"></div>
+    <div id="s6-verdict" style="display:none;padding:14px;border-radius:12px;
+      text-align:center;margin-bottom:14px;font-size:.84rem;line-height:1.55;width:100%;"></div>
+    <button class="btn btn-p" style="width:100%;" onclick="submitS6()">CONTINUE →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — STEP 7 (trade-offs)
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-m7">
+  <div class="mob-scr" style="padding-top:58px;">
+    <div class="stag">STEP 7 · TRADE-OFFS</div>
+    <div class="instr">
+      <span class="itag">⚖️ YOUR TASK</span>
+      <span id="s7-intro"></span>
+    </div>
+    <div id="s7-trades" style="width:100%;margin-bottom:14px;"></div>
+    <button class="btn btn-p" style="width:100%;" onclick="submitS7()">FINALIZE SPECS →</button>
+    <div id="s7-fb" style="display:none;width:100%;"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — STEP 8 (quiz)
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-m8">
+  <div class="mob-scr" style="padding-top:58px;">
+    <div class="stag" id="s8-num">QUESTION 1/3</div>
+    <div style="font-size:1rem;font-weight:700;line-height:1.45;
+      margin-bottom:18px;text-align:center;width:100%;" id="s8-q"></div>
+    <div id="s8-opts" style="width:100%;"></div>
+    <div id="s8-exp" style="display:none;width:100%;"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MOBILE — FINAL
+═══════════════════════════════════════════ -->
+<div class="scr" id="s-mfinal">
+  <div class="mob-scr mob-wait">
+    <div style="font-size:2.5rem;margin-bottom:10px;">🎯</div>
+    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;text-align:center;" id="mfinal-title">Mission Complete</div>
+    <div style="font-size:.85rem;color:var(--mut);text-align:center;line-height:1.6;max-width:280px;" id="mfinal-sub"></div>
+    <div class="g20"></div>
+    <div style="font-size:.9rem;font-weight:700;">Score: <span style="font-family:var(--mono);color:var(--gold);" id="mfinal-score">0</span> pts</div>
+    <div class="g8"></div>
+    <div style="font-size:.72rem;color:var(--mut);">Awaiting final debrief from host…</div>
+    <div class="wdots" style="color:var(--cyan);font-size:.9rem;margin-top:6px;"><span>.</span><span>.</span><span>.</span></div>
+  </div>
+</div>
+
 
 <script>
 'use strict';
 
-// ══════════════════════════════════
+// ═══════════════════════════════════
 // BG CANVAS
-// ══════════════════════════════════
-let bgCtx=null,bgT=0;
-function initBg(){
+// ═══════════════════════════════════
+(function initBg(){
   const c=document.getElementById('bgC');if(!c)return;
-  bgCtx=c.getContext('2d');
+  const x=c.getContext('2d');let t=0;
   const resize=()=>{c.width=innerWidth;c.height=innerHeight;};
   resize();window.addEventListener('resize',resize);
   (function loop(){
     c.width=c.width;
-    bgCtx.lineWidth=1;
     for(let i=0;i<3;i++){
-      bgCtx.strokeStyle=`rgba(0,${160+i*20},${220+i*15},${0.03+i*.01})`;
-      bgCtx.beginPath();
-      for(let x=0;x<=c.width;x+=6){
-        const y=c.height*.5+Math.sin(x*.006+bgT+i*1.1)*30*(i*.5+.7)+Math.sin(x*.017+bgT*.7)*12;
-        x===0?bgCtx.moveTo(x,y):bgCtx.lineTo(x,y);
+      x.strokeStyle=`rgba(0,${160+i*22},${220+i*12},${.028+i*.008})`;
+      x.lineWidth=1;x.beginPath();
+      for(let px=0;px<=c.width;px+=6){
+        const py=c.height*.5+Math.sin(px*.006+t+i*1.1)*28*(i*.45+.7)+Math.sin(px*.016+t*.75)*10;
+        px===0?x.moveTo(px,py):x.lineTo(px,py);
       }
-      bgCtx.stroke();
+      x.stroke();
     }
-    bgT+=0.006;
-    requestAnimationFrame(loop);
+    t+=.005;requestAnimationFrame(loop);
   })();
-}
+})();
 
-// Shadow figures
-function initFigs(){
-  const fig=document.getElementById('figs');
-  const svgs=[
-    `<svg width="60" height="140" viewBox="0 0 60 140"><ellipse cx="30" cy="20" rx="14" ry="14" fill="white"/><rect x="16" y="36" width="28" height="60" rx="4" fill="white"/><rect x="8" y="40" width="14" height="44" rx="4" fill="white"/><rect x="38" y="40" width="14" height="44" rx="4" fill="white"/><rect x="16" y="96" width="12" height="44" rx="4" fill="white"/><rect x="32" y="96" width="12" height="44" rx="4" fill="white"/></svg>`,
-    `<svg width="50" height="120" viewBox="0 0 50 120"><ellipse cx="25" cy="16" rx="12" ry="12" fill="white"/><rect x="13" y="30" width="24" height="52" rx="4" fill="white"/><rect x="6" y="34" width="12" height="38" rx="4" fill="white"/><rect x="32" y="34" width="12" height="38" rx="4" fill="white"/><rect x="13" y="82" width="10" height="38" rx="4" fill="white"/><rect x="27" y="82" width="10" height="38" rx="4" fill="white"/></svg>`
-  ];
-  const positions=[[10,-10,'70px',180],[80,-5,'50px',150],[30,5,'90px',160],[60,-8,'55px',140]];
-  positions.forEach(([left,rot,ht,op],i)=>{
-    const d=document.createElement('div');
-    d.className='fig';
-    d.style.cssText=`left:${left}%;transform:rotate(${rot}deg);height:${ht};opacity:${op/1000};`;
-    d.innerHTML=svgs[i%2];
-    fig.appendChild(d);
-  });
-}
-
-// ══════════════════════════════════
+// ═══════════════════════════════════
 // AUDIO — spy ambient
-// ══════════════════════════════════
+// ═══════════════════════════════════
 let AC=null;
-const STEP_MOODS=[
-  {base:110,scale:[0,3,7,10],tempo:3200},  // step0 land
-  {base:130,scale:[0,2,5,7,10],tempo:2800},// step1
-  {base:138,scale:[0,3,7,10,14],tempo:2600},
-  {base:146,scale:[0,2,5,8,11],tempo:2400},
-  {base:138,scale:[0,3,5,7,10],tempo:2800},
-  {base:155,scale:[0,2,7,10,12],tempo:2200},
-  {base:146,scale:[0,3,5,8,10],tempo:2600},
-  {base:165,scale:[0,2,5,7,12],tempo:2000},
-  {base:175,scale:[0,3,7,10,14],tempo:1800},
+const MOODS=[
+  {root:110,scale:[0,3,7,10],ms:3400},
+  {root:116,scale:[0,2,5,7,10],ms:3000},
+  {root:123,scale:[0,3,7,10,14],ms:2800},
+  {root:130,scale:[0,2,5,8,11],ms:2600},
+  {root:123,scale:[0,3,5,7,10],ms:2800},
+  {root:138,scale:[0,2,7,10,12],ms:2400},
+  {root:130,scale:[0,3,5,8,10],ms:2600},
+  {root:146,scale:[0,2,5,7,12],ms:2200},
+  {root:155,scale:[0,3,7,10,14],ms:2000},
 ];
-let musicStep=0,musicTimer=null;
-function getAC(){if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();}if(AC.state==='suspended')AC.resume();return AC;}
-function tone(f,t,d,v=0.1,del=0){
+let moodIdx=0,moodTimer=null;
+function getAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
+function tone(f,type,dur,vol=0.1,del=0){
   try{
     const a=getAC(),o=a.createOscillator(),g=a.createGain();
-    o.connect(g);g.connect(a.destination);o.type=t;o.frequency.value=f;
+    o.connect(g);g.connect(a.destination);o.type=type;o.frequency.value=f;
     const st=a.currentTime+del;
-    g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(v,st+.03);
-    g.gain.exponentialRampToValueAtTime(.0001,st+d);
-    o.start(st);o.stop(st+d+.05);
+    g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(vol,st+.04);
+    g.gain.exponentialRampToValueAtTime(.0001,st+dur);
+    o.start(st);o.stop(st+dur+.05);
   }catch(e){}
 }
 function sfxOk(){tone(523,'sine',.08);tone(659,'sine',.08,.1,.1);tone(784,'sine',.14,.1,.2);}
-function sfxBad(){tone(220,'sawtooth',.25,.09);tone(185,'sawtooth',.2,.07,.08);}
+function sfxBad(){tone(220,'sawtooth',.25,.08);tone(185,'sawtooth',.2,.06,.08);}
 function sfxClick(){tone(880,'sine',.04,.06);}
-function sfxMission(){[262,330,392,523,659].forEach((f,i)=>tone(f,'triangle',.14,.09,i*.08));}
+function sfxBig(){[262,330,392,523,659].forEach((f,i)=>tone(f,'triangle',.14,.09,i*.07));}
 function sfxWin(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,'sine',.22,.08,i*.09));}
-let musicLoop=null;
-function setMusicStep(s){
-  musicStep=Math.min(s,STEP_MOODS.length-1);
-  if(musicLoop)clearTimeout(musicLoop);
-  playAmbient();
+let musicOn=false;
+function startMusic(idx){
+  moodIdx=Math.min(idx,MOODS.length-1);
+  if(!musicOn){musicOn=true;ambientLoop();}
 }
-function playAmbient(){
-  const m=STEP_MOODS[musicStep];
+function setMood(idx){moodIdx=Math.min(idx,MOODS.length-1);}
+function ambientLoop(){
+  const m=MOODS[moodIdx];
   try{
     const a=getAC();
-    // soft pad chord
-    m.scale.slice(0,3).forEach((semi,i)=>{
-      const f=m.base*Math.pow(2,semi/12);
-      tone(f,'sine',1.8,.022,i*.18);
-    });
-    // occasional bass note
-    if(Math.random()>.5) tone(m.base/2,'triangle',1.2,.018,.6);
-    // sparse high note
-    if(Math.random()>.65){
-      const hi=m.scale[Math.floor(Math.random()*m.scale.length)]+12;
-      tone(m.base*Math.pow(2,hi/12),'sine',.4,.012,1.2);
-    }
+    m.scale.slice(0,3).forEach((s,i)=>tone(m.root*Math.pow(2,s/12),'sine',2,.018,i*.2));
+    if(Math.random()>.55) tone(m.root/2,'triangle',1.4,.014,.7);
+    if(Math.random()>.7){const hi=m.scale[Math.floor(Math.random()*m.scale.length)]+12;tone(m.root*Math.pow(2,hi/12),'sine',.45,.01,1.3);}
   }catch(e){}
-  musicLoop=setTimeout(playAmbient,m.tempo+(Math.random()*600-300));
+  moodTimer=setTimeout(ambientLoop,m.ms+(Math.random()*500-250));
 }
 
-// ══════════════════════════════════
-// TERMINAL
-// ══════════════════════════════════
-let termQueue=[],termIdx=0,termCharIdx=0,termTyping=false,termCB=null,termSpeed=32;
-function runTerm(lines,cb,speed=32){
-  termSpeed=speed;
-  termCB=cb;termQueue=lines;termIdx=0;termCharIdx=0;
-  const el=document.getElementById('term-body');
-  el.innerHTML='';
-  document.getElementById('tbtn').style.display='none';
-  const cur=document.createElement('span');cur.id='tcur';el.appendChild(cur);
-  document.getElementById('term').classList.add('on');
-  typeNext();
+// ═══════════════════════════════════
+// TERMINAL (HOST only)
+// ═══════════════════════════════════
+let tLines=[],tIdx=0,tChar=0,tCB=null,tSpeed=30;
+function runTerm(lines,cb,speed=30){
+  tSpeed=speed;tCB=cb;tLines=lines;tIdx=0;tChar=0;
+  const el=document.getElementById('term-lines');
+  el.innerHTML='<span id="tcursor"></span>';
+  typeT();
 }
-function typeNext(){
-  if(termIdx>=termQueue.length){
-    document.getElementById('tbtn').style.display='block';
-    return;
-  }
-  const line=termQueue[termIdx];
-  let row=document.getElementById('term-body').querySelector(`[data-r="${termIdx}"]`);
+function typeT(){
+  if(tIdx>=tLines.length){if(tCB){const f=tCB;tCB=null;f();}return;}
+  const line=tLines[tIdx];
+  let row=document.querySelector(`#term-lines [data-r="${tIdx}"]`);
   if(!row){
-    row=document.createElement('div');row.dataset.r=termIdx;
-    document.getElementById('term-body').insertBefore(row,document.getElementById('tcur'));
+    row=document.createElement('div');row.dataset.r=tIdx;
+    document.getElementById('term-lines').insertBefore(row,document.getElementById('tcursor'));
   }
-  if(termCharIdx<line.text.length){
-    const sub=line.text.substring(0,termCharIdx+1);
-    row.innerHTML=line.color?`<span style="color:${line.color}">${sub}</span>`:sub;
-    termCharIdx++;
-    setTimeout(typeNext,line.fast?12:termSpeed);
+  if(tChar<line.t.length){
+    const sub=line.t.substring(0,tChar+1);
+    row.innerHTML=line.c?`<span class="t${line.c}">${sub}</span>`:sub;
+    tChar++;setTimeout(typeT,line.fast?10:tSpeed);
   } else {
-    const pause=line.pause||50;
-    termIdx++;termCharIdx=0;
-    setTimeout(typeNext,pause);
+    tIdx++;tChar=0;setTimeout(typeT,line.p||55);
   }
 }
-function termNext(){
-  sfxClick();
-  document.getElementById('term').classList.remove('on');
-  if(termCB){const f=termCB;termCB=null;f();}
+function appendTerm(lines){
+  // append more lines without clearing
+  tLines=[...tLines,...lines];
+  if(tIdx>=tLines.length-lines.length) typeT();
 }
 
-// ══════════════════════════════════
+// ═══════════════════════════════════
 // UI HELPERS
-// ══════════════════════════════════
-let myScore=0,myNick='AGENT',myRole='',myRoom='';
-let playerData={};// {nick: {step,score,specs:[],position:{anc,price},model:{anc,bat,mat,drv},cost,tradeoffs,quizScore}}
+// ═══════════════════════════════════
+let myScore=0;
+function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));const el=document.getElementById(id);if(el)el.classList.add('on');}
+function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),dur);}
+function addPts(n){myScore+=n;document.getElementById('mob-pts').textContent=myScore+' pts';document.getElementById('mw-score').textContent=myScore;if(n>0)toast('+'+n+' pts 🎯');}
+function setMobHUD(label,pct){document.getElementById('mob-hud').classList.add('on');document.getElementById('mob-step-lbl').textContent=label;document.getElementById('mob-bar-fill').style.width=pct+'%';}
+function confetti(){const cols=['#00e5ff','#ffc400','#00e676','#ff3d5a','#b366ff','#fff'];for(let i=0;i<52;i++){const c=document.createElement('div');c.className='cf';c.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]};animation-delay:${Math.random()*1.5}s;animation-duration:${2+Math.random()*1.5}s;border-radius:${Math.random()>.5?'50%':'2px'}`;document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}}
+function showFb(id,ok,html){const el=document.getElementById(id);if(!el)return;el.style.display='block';el.className='fb '+(ok?'ok':'bad');el.innerHTML=html;}
 
-function go(id){
-  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
-  const el=document.getElementById(id);if(el)el.classList.add('on');
-}
-function setHUD(label,pct){
-  document.getElementById('hud').classList.add('on');
-  document.getElementById('hud-l').textContent=label;
-  document.getElementById('hud-f').style.width=pct+'%';
-  document.getElementById('hud-p').textContent=myScore+' pts';
-}
-function addPts(n,show=true){
-  myScore+=n;
-  document.getElementById('hud-p').textContent=myScore+' pts';
-  document.getElementById('pw-score').textContent=myScore;
-  if(show)showToast('+'+n+' pts 🎯');
-}
-function showToast(msg,dur=2200){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('on');
-  setTimeout(()=>t.classList.remove('on'),dur);
-}
-function ptcl(emoji,x,y){
-  const p=document.createElement('div');p.className='ptcl';p.textContent=emoji;
-  p.style.left=(x||50)+'vw';p.style.top=(y||50)+'vh';
-  document.body.appendChild(p);setTimeout(()=>p.remove(),1100);
-}
-function confetti(){
-  const cols=['#00e5ff','#ffc400','#00e676','#ff1744','#b366ff','#fff'];
-  for(let i=0;i<50;i++){
-    const c=document.createElement('div');c.className='cf';
-    c.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]};
-      animation-delay:${Math.random()*1.5}s;animation-duration:${2+Math.random()*1.5}s;
-      border-radius:${Math.random()>.5?'50%':'2px'}`;
-    document.body.appendChild(c);setTimeout(()=>c.remove(),4500);
-  }
-}
-function fbBox(id,ok,html){
-  const el=document.getElementById(id);
-  if(!el)return;el.style.display='block';
-  el.style.cssText+=`;padding:12px 14px;border-radius:10px;font-size:.78rem;line-height:1.5;
-    background:${ok?'rgba(0,230,118,.07)':'rgba(255,23,68,.07)'};
-    border:1px solid ${ok?'rgba(0,230,118,.3)':'rgba(255,23,68,.3)'};
-    color:${ok?'#5eea9a':'#ff6688'};margin-top:10px;`;
-  el.innerHTML=html;
-}
-
-// Timer
 let timerInt=null;
-function startTimer(secs,urgentAt=10){
+function startTimer(s,urgAt=12){
   clearInterval(timerInt);
-  const fill=document.getElementById('timerfill');
+  document.getElementById('timer-strip').style.display='block';
+  const fill=document.getElementById('timer-fill');
   const start=Date.now();
   timerInt=setInterval(()=>{
-    const elapsed=(Date.now()-start)/1000;
-    const pct=Math.max(0,(secs-elapsed)/secs*100);
+    const el=(Date.now()-start)/1000;
+    const pct=Math.max(0,(s-el)/s*100);
     fill.style.width=pct+'%';
-    fill.classList.toggle('urgent',elapsed>secs-urgentAt);
-    if(elapsed>=secs)clearInterval(timerInt);
+    fill.classList.toggle('urgent',el>s-urgAt);
+    if(el>=s)clearInterval(timerInt);
   },200);
 }
-function stopTimer(){clearInterval(timerInt);document.getElementById('timerfill').style.width='100%';}
+function stopTimer(){clearInterval(timerInt);document.getElementById('timer-strip').style.display='none';}
 
-// ══════════════════════════════════
+// ═══════════════════════════════════
 // ABLY
-// ══════════════════════════════════
+// ═══════════════════════════════════
 const ABLY_KEY='xC3oQQ.lm_9hg:boqSp-TCWIv_mIHQzAxWLI7KZcsMUjE7U7tAd6cZDbM';
-let ably=null,ch=null;
+let ably=null,ch=null,myNick='',myRoom='';
+let players={};
+
 function genRoom(){return Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');}
 async function connectAbly(room){
-  for(let i=0;i<20;i++){
-    if(typeof Ably!=='undefined') break;
-    await new Promise(r=>setTimeout(r,300));
-  }
-  if(typeof Ably==='undefined'){console.error('Ably SDK not loaded');return false;}
+  for(let i=0;i<25;i++){if(typeof Ably!=='undefined')break;await new Promise(r=>setTimeout(r,300));}
+  if(typeof Ably==='undefined')return false;
   try{
     if(ably){try{ably.close();}catch(e){}}
-    ably=new Ably.Realtime({
-      key:ABLY_KEY,
-      clientId:myNick+'_'+Date.now(),
-      disconnectedRetryTimeout:3000,
-    });
-    ch=ably.channels.get('sme-'+room);
+    ably=new Ably.Realtime({key:ABLY_KEY,clientId:myNick+'_'+Date.now()});
+    ch=ably.channels.get('sme4-'+room);
     await new Promise((res,rej)=>{
       ably.connection.on('connected',res);
       ably.connection.on('failed',()=>rej(new Error('failed')));
       setTimeout(()=>rej(new Error('timeout')),15000);
     });
     return true;
-  }catch(e){
-    console.error('Ably connect error:',e.message);
-    return false;
-  }
+  }catch(e){console.error('Ably:',e.message);return false;}
 }
-function pub(ev,data){if(ch)ch.publish(ev,data);}
+function pub(ev,data){if(ch)ch.publish(ev,data).catch(e=>console.error(e));}
 function sub(ev,fn){if(ch)ch.subscribe(ev,msg=>fn(msg.data));}
 
-// ══════════════════════════════════
-// HOST FLOW
-// ══════════════════════════════════
-let currentStep=0;
-const STEP_NAMES=['READY','STEP 1: SPECS','STEP 2: METRICS','STEP 3+4: POSITIONING','—','STEP 5: COST MODEL','STEP 6: TARGET COST','STEP 7: TRADE-OFFS','STEP 8: QUIZ','COMPLETE'];
-const STEP_PCT=[0,11,22,33,44,55,66,77,88,100];
-
-async function startHost(){
+// ═══════════════════════════════════
+// LANDING
+// ═══════════════════════════════════
+function startHost(){
   sfxClick();
   myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);
-  myRole='host';myRoom=genRoom();
+  launchHost();
+}
+function startJoin(){
+  sfxClick();
+  const params=new URLSearchParams(location.search);
+  const room=params.get('room');
+  if(room) document.getElementById('m-code').value=room.toUpperCase();
+  // pre-fill nick field but keep empty for user to fill
+  go('s-mjoin');
+}
+
+// ═══════════════════════════════════
+// HOST FLOW
+// ═══════════════════════════════════
+let currentStep=0;
+let stepDone={};// {nick: bool} per step
+async function launchHost(){
+  myRoom=genRoom();
   document.getElementById('room-disp').textContent=myRoom;
   buildQR();
   go('s-hlobby');
   const ok=await connectAbly(myRoom);
-  if(!ok){showToast('⚠️ Offline mode');return;}
-  sub('join',d=>{
-    playerData[d.nick]={step:0,score:0,specs:[],position:{anc:30,price:250},model:{anc:30,bat:24,mat:0,drv:40},cost:112,tradeoffs:[],quizScore:0};
-    renderPList();showToast('👋 '+d.nick+' joined!');
-  });
-  sub('step-done',d=>{
-    if(playerData[d.nick]){
-      Object.assign(playerData[d.nick],d.data);
-      playerData[d.nick].step=d.step;
-      if(playerData[d.nick].score!=null) playerData[d.nick].score=d.score||0;
-    }
-    updateHostCtrl();
-  });
-  sub('quiz-ans',d=>{
-    if(playerData[d.nick]) playerData[d.nick].quizScore=(playerData[d.nick].quizScore||0)+(d.correct?100:0);
-    updateHostCtrl();
-  });
+  if(!ok){toast('⚠️ Running offline — no multiplayer');}
+  else{
+    sub('join',d=>{
+      players[d.nick]={score:0,step:0};
+      renderPList();toast('🕵️ '+d.nick+' joined!');
+    });
+    sub('step-result',d=>{
+      if(!players[d.nick])players[d.nick]={score:0,step:0};
+      Object.assign(players[d.nick],d.data,{step:d.step,score:d.score});
+      updateProgress();
+    });
+    sub('quiz-ans',d=>{
+      if(players[d.nick]&&d.correct) players[d.nick].quizPts=(players[d.nick].quizPts||0)+100;
+      updateProgress();
+    });
+  }
 }
 function buildQR(){
   const base='https://lruggeri8-wq.github.io/specmaster/';
   const url=encodeURIComponent(base+'?room='+myRoom+'&role=player');
   document.getElementById('qr-wrap').innerHTML=
-    `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${url}&bgcolor=030608&color=00e5ff&margin=8"
-      style="border-radius:10px;border:2px solid var(--cyan);width:150px;height:150px;" alt="QR">
-    <div style="font-family:var(--mono);font-size:.55rem;color:var(--mut);text-align:center;margin-top:5px;word-break:break-all;max-width:160px;">
-      ${base}?room=${myRoom}
+    `<img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${url}&bgcolor=020810&color=00e5ff&margin=8" alt="QR">
+    <div style="font-family:var(--mono);font-size:.52rem;color:var(--mut);text-align:center;margin-top:6px;letter-spacing:.08em;">
+      ${base}<br>code: ${myRoom}
     </div>`;
 }
 function renderPList(){
-  document.getElementById('plist').innerHTML=
-    Object.keys(playerData).map(n=>`<span class="ppill">🕵️ ${n}</span>`).join('');
+  document.getElementById('plist').innerHTML=Object.keys(players).map(n=>`<span class="ppill">🕵️ ${n}</span>`).join('');
+}
+function updateProgress(){
+  const count=Object.keys(players).length;
+  const done=Object.values(players).filter(p=>p.step>=currentStep).length;
+  const fill=document.getElementById('hp-prog-fill');
+  const lbl=document.getElementById('hp-prog-lbl');
+  if(fill) fill.style.width=count?Math.round(done/count*100)+'%':'0%';
+  if(lbl) lbl.textContent=done+'/'+count+' done';
 }
 
-function hostLaunchGame(){
-  sfxMission();
-  setMusicStep(0);
+function hostLaunch(){
+  sfxBig();startMusic(0);
   pub('game-start',{});
-  currentStep=0;
-  showHostStep(1);
+  go('s-hgame');
+  runTerm([
+    {t:'> SYSTEM BREACH DETECTED — INCOMING ENCRYPTED MESSAGE',c:'r',p:300},
+    {t:'>',p:100},
+    {t:'> ████████████████████████████████████████',p:50,fast:true},
+    {t:'> DECRYPTING... ■■■■■■■■■■■■■░░░░░░░░░ 64%',p:200,fast:true},
+    {t:'> DECRYPTING... ■■■■■■■■■■■■■■■■■■■░░ 90%',p:200,fast:true},
+    {t:'> DECRYPTING... ■■■■■■■■■■■■■■■■■■■■■ 100%',c:'g',p:400,fast:true},
+    {t:'>',p:150},
+    {t:'> SOURCE: [CLASSIFIED] · OMEGA DIVISION',c:'y',p:250},
+    {t:'> TO: YOU',c:'c',p:200},
+    {t:'>',p:100},
+    {t:'> MESSAGE:',c:'y',p:150},
+    {t:'> "Agent. We have a situation.",c:"w"',p:200},
+    {t:'> "An operative needs new equipment — fast.',p:200},
+    {t:'> Noise-cancelling headphones. Field-grade.',p:180},
+    {t:'> You have ONE chance to spec them correctly.',p:180},
+    {t:'> Wrong specs. Mission fails. Do not fail us."',p:350},
+    {t:'>',p:200},
+    {t:'> OPERATION: SILENT EAR — NOW ACTIVE',c:'g',p:300},
+    {t:'> AGENTS CONNECTED: '+Object.keys(players).length,c:'c',p:200},
+    {t:'>',p:100},
+    {t:'> LAUNCHING STEP 1...',c:'y',p:0},
+  ],()=>showHostStep(1));
 }
 
-function showHostStep(step){
-  currentStep=step;
-  const stepDurations=[0,120,90,90,0,90,60,60,60];
-  const dur=stepDurations[step]||90;
-  go('s-hctrl');
-  setHUD(STEP_NAMES[step]||'STEP '+step,STEP_PCT[step]||0);
-  renderHostCtrl(step,dur);
-}
-
-const HOST_BRIEFS={
+// HOST STEP DEFINITIONS
+const HOST_STEPS={
   1:{
-    emoji:'🎯',title:'STEP 1 — WHAT ARE SPECIFICATIONS?',
-    theory:`<p style="margin-bottom:10px;">Customer needs are expressed in <em>the language of the customer</em> — vague, subjective, emotional.<br>
-    Specifications translate these into <strong>precise, measurable targets</strong>: each spec = <span style="color:var(--cyan);">metric</span> + <span style="color:var(--gold);">value</span>.</p>
-    <p style="margin-bottom:6px;font-size:.78rem;color:var(--mut);">NEED: "The headphones block noise effectively" → ambiguous<br>
-    SPEC: ANC attenuation <strong>≥ 30 dB at 1kHz</strong> → precise, testable</p>
-    <p style="font-size:.78rem;color:var(--mut);">Students will hear the client's brief and must select the correct specs — too many or near-duplicates lose points.</p>`,
-    task:'Students: read the mission brief and select specs on your phone'
+    title:'STEP 1 — WHAT ARE SPECIFICATIONS?',
+    theory:`Customer needs are expressed in <em>the language of the customer</em> — subjective, vague, emotional. 
+    Specifications translate these into <strong>precise, measurable targets</strong>.<br><br>
+    Each specification = <strong style="color:var(--cyan)">metric</strong> (what you measure) + <strong style="color:var(--gold)">value</strong> (the target number + unit).<br><br>
+    <em>Need:</em> "blocks noise effectively"<br>
+    <em>Spec:</em> ANC attenuation ≥ 35 dB at 1 kHz`,
+    task:'<strong>Students:</strong> read the client brief on their phones and select the correct specifications. Too many specs or near-duplicates lose points.',
+    term:[
+      {t:'> STEP 1 LAUNCHED: SPECIFICATION SELECTION',c:'c',p:200},
+      {t:'> Agents are reading the client brief...',p:150},
+      {t:'> They must identify correct specs from a list of 13.',p:150},
+      {t:'> Selecting near-duplicates or irrelevant specs = penalty.',c:'y',p:0},
+    ]
   },
   2:{
-    emoji:'📐',title:'STEP 2 — NEEDS → METRICS',
-    theory:`<p style="margin-bottom:10px;">A <strong>metric</strong> is an objective, measurable quantity. It reflects how well the product satisfies a need.<br>
-    The relationship between needs and metrics is central to the entire concept of specifications.</p>
-    <p style="margin-bottom:6px;font-size:.78rem;color:var(--mut);">Guidelines for good metrics:<br>
-    ✓ <strong>Complete</strong> — one metric per need when possible<br>
-    ✓ <strong>Dependent variable</strong> — measure WHAT, not HOW<br>
-    ✓ <strong>Practical</strong> — actually testable and measurable</p>
-    <p style="font-size:.78rem;color:var(--mut);">This needs-metrics matrix is the backbone of the House of Quality (QFD).</p>`,
-    task:'Students: match each customer need to its correct engineering metric'
+    title:'STEP 2 — NEEDS → METRICS',
+    theory:`A <strong>metric</strong> is an objective, measurable quantity that directly reflects how well the product satisfies a customer need.<br><br>
+    Guidelines for good metrics:<br>
+    ✓ <strong>Complete</strong> — one metric per need ideally<br>
+    ✓ <strong>Dependent variable</strong> — measures WHAT, not HOW<br>
+    ✓ <strong>Testable</strong> — can be verified in the lab<br><br>
+    This needs-metrics matrix is the foundation of the <strong>House of Quality</strong> (QFD).`,
+    task:'<strong>Students:</strong> match each customer need to its correct engineering metric from a dropdown.',
+    term:[
+      {t:'> STEP 2 LAUNCHED: NEEDS → METRICS MAPPING',c:'c',p:200},
+      {t:'> Agents are translating customer language into measurable metrics.',p:150},
+      {t:'> A metric must be objective and testable — not subjective.',c:'y',p:0},
+    ]
   },
   3:{
-    emoji:'🗺️',title:'STEPS 3+4 — BENCHMARKING & TARGET POSITIONING',
-    theory:`<p style="margin-bottom:10px;"><strong>Step 3</strong> — Competitive benchmarking: study rival products on your chosen metrics. This reveals the natural trade-off curve in the market.</p>
-    <p style="margin-bottom:10px;"><strong>Step 4</strong> — Set target values: for each metric, define an <span style="color:var(--cyan);">Ideal value</span> (best you could hope for) and a <span style="color:var(--gold);">Marginal value</span> (minimum to compete).</p>
-    <p style="font-size:.78rem;color:var(--mut);">Students choose their target ANC level and retail price — these feed directly into the cost model and target costing steps.</p>`,
-    task:'Students: study the competitive map and lock in your target position (ANC + retail price)'
+    title:'STEPS 3+4 — BENCHMARKING & TARGET VALUES',
+    theory:`<strong>Step 3 — Competitive benchmarking:</strong> study rival products on your chosen metrics. This reveals the natural trade-off curve in the market.<br><br>
+    <strong>Step 4 — Set target values:</strong> for each metric define:<br>
+    <span style="color:var(--cyan)">Ideal value</span> = best achievable (stretch goal)<br>
+    <span style="color:var(--gold)">Marginal value</span> = minimum acceptable to compete<br><br>
+    Agents set their <strong>ANC target and retail price</strong> — these feed directly into the target costing calculation.`,
+    task:'<strong>Students:</strong> study the competitive map on their phone and lock in their target position (ANC level + retail price).',
+    term:[
+      {t:'> STEP 3+4 LAUNCHED: COMPETITIVE POSITIONING',c:'c',p:200},
+      {t:'> Agents are studying the competitive landscape.',p:150},
+      {t:'> They choose ANC target and retail price.',p:150},
+      {t:'> This price becomes their cost budget in Step 6.',c:'y',p:0},
+    ]
   },
   5:{
-    emoji:'🏭',title:'STEP 5 — TECHNICAL MODELS & COST MODEL',
-    theory:`<p style="margin-bottom:10px;">After concept selection, engineers build <strong>technical performance models</strong> that relate design variables to performance metrics.</p>
-    <p style="margin-bottom:10px;">A <strong>cost model</strong> estimates manufacturing cost from spec values. This is where trade-offs become quantitative:</p>
-    <p style="font-size:.78rem;color:var(--mut);">ANC +1dB → chip complexity → +€1.80 cost<br>
-    Battery +1h → cell size → +2g weight, +€0.90 cost<br>
-    Carbon Fiber → −80g but +€58 material cost</p>
-    <p style="font-size:.78rem;color:var(--mut);margin-top:8px;">Students tune their own product specs and lock a cost estimate.</p>`,
-    task:'Students: build your cost model — tune specs and see trade-offs live'
+    title:'STEP 5 — TECHNICAL MODELS & COST MODEL',
+    theory:`After concept selection, engineers build <strong>technical performance models</strong> linking design variables to performance metrics.<br><br>
+    A <strong>cost model</strong> estimates manufacturing cost from spec values:<br>
+    • ANC +1dB above 25 → +€1.80 (chip complexity)<br>
+    • Battery +1h → +€0.90, +2g (larger cell)<br>
+    • Carbon Fiber → −80g but +€58 material cost<br>
+    • Driver +5mm above 35mm → +€4.00<br><br>
+    This is where <strong>trade-offs become quantitative</strong>.`,
+    task:'<strong>Students:</strong> tune 4 sliders to build their cost model. The model updates live — every change reveals a trade-off.',
+    term:[
+      {t:'> STEP 5 LAUNCHED: TECHNICAL COST MODEL',c:'c',p:200},
+      {t:'> Agents are configuring their headphone specs.',p:150},
+      {t:'> The model calculates weight and manufacturing cost live.',p:150},
+      {t:'> Each agent will have a unique product at the end.',c:'y',p:0},
+    ]
   },
   6:{
-    emoji:'💰',title:'STEP 6 — TARGET COSTING (Appendix p.114)',
-    theory:`<p style="margin-bottom:10px;"><strong>Target costing</strong> is the reverse of cost-plus pricing. Instead of: cost → add margin → price, you do: <span style="color:var(--cyan);">market price → subtract margins → allowable cost</span>.</p>
-    <div style="font-family:var(--mono);font-size:.82rem;color:var(--cyan);background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.15);padding:10px;border-radius:8px;margin-bottom:10px;">C* = P × (1 − M<sub>r</sub>) × (1 − M<sub>m</sub>)</div>
-    <p style="font-size:.78rem;color:var(--mut);">P = retail price · M<sub>r</sub> = retailer margin (45%) · M<sub>m</sub> = manufacturer margin (40%)<br>
-    Example: P=€300 → C* = 300×0.55×0.60 = <strong>€99</strong></p>
-    <p style="font-size:.78rem;color:var(--mut);margin-top:8px;">If their mfg. cost > C*, they are unprofitable and must make trade-offs in Step 7.</p>`,
-    task:'Students: see if your cost model fits within your target price — are you profitable?'
+    title:'STEP 6 — TARGET COSTING (Appendix p.114)',
+    theory:`Target costing is the <strong>reverse of cost-plus pricing</strong>.<br><br>
+    Cost-plus: cost → add margin → price (ignores market reality)<br>
+    Target costing: market price → subtract margins → max cost<br><br>
+    <span class="formula">C* = P × (1 − M<sub>r</sub>) × (1 − M<sub>m</sub>)</span>
+    P = retail price &nbsp;·&nbsp; M<sub>r</sub> = retailer margin (45%) &nbsp;·&nbsp; M<sub>m</sub> = mfr margin (40%)<br><br>
+    Example: P = €300 → C* = 300 × 0.55 × 0.60 = <strong>€99</strong><br><br>
+    If mfg cost > C* → <strong style="color:var(--red)">UNPROFITABLE</strong> → must make trade-offs.`,
+    task:'<strong>Students:</strong> see if their cost model fits within their C*. Unprofitable agents must make trade-offs in Step 7.',
+    term:[
+      {t:'> STEP 6 LAUNCHED: TARGET COSTING',c:'c',p:200},
+      {t:'> Formula: C* = P × (1 − 0.45) × (1 − 0.40)',c:'y',p:200},
+      {t:'> Agents check if their mfg cost fits their budget.',p:150},
+      {t:'> If cost > C*: unprofitable. Trade-offs required.',c:'r',p:0},
+    ]
   },
   7:{
-    emoji:'⚖️',title:'STEP 7 — TRADE-OFF DECISIONS',
-    theory:`<p style="margin-bottom:10px;">Setting final specifications requires making <strong>hard trade-offs</strong> among desirable characteristics. Teams must sacrifice some goals to meet constraints.</p>
-    <p style="margin-bottom:10px;">This is done in a group session where feasible combinations are explored using the technical and cost models.</p>
-    <p style="font-size:.78rem;color:var(--mut);">Students who were unprofitable in Step 6 must now cut specs or raise price. Everyone makes at least one strategic choice. Their decisions shape the final spec sheet.</p>`,
-    task:'Students: make your trade-off decisions and finalize your spec sheet'
+    title:'STEP 7 — TRADE-OFF DECISIONS',
+    theory:`Setting <strong>final specifications</strong> requires making hard trade-offs among desirable characteristics. Teams must sacrifice some goals to meet constraints.<br><br>
+    This is done in a group session where feasible spec combinations are explored using the technical and cost models, then the cost implications are checked.<br><br>
+    Every product manager must decide what to <strong>prioritise</strong> — and what to sacrifice. There is no objectively correct answer.`,
+    task:'<strong>Students:</strong> make 3 strategic trade-off choices. These define their final specification sheet.',
+    term:[
+      {t:'> STEP 7 LAUNCHED: FINAL TRADE-OFF DECISIONS',c:'c',p:200},
+      {t:'> Agents are making their final strategic choices.',p:150},
+      {t:'> Some will cut ANC. Some will reduce battery.',p:150},
+      {t:'> Some will raise price. Every choice defines the product.',c:'y',p:0},
+    ]
   },
   8:{
-    emoji:'🧠',title:'STEP 8 — FINAL THEORY QUIZ',
-    theory:`<p style="margin-bottom:10px;">Three questions on the core concepts from Chapter 6.</p>
-    <p style="font-size:.78rem;color:var(--mut);">Q1: What is a metric?<br>Q2: When are final specs set?<br>Q3: What is target costing?</p>`,
-    task:'Students: answer 3 questions on your phone — every correct answer = +100 pts'
+    title:'STEP 8 — FINAL THEORY QUIZ',
+    theory:`Three questions to verify understanding of the core Chapter 6 concepts:<br><br>
+    Q1: What is a metric?<br>
+    Q2: When are final specifications set?<br>
+    Q3: What is target costing?<br><br>
+    Each correct answer = +100 points. Fast correct answers score the same — no time pressure here, just accuracy.`,
+    task:'<strong>Students:</strong> answer 3 questions on their phone. Each correct answer = +100 pts.',
+    term:[
+      {t:'> FINAL STEP: THEORY VERIFICATION',c:'c',p:200},
+      {t:'> 3 questions from Chapter 6.',p:150},
+      {t:'> Testing: metrics, spec timing, target costing.',p:150},
+      {t:'> Results will be shown in the final debrief.',c:'g',p:0},
+    ]
   }
 };
 
-function renderHostCtrl(step,dur){
-  const brief=HOST_BRIEFS[step];
-  const playerCount=Object.keys(playerData).length;
-  const done=Object.values(playerData).filter(p=>p.step>=step).length;
-  document.getElementById('hctrl-content').innerHTML=`
-    <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-size:2rem;margin-bottom:6px;">${brief?brief.emoji:'📋'}</div>
-      <h2 style="font-family:'Orbitron',monospace;font-size:1.1rem;line-height:1.3;margin-bottom:4px;">${brief?brief.title:'STEP '+step}</h2>
+function showHostStep(step){
+  currentStep=step;
+  setMood(step);
+  const cfg=HOST_STEPS[step];if(!cfg)return;
+  const pct=Math.round((step/8)*100);
+  // update terminal
+  appendTerm(cfg.term||[]);
+  // render panel
+  const next=step<8?`<button class="btn btn-s btn-sm" style="width:auto;" onclick="showHostStep(${step+1})">Next step →</button>`:'';
+  const prev=step>1?`<button class="btn btn-s btn-sm" style="width:auto;" onclick="showHostStep(${step-1})">← Prev</button>`:'';
+  document.getElementById('hp-content').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:.58rem;color:var(--cyan);letter-spacing:.14em;">STEP ${step}/8</div>
+      <div style="display:flex;gap:8px;">${prev}${next}</div>
     </div>
-    <div class="card w" style="margin-bottom:12px;">${brief?brief.theory:''}</div>
-    <div class="card w gold" style="margin-bottom:12px;text-align:center;">
-      <div style="font-size:.65rem;font-family:var(--mono);color:var(--gold);margin-bottom:6px;">STUDENT TASK:</div>
-      <div style="font-size:.84rem;font-weight:600;">${brief?brief.task:'—'}</div>
+    <div class="host-step-title">${cfg.title}</div>
+    <div class="host-theory" style="margin-top:8px;">${cfg.theory}</div>
+    <div class="host-task"><strong>📱 STUDENT TASK: </strong>${cfg.task}</div>
+    <div class="progress-row">
+      <div class="prog-bar"><div class="prog-fill" id="hp-prog-fill" style="width:0%"></div></div>
+      <div class="prog-lbl" id="hp-prog-lbl">0/0 done</div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-      <div class="card" style="text-align:center;">
-        <div style="font-size:.6rem;color:var(--mut);font-family:var(--mono);margin-bottom:4px;">COMPLETED</div>
-        <div style="font-family:var(--mono);font-size:1.4rem;color:var(--grn);" id="done-count">${done}/${playerCount}</div>
-      </div>
-      <div class="card" style="text-align:center;">
-        <div style="font-size:.6rem;color:var(--mut);font-family:var(--mono);margin-bottom:4px;">TIME LIMIT</div>
-        <div style="font-family:var(--mono);font-size:1.4rem;color:var(--gold);">${dur}s</div>
-      </div>
-    </div>
-    <button class="btn bp w" onclick="hostLaunchStep(${step},${dur})" id="launch-btn">
-      ▶ LAUNCH STEP ${step} TO STUDENTS
-    </button>
-    ${step>1?`<div class="g8"></div>
-    <button class="btn bs w btn-sm" onclick="showHostStep(${step-1})">← Previous step</button>`:''}
-    ${step<8?`<div class="g8"></div>
-    <button class="btn bs w btn-sm" onclick="showHostStep(${step+1})">Skip to next step →</button>`:''}
-    ${step===8?`<div class="g8"></div>
-    <button class="btn by w" onclick="showHostDash()">🏆 Show Final Results</button>`:''}
-  `;
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-y" style="flex:1;min-width:160px;" onclick="hostFireStep(${step})">
+        ▶ LAUNCH TO PHONES
+      </button>
+      ${step===8?`<button class="btn btn-g" style="flex:1;min-width:160px;" onclick="showHostFinal()">🏆 Show Results</button>`:''}
+    </div>`;
+  updateProgress();
 }
 
-function updateHostCtrl(){
-  const playerCount=Object.keys(playerData).length;
-  const done=Object.values(playerData).filter(p=>p.step>=currentStep).length;
-  const el=document.getElementById('done-count');
-  if(el) el.textContent=done+'/'+playerCount;
+function hostFireStep(step){
+  sfxBig();
+  pub('launch',{step,dur:step===8?0:120});
+  toast('Step '+step+' launched to all phones!');
+  startMusic(step);
 }
 
-function hostLaunchStep(step,dur){
-  sfxMission();
-  setMusicStep(step);
-  pub('launch-step',{step,dur});
-  startTimer(dur);
-  showToast('Step '+step+' launched! Students can now play.');
-  // after timer, suggest next step
-  setTimeout(()=>{
-    showToast('⏱ Time up — tap "Next step" when ready');
-  },(dur+1)*1000);
-}
-
-function showHostDash(){
+function showHostFinal(){
+  sfxWin();confetti();
   go('s-hdash');
-  const entries=Object.entries(playerData);
-  const winner=entries.sort((a,b)=>(b[1].score||0)-(a[1].score||0))[0];
-  document.getElementById('hdash-msg').innerHTML=
-    winner?`<span style="color:var(--cyan);">> MISSION DEBRIEF COMPLETE.</span><br>
-    <span style="color:var(--grn);">> BEST AGENT: ${winner[0].toUpperCase()}</span><br>
-    <span style="color:var(--gold);">> OPTIMAL SPEC SHEET SELECTED FOR PRODUCTION.</span>`
-    :'> MISSION DATA LOADING…';
-  document.getElementById('hdash-cards').innerHTML=entries.map(([nick,d])=>`
-    <div class="pcard">
-      <div class="pname">🕵️ ${nick} · ${d.score||0} pts</div>
-      <div class="pbar-wrap"><div class="pbar-label">ANC</div>
-        <div class="pbar-bg"><div class="pbar-fill" style="width:${((d.model?.anc||30)/50)*100}%;background:var(--cyan);"></div></div>
-        <span style="font-family:var(--mono);font-size:.65rem;color:var(--mut);width:32px;">${d.model?.anc||30}dB</span>
-      </div>
-      <div class="pbar-wrap"><div class="pbar-label">Battery</div>
-        <div class="pbar-bg"><div class="pbar-fill" style="width:${((d.model?.bat||24)/60)*100}%;background:var(--gold);"></div></div>
-        <span style="font-family:var(--mono);font-size:.65rem;color:var(--mut);width:32px;">${d.model?.bat||24}h</span>
-      </div>
-      <div class="pbar-wrap"><div class="pbar-label">Cost</div>
-        <div class="pbar-bg"><div class="pbar-fill" style="width:${Math.min(100,((d.cost||112)/250)*100)}%;background:${(d.cost||112)>130?'var(--red)':'var(--grn)'};"></div></div>
-        <span style="font-family:var(--mono);font-size:.65rem;color:var(--mut);width:40px;">€${d.cost||112}</span>
-      </div>
-      <div style="font-size:.68rem;color:var(--mut);margin-top:6px;">Material: ${d.model?.mat?'Carbon Fiber':'Plastic'} · Driver: ${d.model?.drv||40}mm · Price: €${d.position?.price||250}</div>
-    </div>
-  `).join('');
-}
-
-// ══════════════════════════════════
-// PLAYER FLOW
-// ══════════════════════════════════
-let pStep=0,pAnswered=false,pQuizQ=0;
-
-async function goJoin(){sfxClick();go('s-join');}
-
-async function joinGame(){
-  sfxClick();
-  myNick=(document.getElementById('nick').value.trim()||'AGENT'+Math.floor(Math.random()*99)).substring(0,16);
-  myRole='player';
-  myRoom=document.getElementById('code-in').value.trim().toUpperCase();
-  if(myRoom.length<3){showToast('Enter a valid code!');return;}
-
-  showToast('Connecting… (may take a few seconds on mobile)');
-  let ok=await connectAbly(myRoom);
-  if(!ok){
-    showToast('Retrying…');
-    await new Promise(r=>setTimeout(r,2000));
-    ok=await connectAbly(myRoom);
+  const sorted=Object.entries(players).sort((a,b)=>((b[1].score||0)+(b[1].quizPts||0))-((a[1].score||0)+(a[1].quizPts||0)));
+  const medals=['🥇','🥈','🥉'];
+  // winner message in terminal style
+  const winner=sorted[0];
+  if(winner){
+    appendTerm([
+      {t:'> MISSION DEBRIEF COMPLETE',c:'g',p:300},
+      {t:`> BEST AGENT: ${winner[0].toUpperCase()}`,c:'y',p:200},
+      {t:`> SPEC SHEET APPROVED FOR PRODUCTION.`,c:'g',p:0},
+    ]);
+    document.getElementById('hdash-winner').innerHTML=
+      `> Agent <span style="color:var(--gold)">${winner[0]}</span> — your spec sheet has been selected.<br>> We'll be in touch. Do not speak of this mission.`;
   }
-  if(!ok){showToast('❌ Connection failed — check WiFi and retry');return;}
-
-  pub('join',{nick:myNick});
-  setHUD('CONNECTED',0);
-  document.getElementById('hud').classList.add('on');
-
-  sub('launch-step',d=>{
-    pStep=d.step;
-    setMusicStep(d.step);
-    startTimer(d.dur);
-    launchPlayerStep(d.step);
-  });
-  sub('game-start',()=>{
-    go('s-pwait');
-    setPWait('STANDBY','Mission starting…','The host is briefing the class');
-  });
-
-  go('s-pwait');
-  setPWait('CONNECTED','Waiting for host…','Stand by for mission start');
-  showToast('✅ Joined room '+myRoom);
-}
-
-function setPWait(step,title,sub){
-  document.getElementById('pw-step').textContent=step;
-  document.getElementById('pw-title').textContent=title;
-  document.getElementById('pw-sub').textContent=sub;
-}
-
-function launchPlayerStep(step){
-  setHUD(STEP_NAMES[step]||'STEP '+step,STEP_PCT[step]||0);
-  setMusicStep(step);
-  if(step===1){go('s-p1');initP1();}
-  else if(step===2){go('s-p2');initP2();}
-  else if(step===3){go('s-p34');initP34();}
-  else if(step===5){go('s-p5');initP5();}
-  else if(step===6){go('s-p6');initP6();}
-  else if(step===7){go('s-p7');initP7();}
-  else if(step===8){go('s-p8');pQuizQ=0;initP8();}
-  else{go('s-pwait');setPWait('STEP '+step,'Coming soon…','Wait for host');}
-}
-
-function doneStep(step,data){
-  pub('step-done',{nick:myNick,step,score:myScore,data});
-  go('s-pwait');
-  setPWait('STEP '+step+' DONE','Waiting for next step…','Host will advance when everyone is ready');
-}
-
-// ── STEP 1: Spec selection ──
-const SPEC_OPTIONS=[
-  // correct specs (match client brief)
-  {text:'ANC attenuation ≥ 35 dB',type:'correct',pts:20,why:'Client said "completely eliminate noise" — 35dB is the right threshold'},
-  {text:'Battery life ≥ 8 h playback',type:'correct',pts:20,why:'Client said "8-hour operation" — this is exact'},
-  {text:'Total mass < 280 g',type:'correct',pts:20,why:'Client said "weight is critical" — sub-280g is premium lightweight'},
-  {text:'Bluetooth 5.x, < 1s pairing',type:'correct',pts:20,why:'Client said "pair instantly with any device"'},
-  {text:'THD+N < 0.5 % at 1 kHz',type:'correct',pts:20,why:'Client said "crystal clear audio" — THD is the right metric'},
-  // too similar (penalise)
-  {text:'ANC attenuation ≥ 30 dB',type:'similar',pts:-10,why:'Too close to the 35dB spec — selecting both creates redundancy and confusion'},
-  {text:'ANC attenuation ≥ 40 dB',type:'similar',pts:-10,why:'Another near-duplicate of the ANC spec'},
-  {text:'Battery life ≥ 10 h playback',type:'similar',pts:-10,why:'This duplicates the battery spec with slightly different value — pick one'},
-  {text:'Bluetooth pairing time < 3 s',type:'similar',pts:-10,why:'Same metric as the 1s spec — having both is redundant'},
-  // wrong / irrelevant
-  {text:'Headband color: matte black',type:'wrong',pts:-15,why:'Cosmetic preference, not a measurable engineering spec'},
-  {text:'Price < competitor average',type:'wrong',pts:-15,why:'Cost target belongs in target costing, not the spec sheet'},
-  {text:'Compatible with iOS only',type:'wrong',pts:-15,why:'Client said "any device" — this contradicts the brief'},
-  {text:'Logo embossing depth ≥ 2 mm',type:'wrong',pts:-15,why:'Irrelevant detail — no customer need maps to this'},
-];
-let sel1=new Set();
-
-function initP1(){
-  sel1=new Set();
-  document.getElementById('spec-count-lbl').textContent='Selected: 0 specs';
-  document.getElementById('fb-p1').style.display='none';
-  const pool=document.getElementById('spec-pool');
-  pool.innerHTML='';
-  [...SPEC_OPTIONS].sort(()=>Math.random()-.5).forEach((s,i)=>{
-    const c=document.createElement('span');
-    c.className='chip';c.textContent=s.text;c.dataset.i=i;
-    c.addEventListener('click',()=>{
-      sfxClick();
-      if(sel1.has(i)){sel1.delete(i);c.classList.remove('sel');}
-      else{sel1.add(i);c.classList.add('sel');}
-      document.getElementById('spec-count-lbl').textContent=`Selected: ${sel1.size} spec${sel1.size!==1?'s':''} ${sel1.size>6?'⚠️ Too many!':''}`;
-    });
-    pool.appendChild(c);
-  });
-}
-
-function submitStep1(){
-  if(sel1.size===0){showToast('Select at least one spec!');return;}
-  sfxClick();
-  let pts=0,details=[];
-  sel1.forEach(i=>{
-    const s=SPEC_OPTIONS[i];
-    pts+=s.pts;
-    details.push({text:s.text,type:s.type,pts:s.pts,why:s.why});
-  });
-  pts=Math.max(0,pts);
-  // bonus for selecting all 5 correct and nothing else
-  const correct=details.filter(d=>d.type==='correct').length;
-  const wrong=details.filter(d=>d.type!=='correct').length;
-  if(correct===5&&wrong===0){pts+=50;}
-  addPts(pts);
-  if(pts>0)sfxOk(); else sfxBad();
-  // colour chips
-  sel1.forEach(i=>{
-    const chip=document.querySelector(`#spec-pool .chip[data-i="${i}"]`);
-    if(chip){
-      const t=SPEC_OPTIONS[i].type;
-      chip.classList.remove('sel');
-      chip.classList.add(t==='correct'?'ok':t==='similar'?'warn':'bad');
-    }
-  });
-  document.querySelectorAll('#spec-pool .chip:not(.ok):not(.warn):not(.bad)').forEach(c=>{c.style.opacity='.3';});
-  const okCount=details.filter(d=>d.type==='correct').length;
-  fbBox('fb-p1',okCount>=3,
-    `${okCount}/5 correct specs · ${details.filter(d=>d.type==='similar').length} near-duplicates · ${details.filter(d=>d.type==='wrong').length} wrong · <strong>+${pts} pts</strong><br>
-    <span style="font-size:.72rem;opacity:.8;">${correct===5&&wrong===0?'🎯 Perfect selection! All 5 correct, nothing extra.':
-    'Tip: each spec = 1 metric + 1 target value. Near-duplicates and irrelevant specs weaken your spec sheet.'}</span>`
-  );
-  const mySpecs=details.filter(d=>d.type==='correct').map(d=>d.text);
-  setTimeout(()=>doneStep(1,{specs:mySpecs}),2600);
-}
-
-// ── STEP 2: Match need → metric ──
-const NEED_METRIC=[
-  {need:'Completely eliminates background noise',
-   options:['ANC attenuation at 1kHz (dB)','Speaker impedance (ohms)','Ear pad foam density (kg/m³)','Headband spring force (N)'],correct:0},
-  {need:'Lasts through an 8-hour operation',
-   options:['Charge cable length (m)','Battery playback time (hours)','Headphone weight (grams)','Bluetooth version number'],correct:1},
-  {need:'Does not slow the agent down',
-   options:['Color finish options','Total mass (grams)','Cable type (USB-C / Lightning)','Driver size (mm)'],correct:1},
-  {need:'Crystal-clear audio for instructions',
-   options:['Total harmonic distortion + noise (%)','Box packaging material','Logo embossing depth','Warranty period (months)'],correct:0},
-  {need:'Pairs instantly with any device',
-   options:['Headband material','App compatibility list','Bluetooth pairing time (seconds)','Hinge material'],correct:2},
-];
-function initP2(){
-  document.getElementById('fb-p2').style.display='none';
-  document.getElementById('match-rows').innerHTML=NEED_METRIC.map((m,i)=>`
-    <div class="card w" style="margin-bottom:10px;">
-      <div style="font-size:.65rem;font-family:var(--mono);color:var(--mut);margin-bottom:4px;">CUSTOMER NEED:</div>
-      <div style="font-weight:700;font-size:.86rem;margin-bottom:10px;">🕵️ "${m.need}"</div>
-      <div style="font-size:.65rem;font-family:var(--mono);color:var(--cyan);margin-bottom:6px;">BEST METRIC →</div>
-      <select id="nm-${i}" class="gsel" onchange="sfxClick()">
-        <option value="">— choose the correct metric —</option>
-        ${[...m.options].sort(()=>Math.random()-.5).map(o=>`<option value="${o}">${o}</option>`).join('')}
-      </select>
+  document.getElementById('hdash-lb').innerHTML=sorted.map(([n,d],i)=>`
+    <div class="lb-row" style="animation-delay:${i*.1}s;">
+      <div style="font-size:1.2rem;width:28px;">${medals[i]||i+1}</div>
+      <div style="flex:1;font-weight:700;">${n}</div>
+      <div style="font-family:var(--mono);color:var(--gold);">${((d.score||0)+(d.quizPts||0)).toLocaleString()} pts</div>
+    </div>`).join('');
+  document.getElementById('hdash-cards').innerHTML=sorted.map(([n,d])=>`
+    <div class="agent-card">
+      <div class="aname">🕵️ ${n} · ${((d.score||0)+(d.quizPts||0))} pts</div>
+      <div style="font-size:.72rem;color:var(--mut);margin-bottom:8px;">
+        Retail: €${d.position?.price||'—'} · Material: ${d.model?.mat?'Carbon Fiber':'Plastic'} · Driver: ${d.model?.drv||40}mm
+      </div>
+      ${[['ANC','cyan',d.model?.anc||30,50,'dB'],['Battery','gold',d.model?.bat||24,60,'h'],['Cost','',d.cost||112,250,'€',true]].map(([l,col,v,max,unit,inv])=>`
+        <div class="bar-row">
+          <div class="bar-lbl">${l} ${unit==='€'?unit:''}${unit!=='€'?v:''}${unit!=='€'?unit:v}</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,(v/max)*100)}%;background:${col?'var(--'+col+')':v>150?'var(--red)':'var(--grn)'};"></div></div>
+        </div>`).join('')}
     </div>`).join('');
 }
-function submitStep2(){
+
+// ═══════════════════════════════════
+// MOBILE FLOW
+// ═══════════════════════════════════
+let mNick='',mRoom='',mStep=0;
+let mPosition={anc:30,price:250};
+let mModel={anc:30,bat:24,mat:0,drv:40};
+let mCost=112;
+
+async function mobileJoin(){
   sfxClick();
-  let correct=0;
-  NEED_METRIC.forEach((m,i)=>{
-    const sel=document.getElementById('nm-'+i);
-    const ok=sel.value===m.options[m.correct];
-    if(ok)correct++;
-    sel.style.borderColor=ok?'var(--grn)':'var(--red)';
-    sel.style.color=ok?'var(--grn)':'var(--red)';
+  mNick=(document.getElementById('m-nick').value.trim()||'AGENT'+Math.floor(Math.random()*99)).substring(0,16);
+  mRoom=(document.getElementById('m-code').value||'').trim().toUpperCase();
+  if(!mRoom){toast('Enter a room code!');return;}
+
+  toast('Connecting…');
+  const ok=await connectAbly(mRoom);
+  if(!ok){
+    toast('Retrying…');
+    await new Promise(r=>setTimeout(r,2000));
+    const ok2=await connectAbly(mRoom);
+    if(!ok2){toast('❌ Cannot connect. Check WiFi and retry.');return;}
+  }
+
+  pub('join',{nick:mNick});
+  setMobHUD('CONNECTED',0);
+
+  sub('game-start',()=>{setMobWait('CONNECTED','Mission starting…','The host is briefing the class');});
+  sub('launch',d=>{
+    mStep=d.step;
+    setMood(d.step);
+    setMobHUD('STEP '+d.step,Math.round(d.step/8*100));
+    if(d.dur>0) startTimer(d.dur);
+    launchMobStep(d.step);
   });
-  const pts=correct*44;
-  addPts(pts);
-  if(correct>=4)sfxOk(); else sfxBad();
-  fbBox('fb-p2',correct>=4,
-    `${correct}/${NEED_METRIC.length} correct · +${pts} pts<br>
-    <span style="font-size:.72rem;opacity:.8;">Metrics must be objective, testable, and reflect the customer need directly. They should measure WHAT, not HOW.</span>`
-  );
+
+  go('s-mwait');
+  setMobWait('CONNECTED','Waiting for host…','Stand by — mission brief incoming');
+  toast('✅ Joined! Codename: '+mNick);
+  startMusic(0);
+}
+function setMobWait(step,title,sub){
+  document.getElementById('mw-step').textContent=step;
+  document.getElementById('mw-title').textContent=title;
+  document.getElementById('mw-sub').textContent=sub;
+}
+function launchMobStep(s){
+  if(s===1){initS1();go('s-m1');}
+  else if(s===2){initS2();go('s-m2');}
+  else if(s===3){initS3();go('s-m3');}
+  else if(s===5){initS5();go('s-m5');}
+  else if(s===6){initS6();go('s-m6');}
+  else if(s===7){initS7();go('s-m7');}
+  else if(s===8){initS8();go('s-m8');}
+  else{go('s-mwait');setMobWait('STEP '+s,'Coming soon…','Wait for next step');}
+}
+function doneStep(step,data){
+  pub('step-result',{nick:mNick,step,score:myScore,data});
+  stopTimer();
+  go('s-mwait');
+  setMobWait('STEP '+step+' DONE ✓','Nice work!','Waiting for host to launch next step');
+}
+
+// ── STEP 1 ──
+const S1_OPTS=[
+  {t:'ANC attenuation ≥ 35 dB',v:'ok',pts:20,w:'Client needs full noise blocking — 35 dB is the right threshold for hostile environments.'},
+  {t:'Battery playback ≥ 8 hours',v:'ok',pts:20,w:'Client said "8-hour operation" — this spec is exact and testable.'},
+  {t:'Total mass < 280 g',v:'ok',pts:20,w:'Client said "weight is critical" — sub-280g is field-grade lightweight.'},
+  {t:'Bluetooth pairing time < 1 s',v:'ok',pts:20,w:'Client said "pair instantly" — pairing time is the correct metric.'},
+  {t:'THD+N < 0.5 % at 1 kHz',v:'ok',pts:20,w:'Client said "crystal clear audio" — Total Harmonic Distortion is the right metric.'},
+  // similar/redundant
+  {t:'ANC attenuation ≥ 30 dB',v:'warn',pts:-10,w:'Near-duplicate of the 35 dB spec. Selecting both creates redundancy in your spec sheet.'},
+  {t:'ANC attenuation ≥ 40 dB',v:'warn',pts:-10,w:'Another near-duplicate of the ANC spec — pick one target value.'},
+  {t:'Battery playback ≥ 10 hours',v:'warn',pts:-10,w:'Duplicate battery spec with a different value. Contradicts the ≥ 8h spec.'},
+  {t:'Bluetooth pairing time < 3 s',v:'warn',pts:-10,w:'Same metric as the 1s spec — having both is redundant and confusing.'},
+  // wrong
+  {t:'Headband available in matte black',v:'bad',pts:-15,w:'Cosmetic preference — not a measurable engineering metric.'},
+  {t:'Price lower than competitor average',v:'bad',pts:-15,w:'Cost target belongs in target costing, not the spec sheet.'},
+  {t:'Compatible with iOS apps only',v:'bad',pts:-15,w:'Contradicts "any device" — this would exclude the client\'s devices.'},
+  {t:'Logo embossed on ear cup',v:'bad',pts:-15,w:'Irrelevant — no customer need maps to this metric.'},
+];
+let s1sel=new Set();
+function initS1(){s1sel=new Set();document.getElementById('s1-fb').style.display='none';document.getElementById('s1-count').textContent='Selected: 0';const p=document.getElementById('s1-pool');p.innerHTML='';[...S1_OPTS].sort(()=>Math.random()-.5).forEach((o,i)=>{const c=document.createElement('span');c.className='chip';c.textContent=o.t;c.dataset.i=i;c.addEventListener('click',()=>{sfxClick();if(s1sel.has(i)){s1sel.delete(i);c.classList.remove('sel');}else{s1sel.add(i);c.classList.add('sel');}document.getElementById('s1-count').textContent='Selected: '+s1sel.size+(s1sel.size>6?' ⚠️ Too many!':'');});p.appendChild(c);});}
+function submitS1(){
+  if(!s1sel.size){toast('Select at least one spec!');return;}
+  sfxClick();
+  let pts=0,ok=0,warn=0,bad=0;
+  s1sel.forEach(i=>{const o=S1_OPTS[i];pts+=o.pts;if(o.v==='ok')ok++;else if(o.v==='warn')warn++;else bad++;});
+  if(ok===5&&warn===0&&bad===0)pts+=50;
+  pts=Math.max(0,pts);addPts(pts);
+  s1sel.forEach(i=>{const c=document.querySelector(`#s1-pool .chip[data-i="${i}"]`);if(c){c.classList.remove('sel');c.classList.add(S1_OPTS[i].v);}});
+  document.querySelectorAll('#s1-pool .chip:not(.ok):not(.warn):not(.bad)').forEach(c=>c.style.opacity='.3');
+  if(pts>0)sfxOk();else sfxBad();
+  showFb('s1-fb',ok>=3,`${ok}/5 correct · ${warn} near-duplicates · ${bad} wrong · +${pts} pts<br><small>Tip: each spec = 1 metric + 1 target value. Near-duplicates weaken the spec sheet.</small>`);
+  setTimeout(()=>doneStep(1,{specs:Array.from(s1sel).filter(i=>S1_OPTS[i].v==='ok').map(i=>S1_OPTS[i].t)}),2600);
+}
+
+// ── STEP 2 ──
+const S2=[
+  {need:'"Completely eliminates background noise"',opts:['ANC attenuation at 1 kHz (dB)','Speaker impedance (ohms)','Ear pad foam density','Headband spring force (N)'],c:0},
+  {need:'"Lasts through an 8-hour mission"',opts:['Charge cable length (m)','Battery playback time (hours)','Headphone weight (g)','Bluetooth version'],c:1},
+  {need:'"Does not slow the agent down"',opts:['Colour finish options','Total mass (grams)','Cable type','Driver diameter (mm)'],c:1},
+  {need:'"Crystal-clear audio for instructions"',opts:['Total harmonic distortion + noise (%)','Box material','Logo emboss depth','Warranty period (months)'],c:0},
+  {need:'"Pairs instantly with any device"',opts:['Headband material','App list','Bluetooth pairing time (seconds)','Hinge material'],c:2},
+];
+function initS2(){document.getElementById('s2-fb').style.display='none';document.getElementById('s2-rows').innerHTML=S2.map((m,i)=>`<div class="mc" style="margin-bottom:10px;"><div style="font-size:.68rem;font-family:var(--mono);color:var(--mut);margin-bottom:4px;">CLIENT NEED:</div><div style="font-weight:700;font-size:.88rem;margin-bottom:10px;">${m.need}</div><div style="font-size:.68rem;font-family:var(--mono);color:var(--cyan);margin-bottom:6px;">BEST METRIC →</div><select id="s2-${i}" class="gsel" onchange="sfxClick()"><option value="">— choose —</option>${[...m.opts].sort(()=>Math.random()-.5).map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div>`).join('');}
+function submitS2(){
+  sfxClick();let ok=0;
+  S2.forEach((m,i)=>{const s=document.getElementById('s2-'+i);const good=s.value===m.opts[m.c];if(good)ok++;s.style.borderColor=good?'var(--grn)':'var(--red)';s.style.color=good?'var(--grn)':'var(--red)';});
+  const pts=ok*44;addPts(pts);if(ok>=4)sfxOk();else sfxBad();
+  showFb('s2-fb',ok>=4,`${ok}/${S2.length} correct · +${pts} pts<br><small>Metrics must measure WHAT the product does, not HOW it achieves it.</small>`);
   setTimeout(()=>doneStep(2,{}),2400);
 }
 
-// ── STEP 3+4: Competitive positioning ──
+// ── STEP 3 ──
 const COMPS=[
-  {name:'BrandB',color:'#ff5252',anc:16,price:89,label:'Budget'},
-  {name:'BrandX',color:'#ff9100',anc:28,price:149,label:'Mid-range'},
-  {name:'BrandZ',color:'#ffc400',anc:35,price:229,label:'Upper-mid'},
-  {name:'BrandS',color:'#b366ff',anc:44,price:380,label:'Premium'},
+  {name:'BrandB',col:'#ff5252',anc:16,price:89,lbl:'Budget'},
+  {name:'BrandX',col:'#ff9100',anc:28,price:149,lbl:'Mid'},
+  {name:'BrandZ',col:'#ffc400',anc:35,price:229,lbl:'Upper-mid'},
+  {name:'BrandS',col:'#b366ff',anc:44,price:380,lbl:'Premium'},
 ];
-let p34Anc=30,p34Price=250;
-
-function initP34(){
+function initS3(){updS3();}
+function updS3(){
+  mPosition.anc=+document.getElementById('s3-anc').value;
+  mPosition.price=+document.getElementById('s3-price').value;
+  document.getElementById('s3-anc-v').textContent=mPosition.anc+' dB';
+  document.getElementById('s3-price-v').textContent='€'+mPosition.price;
   drawScatter();
-  upd34();
-}
-function upd34(){
-  p34Anc=+document.getElementById('p34-anc').value;
-  p34Price=+document.getElementById('p34-price').value;
-  document.getElementById('p34-anc-v').textContent=p34Anc+' dB';
-  document.getElementById('p34-price-v').textContent='€'+p34Price;
-  drawScatter();
-  // verdict
-  const verd=document.getElementById('p34-verdict');
-  const curveCost=(p34Price*0.55*0.6);
-  const neededAnc=Math.round(p34Anc);
-  let msg='',bg='',bc='';
-  if(p34Anc>=35&&p34Price>=200){
-    msg='✅ Strong position: meets client ANC requirement (≥35dB) and budget allows quality build.';bg='rgba(0,230,118,.06)';bc='rgba(0,230,118,.3)';
-  } else if(p34Anc<30){
-    msg='⚠️ ANC target below market minimum — unlikely to satisfy client who needs ≥35dB.';bg='rgba(255,23,68,.06)';bc='rgba(255,23,68,.3)';
-  } else if(p34Price<150){
-    msg='⚠️ Very low price → very tight C* → hard to hit quality targets. Budget brands sit here.';bg='rgba(255,196,0,.06)';bc='rgba(255,196,0,.3)';
-  } else {
-    msg='🔄 Competitive. Check C* in Step 6 — can your cost model fit?';bg='rgba(0,229,255,.05)';bc='rgba(0,229,255,.2)';
-  }
-  verd.style.background=bg;verd.style.border=`1px solid ${bc}`;verd.textContent=msg;
+  const tc=Math.round(mPosition.price*0.55*0.6);
+  const v=document.getElementById('s3-verdict');
+  if(mPosition.anc>=35&&mPosition.price>=200){v.style.cssText='background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.25);color:#5eea9a;';v.textContent='✅ Meets client requirement (≥35 dB). C* = €'+tc+' — enough room to build quality.';}
+  else if(mPosition.anc<30){v.style.cssText='background:rgba(255,61,90,.06);border:1px solid rgba(255,61,90,.25);color:#ff7a8a;';v.textContent='⚠️ ANC below 30 dB — won\'t satisfy the client\'s brief.';}
+  else if(mPosition.price<150){v.style.cssText='background:rgba(255,196,0,.06);border:1px solid rgba(255,196,0,.25);color:#e8c060;';v.textContent='⚠️ Very low price → C* = €'+tc+' — very tight budget. Hard to build good specs.';}
+  else{v.style.cssText='background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.18);color:#7ab8d4;';v.textContent='🔄 Competitive position. C* = €'+tc+'. Check if your cost model fits in Step 6.';}
 }
 function drawScatter(){
   const canvas=document.getElementById('scatter');
-  const W=Math.min(380,window.innerWidth-32);canvas.width=W;canvas.height=Math.round(W*.6);
+  const W=Math.min(340,window.innerWidth-32);canvas.width=W;canvas.height=Math.round(W*.62);
   const ctx=canvas.getContext('2d');
-  const pad={l:40,r:14,t:14,b:34};
+  const pad={l:38,r:12,t:12,b:30};
   const pw=W-pad.l-pad.r,ph=canvas.height-pad.t-pad.b;
-  ctx.fillStyle='#07101a';ctx.fillRect(0,0,W,canvas.height);
-  ctx.strokeStyle='rgba(24,36,56,.9)';ctx.lineWidth=1;
-  for(let i=0;i<=5;i++){
-    const y=pad.t+i*(ph/5);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pw,y);ctx.stroke();
-    const x=pad.l+i*(pw/5);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();
-  }
-  // axes
-  ctx.fillStyle='#2a4060';ctx.font='9px Share Tech Mono,monospace';ctx.textAlign='center';
-  ctx.fillText('ANC (dB)',pad.l+pw/2,canvas.height-4);
-  ctx.save();ctx.translate(11,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Price (€)',0,0);ctx.restore();
-  [10,20,30,40,50].forEach(v=>{ctx.fillText(v,pad.l+(v-10)/40*pw,pad.t+ph+12);});
-  ctx.textAlign='right';[50,150,250,350,450].forEach(v=>{const y=pad.t+ph-(v-50)/450*ph;ctx.fillText('€'+v,pad.l-4,y+3);});
-  // trade-off curve
-  ctx.strokeStyle='rgba(0,229,255,.18)';ctx.lineWidth=1.8;ctx.setLineDash([5,5]);
-  ctx.beginPath();
-  for(let a=10;a<=50;a++){const p=50+a*8;const x=pad.l+(a-10)/40*pw,y=pad.t+ph-(Math.min(p,500)-50)/450*ph;a===10?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.fillStyle='#07111e';ctx.fillRect(0,0,W,canvas.height);
+  ctx.strokeStyle='rgba(26,46,72,.8)';ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){const y=pad.t+i*(ph/5);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pw,y);ctx.stroke();const x=pad.l+i*(pw/5);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();}
+  ctx.fillStyle='#2e4a62';ctx.font='9px Share Tech Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('ANC (dB)',pad.l+pw/2,canvas.height-3);
+  ctx.save();ctx.translate(10,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Price (€)',0,0);ctx.restore();
+  ctx.strokeStyle='rgba(0,229,255,.18)';ctx.lineWidth=1.6;ctx.setLineDash([5,5]);
+  ctx.beginPath();for(let a=10;a<=50;a++){const p=50+a*8;const x=pad.l+(a-10)/40*pw,y=pad.t+ph-(Math.min(p,500)-50)/450*ph;a===10?ctx.moveTo(x,y):ctx.lineTo(x,y);}
   ctx.stroke();ctx.setLineDash([]);
-  // competitors
-  COMPS.forEach(c=>{
-    const x=pad.l+(c.anc-10)/40*pw,y=pad.t+ph-(c.price-50)/450*ph;
-    ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.fillStyle=c.color+'28';ctx.fill();
-    ctx.strokeStyle=c.color;ctx.lineWidth=2;ctx.stroke();
-    ctx.fillStyle=c.color;ctx.font='8px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText(c.name,x,y-11);
-  });
-  // user dot
-  const ux=pad.l+(p34Anc-10)/40*pw,uy=pad.t+ph-(p34Price-50)/450*ph;
-  ctx.beginPath();ctx.arc(ux,uy,10,0,Math.PI*2);ctx.fillStyle='rgba(0,229,255,.15)';ctx.fill();
-  ctx.strokeStyle='#00e5ff';ctx.lineWidth=2.5;ctx.stroke();
-  ctx.fillStyle='#00e5ff';ctx.font='bold 9px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText('YOU',ux,uy-14);
+  COMPS.forEach(c=>{const x=pad.l+(c.anc-10)/40*pw,y=pad.t+ph-(c.price-50)/450*ph;ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.fillStyle=c.col+'28';ctx.fill();ctx.strokeStyle=c.col;ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=c.col;ctx.font='8px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText(c.name,x,y-11);});
+  const ux=pad.l+(mPosition.anc-10)/40*pw,uy=pad.t+ph-(mPosition.price-50)/450*ph;
+  ctx.beginPath();ctx.arc(ux,uy,10,0,Math.PI*2);ctx.fillStyle='rgba(0,229,255,.15)';ctx.fill();ctx.strokeStyle='#00e5ff';ctx.lineWidth=2.5;ctx.stroke();
+  ctx.fillStyle='#00e5ff';ctx.font='bold 8px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText('YOU',ux,uy-13);
+  [10,20,30,40,50].forEach(v=>{ctx.fillStyle='#2e4a62';ctx.font='8px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText(v,pad.l+(v-10)/40*pw,pad.t+ph+12);});
+  ctx.textAlign='right';[50,150,250,350,450].forEach(v=>{const y=pad.t+ph-(v-50)/450*ph;ctx.fillStyle='#2e4a62';ctx.font='8px Share Tech Mono,monospace';ctx.fillText('€'+v,pad.l-4,y+3);});
 }
-function submitStep34(){
-  sfxOk();addPts(120);ptcl('🗺️',50,50);
-  doneStep(3,{position:{anc:p34Anc,price:p34Price}});
-}
+function submitS3(){sfxOk();addPts(120);doneStep(3,{position:{...mPosition}});}
 
-// ── STEP 5: Cost model ──
-let model={anc:30,bat:24,mat:0,drv:40};
-function calcCost(m){
-  return Math.round(55+(m.anc-10)*1.8+(m.bat-8)*0.9+(m.mat?58:0)+(m.drv-30)*0.8);
-}
+// ── STEP 5 ──
+function calcCost(m){return Math.round(55+(m.anc-10)*1.8+(m.bat-8)*0.9+(m.mat?58:0)+(m.drv-30)*0.8);}
 function calcWeight(m){return Math.round(310+(m.bat-8)*2.1+(m.mat?-78:0)+(m.drv-30)*0.5);}
 function calcAudio(m){return Math.min(10,((m.anc/50)*4+(m.drv/60)*6)).toFixed(1);}
+function initS5(){
+  document.getElementById('s5-anc').value=mPosition.anc||30;
+  updS5();
+}
+function updS5(){
+  mModel.anc=+document.getElementById('s5-anc').value;
+  mModel.bat=+document.getElementById('s5-bat').value;
+  mModel.mat=+document.getElementById('s5-mat').value;
+  mModel.drv=+document.getElementById('s5-drv').value;
+  document.getElementById('s5-anc-v').textContent=mModel.anc+' dB';
+  document.getElementById('s5-bat-v').textContent=mModel.bat+' h';
+  document.getElementById('s5-mat-v').textContent=mModel.mat?'Carbon Fiber':'Plastic';
+  document.getElementById('s5-drv-v').textContent=mModel.drv+' mm';
+  mCost=calcCost(mModel);
+  const w=calcWeight(mModel),audio=calcAudio(mModel);
+  document.getElementById('s5-weight').textContent=w+'g';
+  const cel=document.getElementById('s5-cost');cel.textContent='€'+mCost;cel.style.color=mCost>160?'var(--red)':mCost>110?'var(--gold)':'var(--grn)';
+  document.getElementById('s5-audio').textContent=audio+'/10';
+  const tc=Math.round(mPosition.price*0.55*0.6);
+  const ins=document.getElementById('s5-insight');
+  if(mCost>tc*1.15)ins.textContent=`⚠️ Cost €${mCost} is well above your C* (€${tc}). You'll need trade-offs in Step 7.`;
+  else if(mCost>tc)ins.textContent=`⚡ Cost €${mCost} slightly above C* €${tc}. Close — a small trade-off may be enough.`;
+  else ins.textContent=`✅ Cost €${mCost} fits within C* €${tc}. On track for profitability.`;
+}
+function submitS5(){sfxOk();mCost=calcCost(mModel);addPts(130);doneStep(5,{model:{...mModel},cost:mCost});}
 
-function initP5(){
-  document.getElementById('r5-anc').value=p34Anc||30;
-  upd5();
+// ── STEP 6 ──
+function initS6(){
+  const P=mPosition.price||250;const Mr=0.45,Mm=0.40;
+  const rc=P*Mr,mp=P*(1-Mr),mc=mp*Mm,tc=P*(1-Mr)*(1-Mm);
+  const gap=mCost-tc;
+  document.getElementById('s6-chain').innerHTML=`
+    <div class="crow"><div><div>🏷️ Retail price (P) — from Step 3</div></div><span class="camt">€${P}</span></div>
+    <div class="crow"><div><div>🏪 Retailer margin (M<sub>r</sub> = 45%)</div><div style="font-size:.68rem;color:var(--mut);margin-top:2px;">Consumer electronics: 30–50% (Exhibit 6-13)</div></div><span class="camt" style="color:var(--red);">−€${Math.round(rc)}</span></div>
+    <div class="crow"><span>Price to manufacturer</span><span class="camt">€${Math.round(mp)}</span></div>
+    <div class="crow"><div><div>🏭 Manufacturer margin (M<sub>m</sub> = 40%)</div><div style="font-size:.68rem;color:var(--mut);margin-top:2px;">Consumer electronics mfg: 35–50% (Exhibit 6-13)</div></div><span class="camt" style="color:var(--red);">−€${Math.round(mc)}</span></div>
+    <div class="crow ${gap>0?'cr':'cg'}"><div style="font-weight:700;">✅ Allowable Cost C* = P × 0.55 × 0.60</div><span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${Math.round(tc)}</span></div>
+    <div class="crow ${gap>0?'cr':'cg'}"><span>Your mfg. cost (from Step 5)</span><span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${mCost}</span></div>`;
+  const v=document.getElementById('s6-verdict');v.style.display='block';
+  if(gap>0){v.style.cssText='padding:14px;border-radius:12px;text-align:center;margin-bottom:14px;font-size:.84rem;line-height:1.55;width:100%;background:rgba(255,61,90,.07);border:2px solid var(--red);color:#ff7a8a;';v.innerHTML=`⚠️ <strong>UNPROFITABLE</strong><br>Cost €${mCost} exceeds C* €${Math.round(tc)} by €${Math.round(gap)}<br><small>You must make trade-offs in Step 7 to close the gap.</small>`;}
+  else{v.style.cssText='padding:14px;border-radius:12px;text-align:center;margin-bottom:14px;font-size:.84rem;line-height:1.55;width:100%;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.3);color:var(--grn);';v.innerHTML=`✅ <strong>PROFITABLE</strong><br>Cost €${mCost} ≤ C* €${Math.round(tc)}<br><small>Margin of safety: €${Math.round(-gap)}. You still choose trade-offs in Step 7.</small>`;}
 }
-function upd5(){
-  model.anc=+document.getElementById('r5-anc').value;
-  model.bat=+document.getElementById('r5-bat').value;
-  model.mat=+document.getElementById('r5-mat').value;
-  model.drv=+document.getElementById('r5-drv').value;
-  document.getElementById('v5-anc').textContent=model.anc+' dB';
-  document.getElementById('v5-bat').textContent=model.bat+' h';
-  document.getElementById('v5-mat').textContent=model.mat?'Carbon Fiber':'Plastic';
-  document.getElementById('v5-drv').textContent=model.drv+' mm';
-  const cost=calcCost(model),weight=calcWeight(model),audio=calcAudio(model);
-  document.getElementById('v5-weight').textContent=weight+'g';
-  const cel=document.getElementById('v5-cost');
-  cel.textContent='€'+cost;
-  cel.style.color=cost>160?'var(--red)':cost>110?'var(--gold)':'var(--grn)';
-  document.getElementById('v5-audio').textContent=audio+'/10';
-  const ins=document.getElementById('v5-insight');
-  const targetCost=p34Price*0.55*0.6;
-  if(cost>targetCost*1.15) ins.textContent=`⚠️ Cost €${cost} is well above your C* (€${Math.round(targetCost)}) — you'll need trade-offs in Step 7.`;
-  else if(cost>targetCost) ins.textContent=`⚡ Cost €${cost} slightly above C* €${Math.round(targetCost)} — close! Small trade-off may be enough.`;
-  else ins.textContent=`✅ Cost €${cost} fits within C* €${Math.round(targetCost)} — you're on track for profitability.`;
-}
-function submitStep5(){
-  sfxOk();const cost=calcCost(model);addPts(130);ptcl('🏭',50,50);
-  doneStep(5,{model:{...model},cost});
-}
-
-// ── STEP 6: Target costing ──
-function initP6(){
-  const P=p34Price||250;
-  const Mr=0.45,Mm=0.40;
-  const rc=P*Mr,mp=P*(1-Mr),mc=mp*Mm,target=P*(1-Mr)*(1-Mm);
-  const cost=calcCost(model);const gap=cost-target;
-  document.getElementById('p6-chain').innerHTML=`
-    <div class="crow">
-      <div><div>🏷️ Your target retail price (P)</div><div style="font-size:.68rem;color:var(--mut);margin-top:2px;">Set in Step 3</div></div>
-      <span class="camt">€${P}</span>
-    </div>
-    <div class="crow">
-      <div><div>🏪 Retailer margin (M<sub>r</sub> = 45%)</div><div style="font-size:.68rem;color:var(--mut);margin-top:2px;">Consumer electronics retailers: 30–50% (Exhibit 6-13)</div></div>
-      <span class="camt" style="color:var(--red);">−€${Math.round(rc)}</span>
-    </div>
-    <div class="crow">
-      <span>Price received by manufacturer</span>
-      <span class="camt">€${Math.round(mp)}</span>
-    </div>
-    <div class="crow">
-      <div><div>🏭 Manufacturer margin (M<sub>m</sub> = 40%)</div><div style="font-size:.68rem;color:var(--mut);margin-top:2px;">Consumer electronics mfg: 35–50% (Exhibit 6-13)</div></div>
-      <span class="camt" style="color:var(--red);">−€${Math.round(mc)}</span>
-    </div>
-    <div class="crow ${gap>0?'cr':'cg'}">
-      <div><div style="font-weight:700;">✅ Allowable Cost C* = P×0.55×0.60</div><div style="font-size:.68rem;color:var(--mut);margin-top:2px;">Maximum you can spend manufacturing</div></div>
-      <span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${Math.round(target)}</span>
-    </div>
-    <div class="crow ${gap>0?'cr':'cg'}">
-      <span>Your estimated mfg. cost (from Step 5)</span>
-      <span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${cost}</span>
-    </div>`;
-  const verd=document.getElementById('p6-verdict');
-  verd.style.display='block';
-  if(gap>0){
-    verd.style.background='rgba(255,23,68,.07)';verd.style.border='2px solid var(--red)';verd.style.color='#ff6688';
-    verd.innerHTML=`⚠️ <strong>UNPROFITABLE</strong> — Cost €${cost} exceeds C* €${Math.round(target)} by €${Math.round(gap)}<br>
-      <span style="font-size:.75rem;">You must make trade-offs in Step 7 to reduce cost or raise price.</span>`;
-  } else {
-    verd.style.background='rgba(0,230,118,.06)';verd.style.border='1px solid rgba(0,230,118,.3)';verd.style.color='var(--grn)';
-    verd.innerHTML=`✅ <strong>PROFITABLE</strong> — Cost €${cost} ≤ C* €${Math.round(target)}<br>
-      <span style="font-size:.75rem;">Margin of safety: €${Math.round(-gap)}. You still need to decide trade-offs in Step 7.</span>`;
-  }
-}
-function submitStep6(){
-  const P=p34Price||250;const target=P*0.55*0.6;const cost=calcCost(model);
-  const gap=cost-target;
+function submitS6(){
+  const P=mPosition.price||250;const tc=P*0.55*0.6;const gap=mCost-tc;
   const pts=gap<=0?200:100;addPts(pts);if(gap<=0)sfxOk();else sfxBad();
-  doneStep(6,{targetCost:Math.round(target),cost,gap:Math.round(gap)});
+  doneStep(6,{targetCost:Math.round(tc),cost:mCost});
 }
 
-// ── STEP 7: Trade-offs ──
-const TRADE_OPTIONS=[
-  {a:'Reduce ANC to 25dB (saves ~€9)',b:'Keep ANC at target',effect_a:{anc:-5},effect_b:{}},
-  {a:'Cut battery to 16h (saves ~€7, −16g)',b:'Keep battery at target',effect_a:{bat:-8},effect_b:{}},
-  {a:'Switch to Plastic housing (saves €58, +80g)',b:'Keep Carbon Fiber',effect_a:{mat:-1},effect_b:{},onlyIfCarbon:true},
-  {a:'Raise retail price by €50',b:'Hold current retail price',effect_a:{price:+50},effect_b:{}},
+// ── STEP 7 ──
+const TRADES=[
+  {a:'Reduce ANC to 25 dB (saves ~€9)',b:'Keep ANC at target level',ea:'−5dB ANC',eb:'no change'},
+  {a:'Cut battery to 16 h (saves ~€7, −16g)',b:'Keep battery at target',ea:'−8h battery',eb:'no change'},
+  {a:'Raise retail price by €50',b:'Hold current retail price',ea:'+€50 retail',eb:'tighter C*'},
 ];
-let tradeChoices=[];
-function initP7(){
-  const P=p34Price||250;const target=P*0.55*0.6;const cost=calcCost(model);const gap=cost-target;
-  tradeChoices=Array(TRADE_OPTIONS.length).fill(null);
-  document.getElementById('fb-p7').style.display='none';
-  const intro=document.getElementById('p7-intro');
-  if(gap>0){
-    intro.innerHTML=`You are <strong style="color:var(--red);">€${Math.round(gap)} over budget</strong>. You need to close this gap by making trade-offs below.
-    Choose wisely — every cut has an impact on the product.`;
-  } else {
-    intro.innerHTML=`You are profitable! But you still need to make strategic choices — these define your <strong>final specification sheet</strong>.
-    Every product manager must decide what to prioritize.`;
-  }
-  const el=document.getElementById('p7-trades');
-  const relevant=TRADE_OPTIONS.filter(t=>!t.onlyIfCarbon||(model.mat===1));
-  el.innerHTML=relevant.map((t,i)=>`
+let t7ch=[];
+function initS7(){
+  t7ch=Array(TRADES.length).fill(null);
+  document.getElementById('s7-fb').style.display='none';
+  const P=mPosition.price||250;const tc=Math.round(P*0.55*0.6);const gap=mCost-tc;
+  document.getElementById('s7-intro').innerHTML=gap>0
+    ?`You are <strong style="color:var(--red)">€${Math.round(gap)} over budget</strong>. Make trade-off choices below to close the gap — or raise your price.`
+    :`You are profitable! You still need to make <strong>final trade-off decisions</strong> — these define your spec sheet.`;
+  document.getElementById('s7-trades').innerHTML=TRADES.map((t,i)=>`
     <div style="margin-bottom:12px;">
       <div style="font-size:.65rem;font-family:var(--mono);color:var(--mut);margin-bottom:6px;">CHOICE ${i+1}:</div>
       <div class="trow">
-        <div class="tcell" id="ta-${i}" onclick="pickTrade(${i},'a')">${t.a}</div>
+        <div class="tcell" id="t7a-${i}" onclick="pickT7(${i},'a')">${t.a}<br><span style="font-size:.65rem;color:var(--mut);">${t.ea}</span></div>
         <div class="tvs">VS</div>
-        <div class="tcell" id="tb-${i}" onclick="pickTrade(${i},'b')">${t.b}</div>
+        <div class="tcell" id="t7b-${i}" onclick="pickT7(${i},'b')">${t.b}<br><span style="font-size:.65rem;color:var(--mut);">${t.eb}</span></div>
       </div>
     </div>`).join('');
 }
-function pickTrade(i,side){
-  sfxClick();tradeChoices[i]=side;
-  document.getElementById('ta-'+i).classList.toggle('pick',side==='a');
-  document.getElementById('tb-'+i).classList.toggle('pick',side==='b');
+function pickT7(i,s){sfxClick();t7ch[i]=s;document.getElementById('t7a-'+i).classList.toggle('pick',s==='a');document.getElementById('t7b-'+i).classList.toggle('pick',s==='b');}
+function submitS7(){
+  if(t7ch.includes(null)){toast('Make all 3 choices first!');return;}
+  sfxOk();addPts(180);ptcl();
+  showFb('s7-fb',true,`Decisions locked! +180 pts<br><small>Final specs are set. Your spec sheet is now ready for production.</small>`);
+  setTimeout(()=>doneStep(7,{tradeoffs:t7ch}),2200);
 }
-function submitStep7(){
-  if(tradeChoices.includes(null)){showToast('Make all choices first!');return;}
-  sfxClick();addPts(180);sfxOk();ptcl('⚖️',50,50);
-  fbBox('fb-p7',true,`Decisions locked! +180 pts<br>
-    <span style="font-size:.72rem;opacity:.8;">Final specifications are now set. They reflect real constraints — this is the output your engineering team will build to.</span>`);
-  setTimeout(()=>doneStep(7,{tradeoffs:tradeChoices}),2200);
-}
+function ptcl(){const emojis=['✅','🎯','⚡'];emojis.forEach((e,i)=>{setTimeout(()=>{const p=document.createElement('div');p.className='cf';p.style.cssText=`left:${30+i*20}vw;top:30vh;font-size:1.5rem;background:transparent;`;p.textContent=e;document.body.appendChild(p);setTimeout(()=>p.remove(),1200);},i*150);});}
 
-// ── STEP 8: Quiz ──
+// ── STEP 8 ──
 const QUIZ=[
-  {q:'A specification = metric + value. A "metric" is…',
-   opts:['A subjective customer feeling','An objective, measurable quantity (e.g. dB, grams, seconds)','A competitor\'s price','A design choice'],correct:1,
-   why:'A metric is objective, measurable, and directly reflects satisfaction of a customer need. The value sets the target (e.g. ≥30 dB). (Ch.6, p.93)'},
-  {q:'When are FINAL specifications set? (Exhibit 6-3)',
-   opts:['At project kickoff, before anything else','Right after customer interviews','After a concept is selected and tested','When production begins'],correct:2,
-   why:'Specs are set twice: target specs early (aspirational), final specs only after concept selection — because tech constraints only become clear then. (Ch.6, p.94)'},
-  {q:'Target costing formula: C* = P × (1−Mr) × (1−Mm). What is P?',
-   opts:['Production cost of the product','Profit margin percentage','Market retail price paid by the end user','Prototype R&D cost'],correct:2,
-   why:'P = price paid by end user. Strip each channel margin to find C* — the maximum you can spend. This reverses cost-plus logic. (Appendix p.114)'},
+  {q:'A specification = metric + value. A "metric" is…',opts:['A subjective customer feeling','An objective, measurable quantity (e.g. dB, grams, seconds)','A competitor\'s price','A design choice'],c:1,why:'A metric is objective, measurable, and directly reflects satisfaction of a customer need. The value sets the target (e.g. ≥35 dB). (Ch.6, p.93)'},
+  {q:'When are FINAL specifications set? (Exhibit 6-3)',opts:['At project kickoff, before anything else','Right after customer interviews','After a concept is selected and tested','When production begins'],c:2,why:'Specs are set twice: target specs early (aspirational), final specs only after concept selection — tech constraints only become clear then. (Ch.6, p.94)'},
+  {q:'Target costing: C* = P × (1−Mr) × (1−Mm). What is P?',opts:['Production cost','Profit margin %','Retail price paid by the end user','Prototype R&D cost'],c:2,why:'P = retail price paid by end user. Strip each channel margin to find C* — the max you can spend making it. (Appendix p.114)'},
 ];
-let quizAnswered=false;
-function initP8(){
-  quizAnswered=false;
-  renderQuizQ();
+let qIdx=0,qAnswered=false;
+function initS8(){qIdx=0;qAnswered=false;renderQ();}
+function renderQ(){
+  qAnswered=false;
+  document.getElementById('s8-exp').style.display='none';
+  const q=QUIZ[qIdx];
+  document.getElementById('s8-num').textContent='QUESTION '+(qIdx+1)+'/3';
+  document.getElementById('s8-q').textContent=q.q;
+  document.getElementById('s8-opts').innerHTML=q.opts.map((o,i)=>`<button class="qopt" onclick="ansQ(${i})">${o}</button>`).join('');
 }
-function renderQuizQ(){
-  const q=QUIZ[pQuizQ];
-  document.getElementById('p8-num').textContent=`QUESTION ${pQuizQ+1}/3`;
-  document.getElementById('p8-q').textContent=q.q;
-  document.getElementById('p8-wait').style.display='none';
-  document.getElementById('p8-opts').innerHTML=q.opts.map((o,i)=>
-    `<button class="qopt" onclick="answerQuiz(${i})">${o}</button>`
-  ).join('');
-}
-function answerQuiz(idx){
-  if(quizAnswered)return;
-  quizAnswered=true;sfxClick();
-  const q=QUIZ[pQuizQ];const ok=idx===q.correct;
-  document.querySelectorAll('.qopt').forEach((b,i)=>{
-    b.disabled=true;
-    if(i===q.correct)b.classList.add('ok');
-    else if(i===idx&&!ok)b.classList.add('bad');
-  });
-  if(ok){sfxOk();addPts(100);ptcl('✅',50,60);}else{sfxBad();}
-  pub('quiz-ans',{nick:myNick,q:pQuizQ,ans:idx,correct:ok});
-  // show explanation
-  document.getElementById('p8-opts').insertAdjacentHTML('afterend',
-    `<div style="margin-top:10px;padding:10px 12px;border-radius:9px;font-size:.76rem;line-height:1.5;
-      background:${ok?'rgba(0,230,118,.07)':'rgba(255,23,68,.07)'};
-      border:1px solid ${ok?'rgba(0,230,118,.25)':'rgba(255,23,68,.25)'};
-      color:${ok?'#5eea9a':'#ff6688'};">${q.why}</div>`);
+function ansQ(idx){
+  if(qAnswered)return;qAnswered=true;sfxClick();
+  const q=QUIZ[qIdx];const ok=idx===q.c;
+  document.querySelectorAll('.qopt').forEach((b,i)=>{b.disabled=true;if(i===q.c)b.classList.add('ok');else if(i===idx&&!ok)b.classList.add('bad');});
+  if(ok){sfxOk();addPts(100);}else sfxBad();
+  pub('quiz-ans',{nick:mNick,q:qIdx,ans:idx,correct:ok});
+  const exp=document.getElementById('s8-exp');
+  exp.style.display='block';exp.className='fb '+(ok?'ok':'bad');exp.innerHTML=q.why;
   setTimeout(()=>{
-    pQuizQ++;
-    document.querySelectorAll('#s-p8 > div > div:not(.w,.slabel)').forEach(e=>{
-      if(e.style.marginTop)e.remove();
-    });
-    if(pQuizQ<QUIZ.length){quizAnswered=false;renderQuizQ();}
+    qIdx++;
+    if(qIdx<QUIZ.length){renderQ();}
     else{
       doneStep(8,{quizScore:myScore});
-      showFinalPlayer();
+      showMobFinal();
     }
   },2800);
 }
-
-function showFinalPlayer(){
-  go('s-lb');
-  confetti();sfxWin();
-  const sorted=[{nick:myNick,score:myScore}];
-  document.getElementById('lb-list').innerHTML=`
-    <div class="lbrow" style="background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.3);">
-      <div style="font-size:1.4rem;">🕵️</div>
-      <div style="flex:1;"><div style="font-weight:700;">${myNick}</div><div style="font-size:.72rem;color:var(--mut);">Mission complete</div></div>
-      <div style="font-family:var(--mono);color:var(--gold);">${myScore} pts</div>
-    </div>
-    <div style="font-size:.78rem;color:var(--mut);text-align:center;margin-top:16px;line-height:1.7;font-family:var(--mono);">
-      Awaiting final debrief from host…<br>
-      <span class="wdots"><span>.</span><span>.</span><span>.</span></span>
-    </div>`;
+function showMobFinal(){
+  sfxWin();confetti();
+  go('s-mfinal');
+  document.getElementById('mfinal-score').textContent=myScore;
+  document.getElementById('mfinal-title').textContent='Mission Complete, '+mNick+'!';
+  document.getElementById('mfinal-sub').textContent='Your spec sheet has been submitted. Awaiting the final debrief from the host.';
 }
 
-// ══════════════════════════════════
-// HOST STEP NAVIGATION UI
-// (host: clicking next step button)
-// ══════════════════════════════════
-// Wire step buttons 1–8 in host ctrl
-function advanceHost(step){
-  sfxClick();showHostStep(step);
-}
-
-// ══════════════════════════════════
-// AUTO-FILL FROM URL (QR scan)
-// ══════════════════════════════════
+// ═══════════════════════════════════
+// DOM READY
+// ═══════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
-  initBg();initFigs();
   const p=new URLSearchParams(location.search);
-  const room=p.get('room');const role=p.get('role');
-  if(room){
-    const ci=document.getElementById('code-in');const ni=document.getElementById('nick');
-    if(ci)ci.value=room.toUpperCase();
-    if(ni&&!ni.value)ni.value='AGENT'+Math.floor(Math.random()*99);
-    if(role==='player'){go('s-join');}
+  const room=p.get('room'),role=p.get('role');
+  if(room&&role==='player'){
+    document.getElementById('m-code').value=room.toUpperCase();
+    go('s-mjoin');
   }
-
-  // Host step nav: wire advance buttons in ctrl panel
-  // (added dynamically in renderHostCtrl — no static wiring needed)
 });
 </script>
 </body>
