@@ -491,22 +491,6 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
 </div>
 
 <!-- ══════════════ HOST LOBBY ══════════════ -->
-<!-- ══════════════ BREACH TERMINAL ══════════════ -->
-<div class="scr" id="s-breach">
-  <div style="width:100%;max-width:700px;margin:0 auto;padding:32px 22px;display:flex;flex-direction:column;min-height:100vh;justify-content:center;">
-    <div style="font-family:var(--mono);font-size:.56rem;color:rgba(255,61,90,.7);letter-spacing:.22em;margin-bottom:20px;">
-      ⚠ UNAUTHORIZED ACCESS DETECTED ON THIS TERMINAL ⚠
-    </div>
-    <div id="breach-lines" style="font-family:var(--mono);font-size:clamp(.8rem,2.2vw,1rem);line-height:2;color:#7ab8d4;"></div>
-    <div id="breach-cursor" style="display:inline-block;width:10px;height:1em;background:var(--cyan);animation:tblink .65s step-end infinite;vertical-align:middle;margin-left:3px;margin-top:10px;"></div>
-    <div id="breach-btn-wrap" style="margin-top:32px;display:none;">
-      <button class="btn bp" onclick="goToChat()" style="max-width:420px;width:100%;">
-        [ OPEN CHANNEL → ]
-      </button>
-    </div>
-  </div>
-</div>
-
 <div class="scr" id="s-hlobby">
   <div style="text-align:center;padding-top:28px;margin-bottom:16px;">
     <div style="font-family:var(--mono);font-size:.58rem;color:var(--mut);letter-spacing:.18em;margin-bottom:8px;">ROOM CODE</div>
@@ -878,7 +862,7 @@ function startKahootBreach(){
     // loud noise
     for(let i=0;i<4;i++) tone(80+i*40,'sawtooth',.3,.12,i*.05);
 
-    // PHASE 4: at 5.8s — go dark, show breach terminal
+    // PHASE 4: at 11s — go dark (extended glitch chaos)
     setTimeout(()=>{
       clearInterval(junkInt);
       document.getElementById('s-kahoot').style.animation='';
@@ -896,13 +880,15 @@ function startKahootBreach(){
         gt.style.opacity='0';gt.style.transition='opacity .4s';
         setTimeout(()=>{
           ov.innerHTML='';gt.innerHTML='';ov.style.opacity='';ov.style.transition='';
-          // GO TO BREACH TERMINAL (not lobby yet!)
+          // GO STRAIGHT TO CHAT
           startMusic(0);
-          go('s-breach');
-          runBreachTerminal();
+          myNick=myNick||'HOST';
+          myRoom=myRoom||genRoom();
+          go('s-hchat');
+          runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostDirect();});
         },600);
       },1400);
-    },1000);
+    },6200);
   },4800);
 }
 
@@ -912,74 +898,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 @keyframes kshake2{0%{transform:translate(0,0);}10%{transform:translate(-3px,2px);}20%{transform:translate(3px,-2px);}30%{transform:translate(-4px,1px);}40%{transform:translate(4px,-1px);}50%{transform:translate(-2px,3px);}60%{transform:translate(2px,-3px);}70%{transform:translate(-3px,0);}80%{transform:translate(3px,1px);}90%{transform:translate(-1px,-2px);}100%{transform:translate(0,0);}}
 </style>`);
 
-// ══════════════════════════════════
-// BREACH TERMINAL — story before chat
-// ══════════════════════════════════
-function runBreachTerminal(){
-  const el=document.getElementById('breach-lines');
-  el.innerHTML='';
-  document.getElementById('breach-btn-wrap').style.display='none';
-  document.getElementById('breach-cursor').style.display='inline-block';
 
-  const lines=[
-    {t:'> INCOMING SIGNAL — SOURCE: UNIDENTIFIED',col:'#ff3d5a',p:120},
-    {t:'> ENCRYPTION: OMEGA-7 // CLEARANCE LEVEL 5',col:'#ffc400',p:100},
-    {t:'> TIMESTAMP: [REDACTED] // CHANNEL: DARK',col:'#ffc400',p:120},
-    {t:'',p:80},
-    {t:'> This terminal has been remotely accessed.',col:'#7ab8d4',p:180},
-    {t:'> You are a student of Digital Innovation and Management.',col:'#7ab8d4',p:160},
-    {t:'> University of Bergamo. We have been observing your class.',col:'#7ab8d4',p:160},
-    {t:'> You study how products are built from customer need to specification.',col:'#7ab8d4',p:160},
-    {t:'',p:100},
-    {t:'> We need that skill. Tonight.',col:'#00e5ff',p:200},
-    {t:'',p:80},
-    {t:'> OPERATIVE OMEGA — STATUS: FIELD / COMPROMISED',col:'#ff3d5a',p:160},
-    {t:'> She is embedded in a hostile environment.',col:'#7ab8d4',p:140},
-    {t:'> Standard headphones have failed. Noise cancellation insufficient.',col:'#7ab8d4',p:140},
-    {t:'> Communication lost.',col:'#ff3d5a',p:200},
-    {t:'',p:80},
-    {t:"> We need custom headphones. Spec'd from scratch.",col:'#00e5ff',p:160},
-    {t:'> Your team has 7 steps to build the spec sheet.',col:'#00e5ff',p:140},
-    {t:'> The best one goes into production.',col:'#ffc400',p:140},
-    {t:'',p:80},
-    {t:'> Do not fail her.',col:'#ff3d5a',p:160},
-    {t:'',p:100},
-    {t:'> OPENING ENCRYPTED CHANNEL...',col:'#00e676',p:0},
-  ];
-
-  let li=0,ci=0;
-  const speed=22;
-  function typeLine(){
-    if(li>=lines.length){
-      document.getElementById('breach-cursor').style.display='none';
-      document.getElementById('breach-btn-wrap').style.display='block';
-      return;
-    }
-    const line=lines[li];
-    let row=el.querySelector(`[data-bl="${li}"]`);
-    if(!row){row=document.createElement('div');row.dataset.bl=li;row.style.color=line.col||'#7ab8d4';el.appendChild(row);}
-    if(ci<line.t.length){
-      row.textContent=line.t.substring(0,ci+1);ci++;
-      setTimeout(typeLine,line.t.length>2?speed:0);
-    } else {
-      li++;ci=0;setTimeout(typeLine,line.p||50);
-    }
-  }
-  typeLine();
-}
-
-function goToChat(){
-  sfxClick();
-  // generate room and connect BEFORE showing chat
-  myNick=myNick||'HOST';
-  myRoom=myRoom||genRoom();
-  go('s-hchat');
-  runChat(CHAT_INTRO,()=>{
-    // after chat — go to lobby
-    go('s-hlobby');
-    launchHostDirect();
-  });
-}
 
 // ══════════════════════════════════
 // TERMINAL
@@ -1015,40 +934,40 @@ document.head.insertAdjacentHTML('beforeend','<style>.tc{color:var(--cyan)}.ty{c
 // ══════════════════════════════════
 // CHAT_SCRIPT: {side, name, text, delay, typing, cls, pending (= show as clickable blue btn first)}
 const CHAT_INTRO=[
-  {side:'them',name:'UNKNOWN',text:'...',delay:600,typing:1400},
-  {side:'them',name:'UNKNOWN',text:'Connection established.',delay:300},
-  {side:'them',name:'UNKNOWN',text:'Encrypted. Level 5.',delay:500,cls:'cls'},
-  {side:'me',name:'YOU',text:'Who is this?',delay:700,pending:true},
-  {side:'them',name:'UNKNOWN',text:'Someone who has been watching your class for three weeks.',delay:900,typing:1200},
-  {side:'them',name:'UNKNOWN',text:'Digital Innovation and Management. University of Bergamo.',delay:700},
-  {side:'them',name:'UNKNOWN',text:'You study how products are built. From customer need to final specification.',delay:800},
-  {side:'me',name:'YOU',text:'...how do you know that?',delay:900,pending:true},
-  {side:'them',name:'UNKNOWN',text:'We know a lot of things.',delay:500,typing:900},
-  {side:'them',name:'UNKNOWN',text:'Right now what matters is this:',delay:400},
-  {side:'them',name:'UNKNOWN',text:'We have an operative in the field. Codename: OMEGA.',delay:700,cls:'cls'},
-  {side:'them',name:'UNKNOWN',text:'She is embedded in a hostile environment. Heavy machinery. Constant noise. 24/7.',delay:800},
-  {side:'them',name:'UNKNOWN',text:'She has lost communication. Her standard equipment cannot handle it.',delay:700,cls:'urg'},
-  {side:'me',name:'YOU',text:'What does this have to do with me?',delay:900,pending:true},
-  {side:'them',name:'UNKNOWN',text:'She needs custom noise-cancelling headphones.',delay:500,typing:1000},
-  {side:'them',name:'UNKNOWN',text:'Field-grade. Untraceable. Built to exact specifications.',delay:600},
-  {side:'them',name:'UNKNOWN',text:'No off-the-shelf product meets the requirements.',delay:600,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'Someone needs to spec them from scratch. Your team has that knowledge.',delay:700},
-  {side:'me',name:'YOU',text:"I've never done this for real before.",delay:1000,pending:true},
-  {side:'them',name:'UNKNOWN',text:'That is why we chose students. Fresh eyes. No assumptions.',delay:800,typing:1100},
-  {side:'them',name:'UNKNOWN',text:'But understand this clearly:',delay:400,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'Specifications are not wishes. They are precise, measurable, testable targets.',delay:700,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'Get them wrong — the headphones fail. OMEGA is compromised. The mission is over.',delay:900,cls:'urg'},
-  {side:'me',name:'YOU',text:'Understood. What do I need to do?',delay:1000,pending:true},
-  {side:'them',name:'UNKNOWN',text:'Seven steps. Each agent on their phone. You control the pace.',delay:700,typing:1100},
-  {side:'them',name:'UNKNOWN',text:'Step 1 — identify correct specs from the client brief.',delay:500},
-  {side:'them',name:'UNKNOWN',text:'Step 2 — map each need to its measurable metric.',delay:500},
-  {side:'them',name:'UNKNOWN',text:'Step 3 — benchmark the market. Choose where to position.',delay:500},
-  {side:'them',name:'UNKNOWN',text:'Steps 5 and 6 — build the cost model. Apply target costing.',delay:600},
-  {side:'them',name:'UNKNOWN',text:'Step 7 — make the hard trade-offs. You cannot have everything.',delay:600},
-  {side:'them',name:'UNKNOWN',text:'Step 8 — final verification. Prove you understood the theory.',delay:600},
-  {side:'them',name:'UNKNOWN',text:'OMEGA is counting on your team.',delay:500,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'Do not fail her.',delay:300,cls:'urg'},
-  {side:'me',name:'YOU',text:"Let's begin.",delay:700,pending:true,last:true},
+  {side:'them',name:'UNKNOWN',text:'...',delay:1080,typing:1400},
+  {side:'them',name:'UNKNOWN',text:'Connection established.',delay:540},
+  {side:'them',name:'UNKNOWN',text:'Encrypted. Level 5.',delay:900,cls:'cls'},
+  {side:'me',name:'YOU',text:'Who is this?',delay:1260,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Someone who has been watching your class for three weeks.',delay:1620,typing:1200},
+  {side:'them',name:'UNKNOWN',text:'Digital Innovation and Management. University of Bergamo.',delay:1260},
+  {side:'them',name:'UNKNOWN',text:'You study how products are built. From customer need to final specification.',delay:1440},
+  {side:'me',name:'YOU',text:'...how do you know that?',delay:1620,pending:true},
+  {side:'them',name:'UNKNOWN',text:'We know a lot of things.',delay:900,typing:900},
+  {side:'them',name:'UNKNOWN',text:'Right now what matters is this:',delay:720},
+  {side:'them',name:'UNKNOWN',text:'We have an operative in the field. Codename: OMEGA.',delay:1260,cls:'cls'},
+  {side:'them',name:'UNKNOWN',text:'She is embedded in a hostile environment. Heavy machinery. Constant noise. 24/7.',delay:1440},
+  {side:'them',name:'UNKNOWN',text:'She has lost communication. Her standard equipment cannot handle it.',delay:1260,cls:'urg'},
+  {side:'me',name:'YOU',text:'What does this have to do with me?',delay:1620,pending:true},
+  {side:'them',name:'UNKNOWN',text:'She needs custom noise-cancelling headphones.',delay:900,typing:1000},
+  {side:'them',name:'UNKNOWN',text:'Field-grade. Untraceable. Built to exact specifications.',delay:1080},
+  {side:'them',name:'UNKNOWN',text:'No off-the-shelf product meets the requirements.',delay:1080,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Someone needs to spec them from scratch. Your team has that knowledge.',delay:1260},
+  {side:'me',name:'YOU',text:"I've never done this for real before.",delay:1800,pending:true},
+  {side:'them',name:'UNKNOWN',text:'That is why we chose students. Fresh eyes. No assumptions.',delay:1440,typing:1100},
+  {side:'them',name:'UNKNOWN',text:'But understand this clearly:',delay:720,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Specifications are not wishes. They are precise, measurable, testable targets.',delay:1260,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Get them wrong — the headphones fail. OMEGA is compromised. The mission is over.',delay:1620,cls:'urg'},
+  {side:'me',name:'YOU',text:'Understood. What do I need to do?',delay:1800,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Seven steps. Each agent on their phone. You control the pace.',delay:1260,typing:1100},
+  {side:'them',name:'UNKNOWN',text:'Step 1 — identify correct specs from the client brief.',delay:900},
+  {side:'them',name:'UNKNOWN',text:'Step 2 — map each need to its measurable metric.',delay:900},
+  {side:'them',name:'UNKNOWN',text:'Step 3 — benchmark the market. Choose where to position.',delay:900},
+  {side:'them',name:'UNKNOWN',text:'Steps 5 and 6 — build the cost model. Apply target costing.',delay:1080},
+  {side:'them',name:'UNKNOWN',text:'Step 7 — make the hard trade-offs. You cannot have everything.',delay:1080},
+  {side:'them',name:'UNKNOWN',text:'Step 8 — final verification. Prove you understood the theory.',delay:1080},
+  {side:'them',name:'UNKNOWN',text:'OMEGA is counting on your team.',delay:900,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'Do not fail her.',delay:540,cls:'urg'},
+  {side:'me',name:'YOU',text:"Let's begin.",delay:1260,pending:true,last:true},
 ];
 
 // Between-step chat scripts (keyed by step just completed)
@@ -1122,18 +1041,18 @@ function nextChatMsg(){
   // auto message
   if(msg.side==='them'){
     document.getElementById('chat-typing').style.display='block';scrollChat();
-    const dur=msg.typing||(msg.text.length*26+350);
+    const dur=msg.typing||(msg.text.length*55+700);
     setTimeout(()=>{
       document.getElementById('chat-typing').style.display='none';
       renderMsg(msg);
       chatI++;
-      const nextDelay=(chatQ[chatI]?chatQ[chatI].delay:400)||400;
+      const nextDelay=(chatQ[chatI]?chatQ[chatI].delay:600)||600;
       setTimeout(nextChatMsg,nextDelay);
     },dur);
   } else {
     // me auto (no pending)
     setTimeout(()=>{renderMsg(msg);chatI++;
-      const nd=(chatQ[chatI]?chatQ[chatI].delay:400)||400;
+      const nd=(chatQ[chatI]?chatQ[chatI].delay:600)||600;
       setTimeout(nextChatMsg,nd);
     },80);
   }
