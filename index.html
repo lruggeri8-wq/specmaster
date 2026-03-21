@@ -1323,11 +1323,8 @@ function hostLaunch(){
 
 const HOST_STEPS={
   1:{title:'STEP 1 — WHAT ARE SPECIFICATIONS?',
-    def:`A <strong>specification</strong> = <span style="color:var(--cyan)">metric</span> + <span style="color:var(--gold)">value</span>.<br>
-    Metric = what you measure &nbsp;·&nbsp; Value = the target number + unit.<br>
-    Specs must be <strong>objective, testable, dependent variables</strong> — they say WHAT, not HOW.<br>
-    <em style="font-size:.78rem;color:#5a8aa8;">Need: "blocks noise" &nbsp;→&nbsp; Spec: ANC ≥ 35 dB at 1 kHz</em>`,
-    task:'Read OMEGA\'s brief. Select the correct specs from the list. Too many or near-duplicates = penalty. "Feel premium" is NOT a spec.',
+    theory:'A <strong>specification</strong> = <strong style="color:var(--cyan)">metric</strong> (what you measure) + <strong style="color:var(--gold)">value</strong> (target number + unit). Specs are objective, testable <em>dependent variables</em> — they describe WHAT the product achieves, not HOW it is designed.',
+    instructions:'1. Read OMEGA mission brief on your phone.<br>2. Select ONLY items that are true specs (metric + value).<br>3. Avoid near-duplicates — one metric, one value only.<br>4. "Feel premium" = customer need, NOT a spec.<br>5. Too many or wrong selections = point penalty.',
     term:[{t:'> STEP 1: SPECIFICATION SELECTION — AGENTS ACTIVE',c:'c',p:0}]},
   2:{title:'STEP 2 — NEEDS → METRICS',
     theory:'A <strong>metric</strong> is a dependent variable — it measures what the product delivers, not how it is built. "Mass < 280g" is a metric. "Material = Carbon Fiber" is an independent design variable, not a metric.',
