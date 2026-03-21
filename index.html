@@ -491,6 +491,22 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
 </div>
 
 <!-- ══════════════ HOST LOBBY ══════════════ -->
+<!-- ══════════════ BREACH TERMINAL ══════════════ -->
+<div class="scr" id="s-breach">
+  <div style="width:100%;max-width:700px;margin:0 auto;padding:32px 22px;display:flex;flex-direction:column;min-height:100vh;justify-content:center;">
+    <div style="font-family:var(--mono);font-size:.56rem;color:rgba(255,61,90,.7);letter-spacing:.22em;margin-bottom:20px;">
+      ⚠ UNAUTHORIZED ACCESS DETECTED ON THIS TERMINAL ⚠
+    </div>
+    <div id="breach-lines" style="font-family:var(--mono);font-size:clamp(.8rem,2.2vw,1rem);line-height:2;color:#7ab8d4;"></div>
+    <div id="breach-cursor" style="display:inline-block;width:10px;height:1em;background:var(--cyan);animation:tblink .65s step-end infinite;vertical-align:middle;margin-left:3px;margin-top:10px;"></div>
+    <div id="breach-btn-wrap" style="margin-top:32px;display:none;">
+      <button class="btn bp" onclick="goToChat()" style="max-width:420px;width:100%;">
+        [ OPEN CHANNEL → ]
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="scr" id="s-hlobby">
   <div style="text-align:center;padding-top:28px;margin-bottom:16px;">
     <div style="font-family:var(--mono);font-size:.58rem;color:var(--mut);letter-spacing:.18em;margin-bottom:8px;">ROOM CODE</div>
@@ -790,72 +806,179 @@ function startKahootBreach(){
   if(breachDone)return;
   breachDone=true;
   sfxClick();
-  const btn=document.getElementById('kh-start-btn');
-  btn.textContent='Loading quiz…';btn.style.background='#888';
 
-  // after 2s — start the hack
+  const btn=document.getElementById('kh-start-btn');
+  const card=document.querySelector('.kh-card');
+  const h2=document.querySelector('.kh-card h2');
+  const hp=document.querySelector('.kh-header p');
+
+  // PHASE 0: fake loading — normal for 3.5 seconds
+  btn.textContent='Loading questions…';btn.style.background='#888';btn.style.cursor='default';
+  let dotCount=0;
+  const loadInt=setInterval(()=>{
+    dotCount=(dotCount+1)%4;
+    btn.textContent='Loading questions'+'…'.repeat(dotCount)||'Loading questions';
+  },400);
+
+  // PHASE 1: at 3.5s — subtle first glitch
+  setTimeout(()=>{
+    clearInterval(loadInt);
+    // minor screen shake
+    document.getElementById('s-kahoot').style.animation='kshake1 0.3s ease';
+    // title starts to corrupt
+    if(h2) h2.textContent="Welcome to tod4y's qui█!";
+    tone(440,'sawtooth',.1,.06);
+  },3500);
+
+  // PHASE 2: at 4.2s — bigger glitch, progress bar fills weirdly
+  setTimeout(()=>{
+    if(h2) h2.textContent='W3LC0M3 T0 THE █████!';
+    if(hp) hp.textContent='ERROR: NULL_REFERENCE_EXCEPTION at quiz_engine.js:247';
+    btn.textContent='ERROR 0x4F2A: MEMORY FAULT';btn.style.background='#cc0000';
+    tone(200,'sawtooth',.2,.1);
+  },4200);
+
+  // PHASE 3: at 4.8s — full glitch assault
   setTimeout(()=>{
     const ov=document.getElementById('glitch-overlay');
     const gt=document.getElementById('glitch-text');
-    const kh=document.getElementById('s-kahoot');
-
-    // phase 1: glitch lines on white bg
     ov.style.background='#fff';ov.style.opacity='1';
-    for(let i=0;i<8;i++){
-      const l=document.createElement('div');l.className='glitch-line';
-      l.style.top=Math.random()*100+'%';l.style.opacity=Math.random()*.6+.2;
-      l.style.background=i%2?'rgba(255,61,90,.6)':'rgba(0,229,255,.6)';
+
+    // 20 aggressive glitch lines
+    for(let i=0;i<20;i++){
+      const l=document.createElement('div');
+      l.style.cssText=`position:absolute;left:0;right:0;height:${Math.random()*6+1}px;
+        top:${Math.random()*100}%;opacity:${Math.random()*.8+.3};
+        background:${i%3===0?'rgba(255,61,90,.9)':i%3===1?'rgba(0,229,255,.8)':'rgba(255,196,0,.7)'};
+        animation:glitchscan ${.05+Math.random()*.1}s ${Math.random()*.1}s infinite linear;`;
       ov.appendChild(l);
     }
-    // glitch blocks
-    for(let i=0;i<6;i++){
-      const b=document.createElement('div');b.className='glitch-block';
-      b.style.cssText=`left:${Math.random()*80}%;top:${Math.random()*80}%;
-        width:${Math.random()*200+60}px;height:${Math.random()*40+8}px;
-        animation-delay:${Math.random()*.2}s;`;
+    // 12 large glitch blocks
+    for(let i=0;i<12;i++){
+      const b=document.createElement('div');
+      b.style.cssText=`position:absolute;
+        left:${Math.random()*90}%;top:${Math.random()*90}%;
+        width:${Math.random()*300+80}px;height:${Math.random()*60+10}px;
+        background:${i%2?'rgba(255,61,90,.25)':'rgba(0,229,255,.2)'};
+        animation:glitchblock ${.05+Math.random()*.1}s ${Math.random()*.15}s infinite;`;
       ov.appendChild(b);
     }
-    // cursor moving on kahoot text — mutate h2
-    const h2=document.querySelector('.kh-card h2');
-    const origText='Welcome to today\'s quiz!';
-    const hackTexts=['W3lc0m3 t0 th3 m4tr1x!','SYSTEM OVERRIDE…','ACCESS GRANTED','BREACH DETECTED'];
-    let hi=0;
-    const mutInterval=setInterval(()=>{
-      if(h2)h2.textContent=hackTexts[hi%hackTexts.length];
-      hi++;
-    },180);
+    // mutate ALL text rapidly
+    const allText=['.kh-header h1','.kh-footer'];
+    const junk=['▓▓▓▓▓▓▓▓','01001000','SEGFAULT','NULL PTR','0x0000000','■■■■■■■','STACK OVERFLOW'];
+    const junkInt=setInterval(()=>{
+      if(h2) h2.textContent=junk[Math.floor(Math.random()*junk.length)];
+      const hdr=document.querySelector('.kh-header h1');
+      if(hdr) hdr.textContent=junk[Math.floor(Math.random()*junk.length)];
+    },60);
 
-    // phase 2: after 1.5s show glitch text
+    // screen shake
+    document.getElementById('s-kahoot').style.animation='kshake2 0.1s ease-in-out infinite';
+
+    // loud noise
+    for(let i=0;i<4;i++) tone(80+i*40,'sawtooth',.3,.12,i*.05);
+
+    // PHASE 4: at 5.8s — go dark, show breach terminal
     setTimeout(()=>{
-      clearInterval(mutInterval);
+      clearInterval(junkInt);
+      document.getElementById('s-kahoot').style.animation='';
+      ov.style.transition='background .8s';
+      ov.style.background='#020810';
       gt.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:820;'+
-        'font-family:var(--mono);font-size:clamp(.75rem,2.5vw,1.1rem);color:#ff3d5a;text-align:center;'+
-        'opacity:1;line-height:2;text-shadow:2px 0 #00e5ff,-2px 0 #ff3d5a;'+
-        'animation:glitchshake .15s ease-in-out infinite;';
-      gt.innerHTML='WARNING: UNAUTHORIZED ACCESS<br>FIREWALL BYPASSED<br><span style="color:#00e5ff">DECRYPTING CHANNEL...</span>';
-      tone(80,'sawtooth',.5,.15);tone(120,'sawtooth',.4,.1,.2);
+        'font-family:var(--mono);font-size:clamp(.85rem,2.5vw,1.2rem);color:#ff3d5a;text-align:center;'+
+        'opacity:1;line-height:2.2;text-shadow:3px 0 #00e5ff,-3px 0 #ff3d5a;'+
+        'animation:glitchshake .12s ease-in-out infinite;letter-spacing:.08em;';
+      gt.innerHTML='⚠ SYSTEM BREACH DETECTED ⚠<br><span style="color:#00e5ff">FIREWALL BYPASSED</span><br><span style="color:#ffc400;font-size:.85em;">REMOTE CHANNEL ESTABLISHED</span>';
+      tone(60,'sawtooth',.8,.18);
 
-      // phase 3: after 1.2s — go dark
       setTimeout(()=>{
-        ov.style.transition='background .6s,opacity .4s';
-        ov.style.background='#020810';
-        gt.style.opacity='0';
+        ov.style.opacity='0';ov.style.transition='opacity .5s';
+        gt.style.opacity='0';gt.style.transition='opacity .4s';
         setTimeout(()=>{
-          ov.style.opacity='0';
-          ov.innerHTML='';
-          gt.innerHTML='';
-          // now go to lobby (host) or join (player)
-          go('s-land');
-          // pre-fill host
+          ov.innerHTML='';gt.innerHTML='';ov.style.opacity='';ov.style.transition='';
+          // GO TO BREACH TERMINAL (not lobby yet!)
           startMusic(0);
-          setTimeout(()=>{
-            go('s-hlobby');
-            launchHostDirect();
-          },100);
-        },700);
-      },1200);
-    },1500);
-  },2000);
+          go('s-breach');
+          runBreachTerminal();
+        },600);
+      },1400);
+    },1000);
+  },4800);
+}
+
+// Add CSS for kahoot shake
+document.head.insertAdjacentHTML('beforeend',`<style>
+@keyframes kshake1{0%,100%{transform:none;}25%{transform:translateX(4px);}75%{transform:translateX(-4px);}}
+@keyframes kshake2{0%{transform:translate(0,0);}10%{transform:translate(-3px,2px);}20%{transform:translate(3px,-2px);}30%{transform:translate(-4px,1px);}40%{transform:translate(4px,-1px);}50%{transform:translate(-2px,3px);}60%{transform:translate(2px,-3px);}70%{transform:translate(-3px,0);}80%{transform:translate(3px,1px);}90%{transform:translate(-1px,-2px);}100%{transform:translate(0,0);}}
+</style>`);
+
+// ══════════════════════════════════
+// BREACH TERMINAL — story before chat
+// ══════════════════════════════════
+function runBreachTerminal(){
+  const el=document.getElementById('breach-lines');
+  el.innerHTML='';
+  document.getElementById('breach-btn-wrap').style.display='none';
+  document.getElementById('breach-cursor').style.display='inline-block';
+
+  const lines=[
+    {t:'> INCOMING SIGNAL — SOURCE: UNIDENTIFIED',col:'#ff3d5a',p:120},
+    {t:'> ENCRYPTION: OMEGA-7 // CLEARANCE LEVEL 5',col:'#ffc400',p:100},
+    {t:'> TIMESTAMP: [REDACTED] // CHANNEL: DARK',col:'#ffc400',p:120},
+    {t:'',p:80},
+    {t:'> This terminal has been remotely accessed.',col:'#7ab8d4',p:180},
+    {t:'> You are a student of Digital Innovation and Management.',col:'#7ab8d4',p:160},
+    {t:'> University of Bergamo. We have been observing your class.',col:'#7ab8d4',p:160},
+    {t:'> You study how products are built from customer need to specification.',col:'#7ab8d4',p:160},
+    {t:'',p:100},
+    {t:'> We need that skill. Tonight.',col:'#00e5ff',p:200},
+    {t:'',p:80},
+    {t:'> OPERATIVE OMEGA — STATUS: FIELD / COMPROMISED',col:'#ff3d5a',p:160},
+    {t:'> She is embedded in a hostile environment.',col:'#7ab8d4',p:140},
+    {t:'> Standard headphones have failed. Noise cancellation insufficient.',col:'#7ab8d4',p:140},
+    {t:'> Communication lost.',col:'#ff3d5a',p:200},
+    {t:'',p:80},
+    {t:"> We need custom headphones. Spec'd from scratch.",col:'#00e5ff',p:160},
+    {t:'> Your team has 7 steps to build the spec sheet.',col:'#00e5ff',p:140},
+    {t:'> The best one goes into production.',col:'#ffc400',p:140},
+    {t:'',p:80},
+    {t:'> Do not fail her.',col:'#ff3d5a',p:160},
+    {t:'',p:100},
+    {t:'> OPENING ENCRYPTED CHANNEL...',col:'#00e676',p:0},
+  ];
+
+  let li=0,ci=0;
+  const speed=22;
+  function typeLine(){
+    if(li>=lines.length){
+      document.getElementById('breach-cursor').style.display='none';
+      document.getElementById('breach-btn-wrap').style.display='block';
+      return;
+    }
+    const line=lines[li];
+    let row=el.querySelector(`[data-bl="${li}"]`);
+    if(!row){row=document.createElement('div');row.dataset.bl=li;row.style.color=line.col||'#7ab8d4';el.appendChild(row);}
+    if(ci<line.t.length){
+      row.textContent=line.t.substring(0,ci+1);ci++;
+      setTimeout(typeLine,line.t.length>2?speed:0);
+    } else {
+      li++;ci=0;setTimeout(typeLine,line.p||50);
+    }
+  }
+  typeLine();
+}
+
+function goToChat(){
+  sfxClick();
+  // generate room and connect BEFORE showing chat
+  myNick=myNick||'HOST';
+  myRoom=myRoom||genRoom();
+  go('s-hchat');
+  runChat(CHAT_INTRO,()=>{
+    // after chat — go to lobby
+    go('s-hlobby');
+    launchHostDirect();
+  });
 }
 
 // ══════════════════════════════════
@@ -1119,7 +1242,10 @@ let currentStep=0;
 const STEP_NAMES=['READY','STEP 1','STEP 2','STEP 3','—','STEP 5','STEP 6','STEP 7','STEP 8','DONE'];
 const STEP_PCT=[0,11,22,33,44,55,66,77,88,100];
 
-function startHost(){sfxClick();myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);go('s-hlobby');launchHostDirect();}
+function startHost(){sfxClick();myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);
+  myRoom=myRoom||genRoom();startMusic(0);
+  go('s-hchat');runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostDirect();});
+}
 function startJoin(){sfxClick();const p=new URLSearchParams(location.search);const r=p.get('room');if(r)document.getElementById('m-code').value=r.toUpperCase();go('s-mjoin');}
 
 async function launchHostDirect(){
