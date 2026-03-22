@@ -370,6 +370,12 @@ canvas#bg {
 .cbub.urg { border-color: rgba(255, 61, 90, .45) !important; background: rgba(255, 61, 90, .06) !important; }
 .cbub.cls { border-color: rgba(0, 229, 255, .25) !important; background: rgba(0, 229, 255, .04) !important; font-family: var(--mono); font-size: .78rem; color: var(--cyan) !important; }
 .cbub.eng { border-color: rgba(255, 145, 0, .35) !important; background: rgba(255, 145, 0, .05) !important; color: var(--org) !important; }
+.cbub.c-unk { border-color: rgba(0, 229, 255, .2); background: rgba(0, 229, 255, .03); color: var(--cyan); }
+.cbub.c-omega { border-color: rgba(0, 230, 118, .25); background: rgba(0, 230, 118, .04); color: var(--grn); }
+.cbub.c-eng { border-color: rgba(255, 145, 0, .25); background: rgba(255, 145, 0, .04); color: var(--org); }
+.cname.cn-unk { color: rgba(0, 229, 255, .6); }
+.cname.cn-omega { color: rgba(0, 230, 118, .6); }
+.cname.cn-eng { color: rgba(255, 145, 0, .6); }
 
 .cpend {
   align-self: flex-end;
@@ -693,7 +699,26 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px;
     </div>
     <div id="hdash-lb" style="margin-bottom:18px;"></div>
     <div id="hdash-cards"></div>
-    <div style="height:20px;"></div>
+    <div style="height:16px;"></div>
+    <!-- OMEGA transmission on host screen -->
+    <div id="hdash-omega" style="background:rgba(0,230,118,.04);border:1px solid rgba(0,230,118,.2);border-radius:12px;padding:16px 18px;margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:.55rem;color:var(--dim);letter-spacing:.12em;margin-bottom:8px;">TRANSMISSION — OMEGA TO BASE</div>
+      <div style="font-size:.86rem;color:var(--grn);line-height:1.7;font-family:var(--mono);">
+        "Putting headphones on now. …silence. Finally, silence.<br>
+        Noise cancellation: operational. Communications: crystal clear.<br>
+        Thank you — all of you. Proceeding with the mission."
+      </div>
+    </div>
+    <!-- Real world message -->
+    <div style="background:rgba(255,196,0,.04);border:1px solid rgba(255,196,0,.15);border-radius:12px;padding:16px 18px;margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:.55rem;color:var(--gold);letter-spacing:.12em;margin-bottom:8px;">A NOTE FROM THE REAL WORLD</div>
+      <div style="font-size:.84rem;color:var(--txt);line-height:1.7;">
+        This was a simplified mission — but the process is real. Every product around you went through these exact steps: customer needs translated into metrics, target values set against competitors, costs modeled through a BOM, trade-offs made under budget pressure.
+      </div>
+      <div style="font-size:.84rem;color:var(--gold);line-height:1.7;margin-top:8px;">
+        The world is full of problems waiting to be translated into specifications. Headphones were just the beginning.
+      </div>
+    </div>
     <button class="btn bs" onclick="location.reload()" style="max-width:480px;width:100%;">NEW MISSION ↺</button>
   </div>
 </div>
@@ -769,350 +794,225 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px;
 ═══════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════
-   SVG AVATARS — SMALL (38×38, chat bubbles)
-   Style: noir/comic, heavy shadows, sharp lines
+   SVG AVATARS — NOIR COMIC STYLE
+   Inspired by classic film noir comic art:
+   Black silhouette face, golden fedora, angular
+   trench coat, sharp outlines, saturated colors
 ═══════════════════════════════════════════════════ */
 
-// UNKNOWN — fedora, trench coat collar, shadowed face, glowing cyan eyes
+// UNKNOWN — fedora, trench coat, red tie, faceless noir
 function svgUnknown() {
   return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="20" cy="20" r="20" fill="#020810"/>
-    <!-- Fedora hat -->
-    <ellipse cx="20" cy="13" rx="18" ry="4" fill="#0a1520"/>
-    <path d="M4 13 Q8 4 20 3 Q32 4 36 13 Z" fill="#0c1a2e" stroke="#1a3a55" stroke-width=".6"/>
-    <path d="M12 6 Q20 2 28 6 L26 4 Q20 1 14 4 Z" fill="#152a40" opacity=".5"/>
-    <!-- Hat band -->
-    <rect x="8" y="11" width="24" height="2.5" rx="1" fill="#00e5ff" opacity=".25"/>
-    <!-- Face — deep shadow, barely visible -->
-    <ellipse cx="20" cy="22" rx="9" ry="9.5" fill="#060e18"/>
-    <!-- Jaw shadow -->
-    <path d="M12 24 Q20 32 28 24" stroke="#0a1828" stroke-width="1.2" fill="none"/>
-    <!-- Trench coat collar -->
-    <path d="M8 30 L13 24 L16 28 L20 26 L24 28 L27 24 L32 30 Q32 38 28 40 L12 40 Q8 38 8 30 Z" 
-      fill="#0c1a2e" stroke="#1a3a55" stroke-width=".5"/>
-    <line x1="20" y1="26" x2="20" y2="40" stroke="#1a3a55" stroke-width=".4" opacity=".5"/>
-    <!-- Glowing cyan eyes -->
-    <ellipse cx="16" cy="20.5" rx="2" ry="1.6" fill="#00e5ff" opacity=".9"/>
-    <ellipse cx="24" cy="20.5" rx="2" ry="1.6" fill="#00e5ff" opacity=".9"/>
-    <ellipse cx="16.5" cy="20.3" rx=".7" ry=".5" fill="#fff" opacity=".5"/>
-    <ellipse cx="24.5" cy="20.3" rx=".7" ry=".5" fill="#fff" opacity=".5"/>
-    <!-- Eye glow halo -->
-    <ellipse cx="16" cy="20.5" rx="3.5" ry="2.8" fill="none" stroke="#00e5ff" stroke-width=".3" opacity=".2"/>
-    <ellipse cx="24" cy="20.5" rx="3.5" ry="2.8" fill="none" stroke="#00e5ff" stroke-width=".3" opacity=".2"/>
+    <rect width="40" height="40" rx="20" fill="#0a1828"/>
+    <!-- Fedora -->
+    <ellipse cx="20" cy="14" rx="17" ry="3.5" fill="#c8a000" stroke="#8a6e00" stroke-width=".7"/>
+    <path d="M5 14 Q10 3 20 2 Q30 3 35 14 Z" fill="#dab200" stroke="#8a6e00" stroke-width=".8"/>
+    <path d="M12 6 Q20 3 28 6 L26 9 Q20 5 14 9 Z" fill="#c8a000" opacity=".6"/>
+    <!-- Face — pure black, noir style -->
+    <ellipse cx="20" cy="22" rx="9" ry="10" fill="#000"/>
+    <!-- Trench coat — angular, sharp -->
+    <path d="M7 31 L12 24 L16 28 L20 26 L24 28 L28 24 L33 31 L34 40 L6 40 Z" fill="#c8a000" stroke="#8a6e00" stroke-width=".6"/>
+    <path d="M12 24 L16 28 L20 26 L24 28 L28 24 L20 26 Z" fill="#dab200"/>
+    <!-- Red tie -->
+    <polygon points="19,27 21,27 21.5,34 18.5,34" fill="#cc2200"/>
+    <!-- Coat center line -->
+    <line x1="20" y1="26" x2="20" y2="40" stroke="#8a6e00" stroke-width=".4" opacity=".4"/>
   </svg>`;
 }
 
-// YOU — student silhouette, gold eyes, casual hoodie collar
+// YOU — student, casual, gold tones
 function svgYou() {
   return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="20" cy="20" r="20" fill="#0e0c02"/>
+    <rect width="40" height="40" rx="20" fill="#1a1400"/>
     <!-- Hair -->
-    <path d="M11 14 Q13 7 20 6 Q27 7 29 14 L29 17 Q27 12 20 11 Q13 12 11 17 Z" 
-      fill="#1a1500" stroke="#3a3000" stroke-width=".4"/>
+    <path d="M12 13 Q14 7 20 6 Q26 7 28 13 L28 17 Q26 10 20 9 Q14 10 12 17 Z" fill="#2a2000"/>
     <!-- Face -->
-    <ellipse cx="20" cy="18.5" rx="8.5" ry="9" fill="#1a1600"/>
+    <ellipse cx="20" cy="18" rx="8" ry="9" fill="#1a1600"/>
     <!-- Hoodie -->
-    <path d="M6 30 Q8 24 14 26 L16 28 L20 27 L24 28 L26 26 Q32 24 34 30 L34 40 L6 40 Z" 
-      fill="#1a1600" stroke="#3a3000" stroke-width=".4"/>
-    <!-- Hood string -->
-    <line x1="16" y1="28" x2="16" y2="34" stroke="#ffc400" stroke-width=".6" opacity=".3"/>
-    <line x1="24" y1="28" x2="24" y2="34" stroke="#ffc400" stroke-width=".6" opacity=".3"/>
-    <!-- Gold eyes -->
-    <ellipse cx="16" cy="18" rx="1.8" ry="1.5" fill="#ffc400" opacity=".9"/>
-    <ellipse cx="24" cy="18" rx="1.8" ry="1.5" fill="#ffc400" opacity=".9"/>
-    <ellipse cx="16.4" cy="17.8" rx=".6" ry=".4" fill="#fff" opacity=".4"/>
-    <ellipse cx="24.4" cy="17.8" rx=".6" ry=".4" fill="#fff" opacity=".4"/>
+    <path d="M7 30 Q9 24 14 26 L17 28 L20 27 L23 28 L26 26 Q31 24 33 30 L34 40 L6 40 Z" fill="#2a2000"/>
+    <!-- Hood strings -->
+    <line x1="16" y1="28" x2="16" y2="35" stroke="#ffc400" stroke-width=".7" opacity=".35"/>
+    <line x1="24" y1="28" x2="24" y2="35" stroke="#ffc400" stroke-width=".7" opacity=".35"/>
+    <!-- Eyes -->
+    <circle cx="16" cy="17" r="2" fill="#ffc400" opacity=".85"/>
+    <circle cx="24" cy="17" r="2" fill="#ffc400" opacity=".85"/>
   </svg>`;
 }
 
-// OMEGA — field agent, green eyes, headphones on ears, scarf/tactical collar
+// OMEGA — female agent, headphones, green, tactical
 function svgOmega() {
   return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="20" cy="20" r="20" fill="#010d06"/>
-    <!-- Hair, pulled back -->
-    <path d="M12 12 Q15 6 20 5 Q25 6 28 12 L28 16 Q25 10 20 9 Q15 10 12 16 Z" 
-      fill="#0a2010" stroke="#1a4030" stroke-width=".4"/>
+    <rect width="40" height="40" rx="20" fill="#021a0a"/>
+    <!-- Hair pulled back -->
+    <path d="M12 14 Q15 6 20 5 Q25 6 28 14 L28 18 Q25 10 20 9 Q15 10 12 18 Z" fill="#0a2810"/>
+    <!-- Headphone band -->
+    <path d="M8 16 Q12 5 20 4 Q28 5 32 16" stroke="#00e676" stroke-width="2.5" fill="none" opacity=".7"/>
+    <!-- Ear cups -->
+    <rect x="5" y="14" width="6" height="9" rx="3" fill="#00e676" opacity=".65"/>
+    <rect x="29" y="14" width="6" height="9" rx="3" fill="#00e676" opacity=".65"/>
     <!-- Face -->
-    <ellipse cx="20" cy="19" rx="8" ry="9" fill="#0a2010"/>
-    <!-- Headphone band (over head) -->
-    <path d="M8 17 Q10 7 20 6 Q30 7 32 17" stroke="#00e676" stroke-width="2" fill="none" opacity=".6"/>
-    <!-- Headphone ear cups -->
-    <rect x="5" y="15" width="6" height="9" rx="3" fill="#00e676" opacity=".7" stroke="#004d20" stroke-width=".4"/>
-    <rect x="29" y="15" width="6" height="9" rx="3" fill="#00e676" opacity=".7" stroke="#004d20" stroke-width=".4"/>
-    <!-- Green glowing eyes -->
-    <ellipse cx="16" cy="18.5" rx="1.8" ry="1.5" fill="#00e676" opacity=".9"/>
-    <ellipse cx="24" cy="18.5" rx="1.8" ry="1.5" fill="#00e676" opacity=".9"/>
-    <ellipse cx="16.4" cy="18.3" rx=".6" ry=".4" fill="#fff" opacity=".5"/>
-    <ellipse cx="24.4" cy="18.3" rx=".6" ry=".4" fill="#fff" opacity=".5"/>
-    <!-- Tactical collar -->
-    <path d="M9 28 L14 23 L17 27 L20 25 L23 27 L26 23 L31 28 L32 40 L8 40 Z" 
-      fill="#0a2010" stroke="#1a4030" stroke-width=".4"/>
-    <!-- Scarf/wrap -->
-    <path d="M15 26 Q20 23 25 26 L24 29 Q20 27 16 29 Z" fill="#00e676" opacity=".15"/>
+    <ellipse cx="20" cy="20" rx="8" ry="9" fill="#0a2010"/>
+    <!-- Eyes -->
+    <circle cx="16" cy="19" r="1.8" fill="#00e676" opacity=".85"/>
+    <circle cx="24" cy="19" r="1.8" fill="#00e676" opacity=".85"/>
+    <!-- Tactical jacket -->
+    <path d="M8 29 L13 24 L17 27 L20 26 L23 27 L27 24 L32 29 L33 40 L7 40 Z" fill="#0a2010"/>
+    <!-- X strap -->
+    <line x1="10" y1="30" x2="30" y2="38" stroke="#00e676" stroke-width=".8" opacity=".25"/>
+    <line x1="30" y1="30" x2="10" y2="38" stroke="#00e676" stroke-width=".8" opacity=".25"/>
   </svg>`;
 }
 
-// ENGINEER — hard hat with lamp, goggles, safety vest collar, orange
+// ENGINEER — hard hat, goggles, safety vest, orange
 function svgEngineer() {
   return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="20" cy="20" r="20" fill="#100800"/>
+    <rect width="40" height="40" rx="20" fill="#1a0c00"/>
     <!-- Hard hat -->
-    <path d="M8 14 Q10 4 20 3 Q30 4 32 14 Z" fill="#ff9100" opacity=".8" stroke="#cc7000" stroke-width=".5"/>
-    <!-- Hat brim -->
-    <ellipse cx="20" cy="14" rx="16" ry="3.5" fill="#ff9100" opacity=".7" stroke="#cc7000" stroke-width=".4"/>
-    <!-- Headlamp on hat -->
-    <rect x="17" y="7" width="6" height="4" rx="1.5" fill="#ffc400" opacity=".8"/>
-    <ellipse cx="20" cy="9" rx="1.8" ry="1.5" fill="#fff" opacity=".6"/>
+    <path d="M8 15 Q12 4 20 3 Q28 4 32 15 Z" fill="#ff9100" opacity=".85"/>
+    <ellipse cx="20" cy="15" rx="15" ry="3" fill="#ff9100" opacity=".7"/>
+    <!-- Lamp -->
+    <rect x="17" y="7" width="6" height="4" rx="1.5" fill="#ffc400" opacity=".7"/>
     <!-- Face -->
-    <ellipse cx="20" cy="22" rx="8.5" ry="8.5" fill="#1a0e00"/>
+    <ellipse cx="20" cy="22" rx="8.5" ry="9" fill="#1a0e00"/>
     <!-- Goggles -->
-    <rect x="10" y="19" width="9" height="5" rx="2.5" fill="#2e1a00" stroke="#ff9100" stroke-width=".8" opacity=".7"/>
-    <rect x="21" y="19" width="9" height="5" rx="2.5" fill="#2e1a00" stroke="#ff9100" stroke-width=".8" opacity=".7"/>
-    <!-- Goggle bridge -->
-    <line x1="19" y1="21.5" x2="21" y2="21.5" stroke="#ff9100" stroke-width=".8" opacity=".5"/>
-    <!-- Goggle lens glow -->
-    <ellipse cx="14.5" cy="21.5" rx="2.5" ry="1.5" fill="#ffc400" opacity=".35"/>
-    <ellipse cx="25.5" cy="21.5" rx="2.5" ry="1.5" fill="#ffc400" opacity=".35"/>
-    <!-- Safety vest collar -->
-    <path d="M8 30 L13 25 L17 29 L20 27 L23 29 L27 25 L32 30 L33 40 L7 40 Z" 
-      fill="#1a0e00" stroke="#4a2800" stroke-width=".4"/>
+    <rect x="11" y="19" width="8" height="5" rx="2.5" fill="#2e1a00" stroke="#ff9100" stroke-width=".8"/>
+    <rect x="21" y="19" width="8" height="5" rx="2.5" fill="#2e1a00" stroke="#ff9100" stroke-width=".8"/>
+    <line x1="19" y1="21.5" x2="21" y2="21.5" stroke="#ff9100" stroke-width=".7"/>
+    <!-- Goggle glow -->
+    <circle cx="15" cy="21.5" r="1.5" fill="#ffc400" opacity=".5"/>
+    <circle cx="25" cy="21.5" r="1.5" fill="#ffc400" opacity=".5"/>
+    <!-- Safety vest -->
+    <path d="M8 30 L13 25 L17 29 L20 27 L23 29 L27 25 L32 30 L33 40 L7 40 Z" fill="#1a0e00"/>
     <!-- Hi-vis stripes -->
-    <line x1="10" y1="33" x2="17" y2="29" stroke="#ff9100" stroke-width="1.2" opacity=".5"/>
-    <line x1="30" y1="33" x2="23" y2="29" stroke="#ff9100" stroke-width="1.2" opacity=".5"/>
-    <line x1="9" y1="36" x2="16" y2="32" stroke="#ffc400" stroke-width=".8" opacity=".3"/>
-    <line x1="31" y1="36" x2="24" y2="32" stroke="#ffc400" stroke-width=".8" opacity=".3"/>
+    <line x1="10" y1="34" x2="17" y2="29" stroke="#ff9100" stroke-width="1.2" opacity=".45"/>
+    <line x1="30" y1="34" x2="23" y2="29" stroke="#ff9100" stroke-width="1.2" opacity=".45"/>
   </svg>`;
 }
 
 /* ═══════════════════════════════════════════════════
-   SVG AVATARS — LARGE (briefing screens, ~200px)
-   Shown when character speaks in briefing/debrief
+   LARGE AVATARS — for briefing/debrief screens
+   Noir comic style, ~200x280, detailed
 ═══════════════════════════════════════════════════ */
 
-// UNKNOWN LARGE — noir detective: fedora, trench coat, cigarette smoke
+// UNKNOWN LARGE — noir detective, fedora, trench, red tie
 function svgUnknownLarge() {
-  return `<svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="ulg" cx="50%" cy="35%" r="55%">
-        <stop offset="0%" stop-color="rgba(0,229,255,.06)"/>
-        <stop offset="100%" stop-color="transparent"/>
-      </radialGradient>
-      <filter id="uf-glow">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <!-- Ambient glow -->
-    <ellipse cx="100" cy="250" rx="85" ry="18" fill="url(#ulg)"/>
-    
-    <!-- FEDORA — detailed with crease and shadow -->
-    <ellipse cx="100" cy="58" rx="72" ry="14" fill="#081520" stroke="#1a3a55" stroke-width="1"/>
-    <path d="M30 58 Q45 18 100 14 Q155 18 170 58 Z" fill="#0c1a2e" stroke="#1a3a55" stroke-width="1.2"/>
+  return `<svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+    <!-- Fedora -->
+    <ellipse cx="100" cy="62" rx="78" ry="14" fill="#c8a000" stroke="#8a6e00" stroke-width="1.5"/>
+    <path d="M24 62 Q42 14 100 8 Q158 14 176 62 Z" fill="#dab200" stroke="#8a6e00" stroke-width="1.8"/>
     <!-- Hat crease -->
-    <path d="M55 30 Q100 22 145 30 Q130 38 100 36 Q70 38 55 30 Z" fill="#081520" opacity=".5"/>
+    <path d="M52 28 Q100 16 148 28 Q132 40 100 38 Q68 40 52 28 Z" fill="#c8a000" opacity=".5"/>
     <!-- Hat band -->
-    <rect x="38" y="50" width="124" height="6" rx="2" fill="#00e5ff" opacity=".2"/>
-    <rect x="88" y="49" width="24" height="8" rx="2" fill="#00e5ff" opacity=".12"/>
-    
-    <!-- FACE — very dark, barely visible features -->
-    <ellipse cx="100" cy="82" rx="36" ry="38" fill="#060e18"/>
-    <!-- Nose shadow -->
-    <path d="M97 88 L100 96 L103 88" stroke="#0a1828" stroke-width="1" fill="none" opacity=".4"/>
-    <!-- Mouth line -->
-    <line x1="90" y1="102" x2="110" y2="102" stroke="#0a1828" stroke-width="1.2" opacity=".3"/>
-    <!-- Jaw line -->
-    <path d="M66 90 Q100 120 134 90" stroke="#0a1828" stroke-width="1.5" fill="none" opacity=".3"/>
-    
-    <!-- EYES — glowing cyan, noir style -->
-    <ellipse cx="84" cy="78" rx="7" ry="5" fill="#00e5ff" opacity=".85" filter="url(#uf-glow)"/>
-    <ellipse cx="116" cy="78" rx="7" ry="5" fill="#00e5ff" opacity=".85" filter="url(#uf-glow)"/>
-    <!-- Pupils -->
-    <ellipse cx="85.5" cy="77.5" rx="2.5" ry="1.8" fill="#fff" opacity=".4"/>
-    <ellipse cx="117.5" cy="77.5" rx="2.5" ry="1.8" fill="#fff" opacity=".4"/>
-    <!-- Eyebrow shadows -->
-    <path d="M74 70 Q84 66 94 70" stroke="#0a1828" stroke-width="2" fill="none" opacity=".5"/>
-    <path d="M106 70 Q116 66 126 70" stroke="#0a1828" stroke-width="2" fill="none" opacity=".5"/>
-    
-    <!-- TRENCH COAT -->
-    <path d="M42 122 L55 108 L68 118 L100 110 L132 118 L145 108 L158 122 
-      L164 240 Q140 235 100 236 Q60 235 36 240 Z" 
-      fill="#0c1a2e" stroke="#1a3a55" stroke-width="1.2"/>
-    <!-- Coat lapels -->
-    <path d="M68 118 L80 140 L100 130 L120 140 L132 118 L100 110 Z" 
-      fill="#081520" stroke="#1a3a55" stroke-width=".8"/>
+    <rect x="32" y="54" width="136" height="6" rx="2" fill="#8a6e00" opacity=".5"/>
+    <!-- Face — pure black noir -->
+    <ellipse cx="100" cy="98" rx="42" ry="44" fill="#000"/>
+    <!-- Jaw hint -->
+    <path d="M62 105 Q100 140 138 105" stroke="#1a1a1a" stroke-width="1.5" fill="none" opacity=".3"/>
+    <!-- TRENCH COAT — angular, golden, sharp lapels -->
+    <path d="M36 148 L56 128 L76 140 L100 130 L124 140 L144 128 L164 148
+      L172 270 Q140 264 100 265 Q60 264 28 270 Z"
+      fill="#c8a000" stroke="#8a6e00" stroke-width="1.5"/>
+    <!-- Lapels — V shape -->
+    <path d="M76 140 L88 170 L100 155 L112 170 L124 140 L100 130 Z"
+      fill="#dab200" stroke="#8a6e00" stroke-width="1"/>
+    <!-- Collar turned up (noir!) -->
+    <path d="M56 128 L36 148 L48 156 L76 140 Z" fill="#dab200" stroke="#8a6e00" stroke-width="1"/>
+    <path d="M144 128 L164 148 L152 156 L124 140 Z" fill="#dab200" stroke="#8a6e00" stroke-width="1"/>
+    <!-- RED TIE -->
+    <polygon points="95,135 105,135 108,200 92,200" fill="#cc2200" stroke="#881500" stroke-width=".8"/>
+    <polygon points="92,135 108,135 105,138 95,138" fill="#dd3300"/>
     <!-- Center line -->
-    <line x1="100" y1="130" x2="100" y2="236" stroke="#1a3a55" stroke-width=".8" opacity=".4"/>
+    <line x1="100" y1="200" x2="100" y2="265" stroke="#8a6e00" stroke-width=".8" opacity=".3"/>
     <!-- Buttons -->
-    <circle cx="100" cy="155" r="3" fill="#1a3a55" opacity=".5"/>
-    <circle cx="100" cy="180" r="3" fill="#1a3a55" opacity=".5"/>
-    <circle cx="100" cy="205" r="3" fill="#1a3a55" opacity=".5"/>
+    <circle cx="100" cy="210" r="3.5" fill="#8a6e00" opacity=".4"/>
+    <circle cx="100" cy="235" r="3.5" fill="#8a6e00" opacity=".4"/>
     <!-- Belt -->
-    <rect x="42" y="190" width="116" height="5" rx="2" fill="#081520" stroke="#1a3a55" stroke-width=".6"/>
-    <rect x="92" y="188" width="16" height="9" rx="2" fill="#1a3a55" opacity=".4"/>
-    
-    <!-- COLLAR turned up (noir!) -->
-    <path d="M55 108 L42 122 L50 128 L68 118 Z" fill="#101d30" stroke="#1a3a55" stroke-width=".8"/>
-    <path d="M145 108 L158 122 L150 128 L132 118 Z" fill="#101d30" stroke="#1a3a55" stroke-width=".8"/>
-    
-    <!-- Coat pockets (shadow lines) -->
-    <path d="M55 170 L78 168" stroke="#1a3a55" stroke-width=".8" opacity=".3"/>
-    <path d="M145 170 L122 168" stroke="#1a3a55" stroke-width=".8" opacity=".3"/>
-    
-    <!-- Smoke wisps rising from side (cigarette implied, not shown) -->
-    <path d="M148 105 Q152 90 146 75 Q150 60 144 45" stroke="#1a3a55" stroke-width="1" fill="none" opacity=".2">
-      <animate attributeName="d" values="M148 105 Q152 90 146 75 Q150 60 144 45;M148 105 Q154 88 148 72 Q152 55 148 40;M148 105 Q152 90 146 75 Q150 60 144 45" dur="4s" repeatCount="indefinite"/>
-    </path>
-    <path d="M152 100 Q156 85 150 68 Q155 52 148 38" stroke="#1a3a55" stroke-width=".6" fill="none" opacity=".12">
-      <animate attributeName="d" values="M152 100 Q156 85 150 68 Q155 52 148 38;M152 100 Q158 82 154 65 Q158 48 152 32;M152 100 Q156 85 150 68 Q155 52 148 38" dur="5s" repeatCount="indefinite"/>
+    <rect x="35" y="248" width="130" height="5" rx="2" fill="#8a6e00" opacity=".4"/>
+    <!-- Smoke wisps -->
+    <path d="M158 120 Q164 100 156 80 Q162 60 154 40" stroke="#8a6e00" stroke-width="1" fill="none" opacity=".15">
+      <animate attributeName="d" values="M158 120 Q164 100 156 80 Q162 60 154 40;M158 120 Q166 96 160 76 Q166 52 160 32;M158 120 Q164 100 156 80 Q162 60 154 40" dur="4s" repeatCount="indefinite"/>
     </path>
   </svg>`;
 }
 
-// OMEGA LARGE — female agent, headphones, tactical gear, green
+// OMEGA LARGE — female agent with headphones
 function svgOmegaLarge() {
-  return `<svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="olg" cx="50%" cy="35%" r="55%">
-        <stop offset="0%" stop-color="rgba(0,230,118,.06)"/>
-        <stop offset="100%" stop-color="transparent"/>
-      </radialGradient>
-      <filter id="of-glow">
-        <feGaussianBlur stdDeviation="2.5" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <ellipse cx="100" cy="250" rx="85" ry="18" fill="url(#olg)"/>
-    
-    <!-- Hair — pulled back, dark -->
-    <path d="M62 55 Q70 22 100 18 Q130 22 138 55 L138 75 Q130 45 100 40 Q70 45 62 75 Z" 
+  return `<svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+    <!-- Hair -->
+    <path d="M60 60 Q70 22 100 16 Q130 22 140 60 L140 80 Q130 44 100 38 Q70 44 60 80 Z"
       fill="#061a0d" stroke="#1a4030" stroke-width="1"/>
-    <!-- Ponytail hint -->
-    <path d="M120 45 Q140 50 145 75 Q142 90 135 95" stroke="#0a2815" stroke-width="4" fill="none" opacity=".6"/>
-    
-    <!-- HEADPHONE BAND -->
-    <path d="M52 60 Q58 28 100 22 Q142 28 148 60" stroke="#00e676" stroke-width="4" fill="none" opacity=".7"/>
-    <!-- Left ear cup -->
-    <rect x="38" y="55" width="20" height="28" rx="8" fill="#00e676" opacity=".6" stroke="#004d20" stroke-width="1"/>
-    <ellipse cx="48" cy="69" rx="6" ry="8" fill="#001a0d" opacity=".5"/>
-    <!-- Right ear cup -->
-    <rect x="142" y="55" width="20" height="28" rx="8" fill="#00e676" opacity=".6" stroke="#004d20" stroke-width="1"/>
-    <ellipse cx="152" cy="69" rx="6" ry="8" fill="#001a0d" opacity=".5"/>
-    
-    <!-- FACE -->
-    <ellipse cx="100" cy="72" rx="34" ry="36" fill="#0a2010"/>
-    <!-- Nose -->
-    <path d="M98 78 L100 86 L102 78" stroke="#1a4030" stroke-width=".8" fill="none" opacity=".4"/>
+    <!-- Headphone band -->
+    <path d="M48 58 Q56 22 100 16 Q144 22 152 58" stroke="#00e676" stroke-width="5" fill="none" opacity=".7"/>
+    <!-- Ear cups -->
+    <rect x="34" y="52" width="22" height="30" rx="9" fill="#00e676" opacity=".6" stroke="#004d20" stroke-width="1"/>
+    <rect x="144" y="52" width="22" height="30" rx="9" fill="#00e676" opacity=".6" stroke="#004d20" stroke-width="1"/>
+    <!-- Face -->
+    <ellipse cx="100" cy="78" rx="38" ry="40" fill="#0a2010"/>
+    <!-- Eyes -->
+    <circle cx="84" cy="75" r="5.5" fill="#00e676" opacity=".8"/>
+    <circle cx="116" cy="75" r="5.5" fill="#00e676" opacity=".8"/>
+    <circle cx="85.5" cy="74" r="2" fill="#fff" opacity=".35"/>
+    <circle cx="117.5" cy="74" r="2" fill="#fff" opacity=".35"/>
     <!-- Slight smile -->
-    <path d="M88 92 Q100 98 112 92" stroke="#1a4030" stroke-width="1" fill="none" opacity=".3"/>
-    
-    <!-- EYES — green glow -->
-    <ellipse cx="85" cy="70" rx="6.5" ry="5" fill="#00e676" opacity=".85" filter="url(#of-glow)"/>
-    <ellipse cx="115" cy="70" rx="6.5" ry="5" fill="#00e676" opacity=".85" filter="url(#of-glow)"/>
-    <ellipse cx="86" cy="69.5" rx="2.2" ry="1.6" fill="#fff" opacity=".45"/>
-    <ellipse cx="116" cy="69.5" rx="2.2" ry="1.6" fill="#fff" opacity=".45"/>
-    
-    <!-- TACTICAL JACKET -->
-    <path d="M50 112 L62 100 L75 108 L100 102 L125 108 L138 100 L150 112
-      L156 240 Q130 234 100 235 Q70 234 44 240 Z"
-      fill="#0a2010" stroke="#1a4030" stroke-width="1.2"/>
+    <path d="M88 95 Q100 102 112 95" stroke="#1a4030" stroke-width="1" fill="none" opacity=".3"/>
+    <!-- Tactical jacket -->
+    <path d="M46 124 L62 108 L80 118 L100 110 L120 118 L138 108 L154 124
+      L160 270 Q130 264 100 265 Q70 264 40 270 Z"
+      fill="#0a2010" stroke="#1a4030" stroke-width="1.5"/>
     <!-- Jacket collar -->
-    <path d="M75 108 L85 126 L100 118 L115 126 L125 108 L100 102 Z" 
-      fill="#071a0c" stroke="#1a4030" stroke-width=".8"/>
-    <!-- Zipper line -->
-    <line x1="100" y1="118" x2="100" y2="235" stroke="#00e676" stroke-width=".8" opacity=".2"/>
-    <!-- Tactical pockets -->
-    <rect x="55" y="150" width="28" height="22" rx="3" fill="#071a0c" stroke="#1a4030" stroke-width=".6"/>
-    <rect x="117" y="150" width="28" height="22" rx="3" fill="#071a0c" stroke="#1a4030" stroke-width=".6"/>
-    <!-- Strap across chest -->
-    <line x1="55" y1="130" x2="145" y2="160" stroke="#00e676" stroke-width="2" opacity=".2"/>
-    <line x1="145" y1="130" x2="55" y2="160" stroke="#00e676" stroke-width="2" opacity=".2"/>
-    <!-- Belt -->
-    <rect x="48" y="195" width="104" height="5" rx="2" fill="#071a0c" stroke="#1a4030" stroke-width=".6"/>
+    <path d="M80 118 L90 138 L100 128 L110 138 L120 118 L100 110 Z" fill="#071a0c"/>
+    <!-- Zipper -->
+    <line x1="100" y1="128" x2="100" y2="265" stroke="#00e676" stroke-width="1" opacity=".2"/>
+    <!-- X straps -->
+    <line x1="52" y1="140" x2="148" y2="180" stroke="#00e676" stroke-width="2.5" opacity=".2"/>
+    <line x1="148" y1="140" x2="52" y2="180" stroke="#00e676" stroke-width="2.5" opacity=".2"/>
+    <!-- Pockets -->
+    <rect x="52" y="170" width="30" height="24" rx="4" fill="#071a0c" stroke="#1a4030" stroke-width=".8"/>
+    <rect x="118" y="170" width="30" height="24" rx="4" fill="#071a0c" stroke="#1a4030" stroke-width=".8"/>
   </svg>`;
 }
 
-// ENGINEER LARGE — hard hat, goggles, safety vest, clipboard
+// ENGINEER LARGE — hard hat, goggles, safety vest
 function svgEngineerLarge() {
-  return `<svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="elg" cx="50%" cy="35%" r="55%">
-        <stop offset="0%" stop-color="rgba(255,145,0,.06)"/>
-        <stop offset="100%" stop-color="transparent"/>
-      </radialGradient>
-      <filter id="ef-glow">
-        <feGaussianBlur stdDeviation="2" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <ellipse cx="100" cy="250" rx="85" ry="18" fill="url(#elg)"/>
-    
-    <!-- HARD HAT -->
-    <path d="M38 58 Q48 16 100 12 Q152 16 162 58 Z" fill="#ff9100" opacity=".8" stroke="#cc7000" stroke-width="1.2"/>
-    <!-- Hat brim -->
-    <ellipse cx="100" cy="58" rx="68" ry="12" fill="#ff9100" opacity=".7" stroke="#cc7000" stroke-width="1"/>
+  return `<svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+    <!-- Hard hat -->
+    <path d="M34 60 Q50 14 100 8 Q150 14 166 60 Z" fill="#ff9100" opacity=".8" stroke="#cc7000" stroke-width="1.5"/>
+    <ellipse cx="100" cy="60" rx="70" ry="13" fill="#ff9100" opacity=".7" stroke="#cc7000" stroke-width="1"/>
     <!-- Headlamp -->
-    <rect x="82" y="28" width="36" height="16" rx="6" fill="#ffc400" opacity=".7" stroke="#cc7000" stroke-width=".8"/>
-    <ellipse cx="100" cy="36" rx="8" ry="5" fill="#fff" opacity=".5"/>
-    <!-- Hat ridge lines -->
-    <line x1="68" y1="38" x2="68" y2="55" stroke="#cc7000" stroke-width=".6" opacity=".3"/>
-    <line x1="132" y1="38" x2="132" y2="55" stroke="#cc7000" stroke-width=".6" opacity=".3"/>
-    
-    <!-- FACE -->
-    <ellipse cx="100" cy="88" rx="36" ry="36" fill="#1a0e00"/>
-    <!-- Jaw -->
-    <path d="M66 95 Q100 125 134 95" stroke="#2e1a00" stroke-width="1.5" fill="none" opacity=".3"/>
-    
-    <!-- GOGGLES -->
-    <rect x="60" y="76" width="35" height="18" rx="8" fill="#2e1a00" stroke="#ff9100" stroke-width="1.5" opacity=".8"/>
-    <rect x="105" y="76" width="35" height="18" rx="8" fill="#2e1a00" stroke="#ff9100" stroke-width="1.5" opacity=".8"/>
-    <!-- Goggle bridge -->
-    <line x1="95" y1="85" x2="105" y2="85" stroke="#ff9100" stroke-width="1.5" opacity=".6"/>
-    <!-- Goggle lenses — amber glow -->
-    <ellipse cx="77.5" cy="85" rx="10" ry="5.5" fill="#ffc400" opacity=".3" filter="url(#ef-glow)"/>
-    <ellipse cx="122.5" cy="85" rx="10" ry="5.5" fill="#ffc400" opacity=".3" filter="url(#ef-glow)"/>
-    <!-- Eye dots behind goggles -->
-    <circle cx="77.5" cy="85" r="3" fill="#ffc400" opacity=".7"/>
-    <circle cx="122.5" cy="85" r="3" fill="#ffc400" opacity=".7"/>
-    <!-- Goggle strap -->
-    <path d="M56 82 Q48 80 44 85" stroke="#ff9100" stroke-width="1.2" fill="none" opacity=".4"/>
-    <path d="M144 82 Q152 80 156 85" stroke="#ff9100" stroke-width="1.2" fill="none" opacity=".4"/>
-    
-    <!-- Mouth — slight grimace -->
-    <path d="M88 104 Q100 108 112 104" stroke="#2e1a00" stroke-width="1" fill="none" opacity=".3"/>
-    
-    <!-- SAFETY VEST -->
-    <path d="M48 128 L62 114 L78 122 L100 116 L122 122 L138 114 L152 128
-      L158 240 Q130 234 100 235 Q70 234 42 240 Z"
-      fill="#1a0e00" stroke="#4a2800" stroke-width="1.2"/>
+    <rect x="78" y="28" width="44" height="18" rx="7" fill="#ffc400" opacity=".7"/>
+    <ellipse cx="100" cy="37" rx="10" ry="6" fill="#fff" opacity=".45"/>
+    <!-- Face -->
+    <ellipse cx="100" cy="95" rx="40" ry="40" fill="#1a0e00"/>
+    <!-- Goggles -->
+    <rect x="56" y="80" width="38" height="20" rx="9" fill="#2e1a00" stroke="#ff9100" stroke-width="1.8"/>
+    <rect x="106" y="80" width="38" height="20" rx="9" fill="#2e1a00" stroke="#ff9100" stroke-width="1.8"/>
+    <line x1="94" y1="90" x2="106" y2="90" stroke="#ff9100" stroke-width="1.8" opacity=".6"/>
+    <!-- Goggle lenses -->
+    <circle cx="75" cy="90" r="5" fill="#ffc400" opacity=".5"/>
+    <circle cx="125" cy="90" r="5" fill="#ffc400" opacity=".5"/>
+    <!-- Safety vest -->
+    <path d="M44 140 L62 122 L82 132 L100 124 L118 132 L138 122 L156 140
+      L162 270 Q130 264 100 265 Q70 264 38 270 Z"
+      fill="#1a0e00" stroke="#4a2800" stroke-width="1.5"/>
     <!-- Hi-vis V stripes -->
-    <line x1="52" y1="160" x2="100" y2="130" stroke="#ff9100" stroke-width="4" opacity=".35"/>
-    <line x1="148" y1="160" x2="100" y2="130" stroke="#ff9100" stroke-width="4" opacity=".35"/>
-    <line x1="52" y1="175" x2="100" y2="145" stroke="#ffc400" stroke-width="2.5" opacity=".2"/>
-    <line x1="148" y1="175" x2="100" y2="145" stroke="#ffc400" stroke-width="2.5" opacity=".2"/>
+    <line x1="48" y1="175" x2="100" y2="140" stroke="#ff9100" stroke-width="5" opacity=".35"/>
+    <line x1="152" y1="175" x2="100" y2="140" stroke="#ff9100" stroke-width="5" opacity=".35"/>
     <!-- Horizontal stripes -->
-    <rect x="48" y="200" width="104" height="4" rx="1" fill="#ff9100" opacity=".25"/>
-    <rect x="48" y="215" width="104" height="4" rx="1" fill="#ffc400" opacity=".15"/>
-    
-    <!-- Clipboard in left hand -->
-    <rect x="28" y="155" width="30" height="40" rx="3" fill="#2e1a00" stroke="#4a2800" stroke-width="1"/>
-    <rect x="30" y="153" width="26" height="6" rx="2" fill="#4a2800" opacity=".6"/>
-    <!-- Paper lines on clipboard -->
-    <line x1="33" y1="166" x2="53" y2="166" stroke="#ff9100" stroke-width=".6" opacity=".3"/>
-    <line x1="33" y1="172" x2="53" y2="172" stroke="#ff9100" stroke-width=".6" opacity=".3"/>
-    <line x1="33" y1="178" x2="48" y2="178" stroke="#ff9100" stroke-width=".6" opacity=".3"/>
-    <line x1="33" y1="184" x2="53" y2="184" stroke="#ff9100" stroke-width=".6" opacity=".3"/>
-    <!-- Pen -->
-    <line x1="56" y1="154" x2="60" y2="140" stroke="#ffc400" stroke-width="1.5" opacity=".5"/>
-    
+    <rect x="44" y="220" width="112" height="5" rx="2" fill="#ff9100" opacity=".25"/>
+    <rect x="44" y="240" width="112" height="5" rx="2" fill="#ffc400" opacity=".15"/>
+    <!-- Clipboard -->
+    <rect x="156" y="175" width="35" height="50" rx="4" fill="#2e1a00" stroke="#4a2800" stroke-width="1"/>
+    <line x1="161" y1="190" x2="186" y2="190" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
+    <line x1="161" y1="198" x2="186" y2="198" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
+    <line x1="161" y1="206" x2="180" y2="206" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
     <!-- ID badge -->
-    <rect x="85" y="140" width="30" height="20" rx="3" fill="#ff9100" opacity=".15" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
-    <text x="100" y="154" text-anchor="middle" fill="#ff9100" font-size="8" font-family="var(--mono)" opacity=".5">ENG</text>
+    <rect x="82" y="152" width="36" height="24" rx="4" fill="#ff9100" opacity=".15" stroke="#ff9100" stroke-width=".8"/>
+    <text x="100" y="168" text-anchor="middle" fill="#ff9100" font-size="10" font-family="monospace" opacity=".5">ENG</text>
   </svg>`;
 }
 
 /* ═══════════════════════════════════════════════════
-   FULL SILHOUETTES — for reveal scenes (breach, chat)
-   These are taller ~420px figures for cinematic moments
+   FULL SILHOUETTES — for reveal scenes (~420px)
 ═══════════════════════════════════════════════════ */
 
 function silUnknownFull() {
@@ -1122,54 +1022,34 @@ function silUnknownFull() {
         <stop offset="0%" stop-color="rgba(0,229,255,.08)"/>
         <stop offset="100%" stop-color="transparent"/>
       </radialGradient>
-      <filter id="ug-glow">
-        <feGaussianBlur stdDeviation="4" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
     </defs>
     <ellipse cx="100" cy="415" rx="80" ry="15" fill="url(#ug)"/>
-    
-    <!-- FEDORA -->
-    <ellipse cx="100" cy="62" rx="68" ry="14" fill="#081520" stroke="#1a3a55" stroke-width="1.2"/>
-    <path d="M34 62 Q48 20 100 15 Q152 20 166 62 Z" fill="#0c1a2e" stroke="#1a3a55" stroke-width="1.5"/>
-    <path d="M58 32 Q100 22 142 32 Q128 42 100 40 Q72 42 58 32 Z" fill="#081520" opacity=".4"/>
-    <rect x="42" y="54" width="116" height="5" rx="2" fill="#00e5ff" opacity=".18"/>
-    
+    <!-- Fedora -->
+    <ellipse cx="100" cy="62" rx="72" ry="14" fill="#c8a000" stroke="#8a6e00" stroke-width="1.5"/>
+    <path d="M30 62 Q46 16 100 10 Q154 16 170 62 Z" fill="#dab200" stroke="#8a6e00" stroke-width="1.8"/>
+    <path d="M56 28 Q100 18 144 28 Q130 40 100 38 Q70 40 56 28 Z" fill="#c8a000" opacity=".4"/>
+    <rect x="38" y="54" width="124" height="6" rx="2" fill="#8a6e00" opacity=".4"/>
     <!-- Face -->
-    <ellipse cx="100" cy="90" rx="38" ry="40" fill="#060e18"/>
-    <path d="M68 98 Q100 128 132 98" stroke="#0a1828" stroke-width="1.5" fill="none" opacity=".3"/>
-    
-    <!-- Eyes -->
-    <ellipse cx="84" cy="84" rx="8" ry="5.5" fill="#00e5ff" opacity=".85" filter="url(#ug-glow)"/>
-    <ellipse cx="116" cy="84" rx="8" ry="5.5" fill="#00e5ff" opacity=".85" filter="url(#ug-glow)"/>
-    <ellipse cx="85.5" cy="83.5" rx="2.8" ry="2" fill="#fff" opacity=".4"/>
-    <ellipse cx="117.5" cy="83.5" rx="2.8" ry="2" fill="#fff" opacity=".4"/>
-    
-    <!-- TRENCH COAT body -->
-    <path d="M42 135 L58 118 L74 128 L100 120 L126 128 L142 118 L158 135
-      L168 380 Q140 370 100 372 Q60 370 32 380 Z"
-      fill="#0c1a2e" stroke="#1a3a55" stroke-width="1.5"/>
+    <ellipse cx="100" cy="95" rx="42" ry="44" fill="#000"/>
+    <!-- Trench coat -->
+    <path d="M38 145 L58 122 L78 135 L100 125 L122 135 L142 122 L162 145
+      L170 380 Q140 370 100 372 Q60 370 30 380 Z"
+      fill="#c8a000" stroke="#8a6e00" stroke-width="1.8"/>
     <!-- Lapels -->
-    <path d="M74 128 L86 155 L100 142 L114 155 L126 128 L100 120 Z" 
-      fill="#081520" stroke="#1a3a55" stroke-width=".8"/>
-    <!-- Collar turned up -->
-    <path d="M58 118 L42 135 L52 142 L74 128 Z" fill="#101d30" stroke="#1a3a55" stroke-width="1"/>
-    <path d="M142 118 L158 135 L148 142 L126 128 Z" fill="#101d30" stroke="#1a3a55" stroke-width="1"/>
-    <!-- Center + buttons -->
-    <line x1="100" y1="142" x2="100" y2="372" stroke="#1a3a55" stroke-width=".8" opacity=".4"/>
-    <circle cx="100" cy="175" r="3.5" fill="#1a3a55" opacity=".5"/>
-    <circle cx="100" cy="210" r="3.5" fill="#1a3a55" opacity=".5"/>
-    <circle cx="100" cy="245" r="3.5" fill="#1a3a55" opacity=".5"/>
+    <path d="M78 135 L90 168 L100 152 L110 168 L122 135 L100 125 Z" fill="#dab200"/>
+    <!-- Collar up -->
+    <path d="M58 122 L38 145 L52 152 L78 135 Z" fill="#dab200"/>
+    <path d="M142 122 L162 145 L148 152 L122 135 Z" fill="#dab200"/>
+    <!-- Red tie -->
+    <polygon points="95,130 105,130 108,260 92,260" fill="#cc2200"/>
+    <!-- Buttons -->
+    <circle cx="100" cy="280" r="4" fill="#8a6e00" opacity=".4"/>
+    <circle cx="100" cy="310" r="4" fill="#8a6e00" opacity=".4"/>
     <!-- Belt -->
-    <rect x="40" y="265" width="120" height="6" rx="2" fill="#081520" stroke="#1a3a55" stroke-width=".8"/>
-    <rect x="90" y="263" width="20" height="10" rx="3" fill="#1a3a55" opacity=".4"/>
-    <!-- Coat split below belt -->
-    <path d="M100 280 L100 372" stroke="#1a3a55" stroke-width=".8" opacity=".3"/>
-    <path d="M65 380 L100 280 L135 380" stroke="#1a3a55" stroke-width=".6" fill="none" opacity=".2"/>
-    
+    <rect x="38" y="330" width="124" height="6" rx="2" fill="#8a6e00" opacity=".4"/>
     <!-- Smoke -->
-    <path d="M155 115 Q160 95 152 75 Q158 55 150 35" stroke="#1a3a55" stroke-width="1.2" fill="none" opacity=".18">
-      <animate attributeName="d" values="M155 115 Q160 95 152 75 Q158 55 150 35;M155 115 Q162 92 156 72 Q162 48 156 28;M155 115 Q160 95 152 75 Q158 55 150 35" dur="4s" repeatCount="indefinite"/>
+    <path d="M158 115 Q164 95 156 75 Q162 55 154 35" stroke="#8a6e00" stroke-width="1.2" fill="none" opacity=".18">
+      <animate attributeName="d" values="M158 115 Q164 95 156 75 Q162 55 154 35;M158 115 Q166 92 160 72 Q166 48 160 28;M158 115 Q164 95 156 75 Q162 55 154 35" dur="4s" repeatCount="indefinite"/>
     </path>
   </svg>`;
 }
@@ -1183,42 +1063,33 @@ function silEngineerFull() {
       </radialGradient>
     </defs>
     <ellipse cx="100" cy="415" rx="80" ry="15" fill="url(#eg)"/>
-    
     <!-- Hard hat -->
-    <path d="M38 55 Q50 14 100 10 Q150 14 162 55 Z" fill="#ff9100" opacity=".7" stroke="#cc7000" stroke-width="1.2"/>
-    <ellipse cx="100" cy="55" rx="66" ry="12" fill="#ff9100" opacity=".6" stroke="#cc7000" stroke-width="1"/>
-    <!-- Headlamp -->
-    <rect x="80" y="26" width="40" height="18" rx="7" fill="#ffc400" opacity=".6"/>
-    <ellipse cx="100" cy="35" rx="9" ry="6" fill="#fff" opacity=".4"/>
-    
+    <path d="M34 58 Q50 14 100 8 Q150 14 166 58 Z" fill="#ff9100" opacity=".75"/>
+    <ellipse cx="100" cy="58" rx="68" ry="12" fill="#ff9100" opacity=".65"/>
+    <rect x="78" y="26" width="44" height="18" rx="7" fill="#ffc400" opacity=".6"/>
+    <ellipse cx="100" cy="35" rx="10" ry="6" fill="#fff" opacity=".4"/>
     <!-- Face -->
-    <ellipse cx="100" cy="90" rx="36" ry="38" fill="#1a0e00"/>
+    <ellipse cx="100" cy="95" rx="40" ry="40" fill="#1a0e00"/>
     <!-- Goggles -->
-    <rect x="60" y="76" width="35" height="18" rx="8" fill="#2e1a00" stroke="#ff9100" stroke-width="1.5"/>
-    <rect x="105" y="76" width="35" height="18" rx="8" fill="#2e1a00" stroke="#ff9100" stroke-width="1.5"/>
-    <line x1="95" y1="85" x2="105" y2="85" stroke="#ff9100" stroke-width="1.5" opacity=".5"/>
-    <circle cx="77.5" cy="85" r="4" fill="#ffc400" opacity=".6"/>
-    <circle cx="122.5" cy="85" r="4" fill="#ffc400" opacity=".6"/>
-    
-    <!-- Safety vest body -->
-    <path d="M48 135 L65 118 L80 126 L100 120 L120 126 L135 118 L152 135
-      L160 380 Q130 370 100 372 Q70 370 40 380 Z"
+    <rect x="56" y="80" width="38" height="20" rx="9" fill="#2e1a00" stroke="#ff9100" stroke-width="1.8"/>
+    <rect x="106" y="80" width="38" height="20" rx="9" fill="#2e1a00" stroke="#ff9100" stroke-width="1.8"/>
+    <line x1="94" y1="90" x2="106" y2="90" stroke="#ff9100" stroke-width="1.8" opacity=".5"/>
+    <circle cx="75" cy="90" r="5" fill="#ffc400" opacity=".55"/>
+    <circle cx="125" cy="90" r="5" fill="#ffc400" opacity=".55"/>
+    <!-- Safety vest -->
+    <path d="M44 145 L65 122 L82 132 L100 124 L118 132 L135 122 L156 145
+      L164 380 Q130 370 100 372 Q70 370 36 380 Z"
       fill="#1a0e00" stroke="#4a2800" stroke-width="1.5"/>
-    <!-- Hi-vis stripes -->
-    <line x1="52" y1="180" x2="100" y2="140" stroke="#ff9100" stroke-width="5" opacity=".3"/>
-    <line x1="148" y1="180" x2="100" y2="140" stroke="#ff9100" stroke-width="5" opacity=".3"/>
-    <rect x="46" y="280" width="108" height="6" rx="2" fill="#ff9100" opacity=".2"/>
-    <rect x="46" y="310" width="108" height="6" rx="2" fill="#ffc400" opacity=".12"/>
-    
+    <!-- Hi-vis -->
+    <line x1="48" y1="190" x2="100" y2="148" stroke="#ff9100" stroke-width="5" opacity=".3"/>
+    <line x1="152" y1="190" x2="100" y2="148" stroke="#ff9100" stroke-width="5" opacity=".3"/>
+    <rect x="42" y="290" width="116" height="6" rx="2" fill="#ff9100" opacity=".2"/>
+    <rect x="42" y="320" width="116" height="6" rx="2" fill="#ffc400" opacity=".12"/>
     <!-- Clipboard -->
-    <rect x="155" y="180" width="35" height="50" rx="4" fill="#2e1a00" stroke="#4a2800" stroke-width="1"/>
-    <line x1="160" y1="195" x2="185" y2="195" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
-    <line x1="160" y1="203" x2="185" y2="203" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
-    <line x1="160" y1="211" x2="178" y2="211" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
-    
-    <!-- ID badge -->
-    <rect x="82" y="148" width="36" height="24" rx="4" fill="#ff9100" opacity=".15" stroke="#ff9100" stroke-width=".8"/>
-    <text x="100" y="164" text-anchor="middle" fill="#ff9100" font-size="10" font-family="monospace" opacity=".5">ENG</text>
+    <rect x="158" y="185" width="36" height="52" rx="4" fill="#2e1a00" stroke="#4a2800" stroke-width="1"/>
+    <line x1="163" y1="200" x2="189" y2="200" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
+    <line x1="163" y1="208" x2="189" y2="208" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
+    <line x1="163" y1="216" x2="182" y2="216" stroke="#ff9100" stroke-width=".8" opacity=".3"/>
   </svg>`;
 }
 
@@ -1429,7 +1300,7 @@ function showSilhouette(svgHtml, dur = 3500) {
    Phase 1  (3–5s):     Subtle text corruption
    Phase 2  (5–7s):     Heavy corruption, errors
    Phase 3  (7–10s):    FULL GLITCH — scanlines, blocks, junk text
-   Phase 3b (10–15s):   POPUP AVALANCHE — 22 fake windows,
+   Phase 3b (10–15s):   POPUP AVALANCHE — 26 fake windows,
                          error dialogs, browser tabs, found
                          "personal files", meme images from
                          YOUR laptop FILL the entire screen
@@ -1529,7 +1400,7 @@ function spawnPopup(cfg) {
   return pop;
 }
 
-/* ── ALL THE POPUPS — 22 total, filling the entire screen ── */
+/* ── ALL THE POPUPS — 26 total, filling the entire screen ── */
 function buildAllPopups() {
   return [
 
@@ -1812,8 +1683,68 @@ function buildAllPopups() {
           <span style="color:#ff3d5a;">&nbsp;&nbsp;(out of stock)</span>
         </div></div>` },
 
-    // 22. Final — salute emoji overlay
-    { x: 50, y: 50, w: 160, delay: 2500, z: 30,
+    // ═══ WAVE 5: ULTIMATE CHAOS — YouTube, rickroll, memes (2400–3200ms) ═══
+
+    // 22. Fake YouTube — Macarena
+    { x: 55, y: 45, w: 320, delay: 2450, z: 26,
+      html: `<div style="background:#0f0f0f;border:1px solid #333;">
+        <div class="fp-bar" style="background:#202020;color:#fff;font-size:10px;">
+          <span style="color:#ff0000;font-weight:900;margin-right:4px;">▶</span>
+          <span style="flex:1;">YouTube</span><span style="color:#666;">✕</span></div>
+        <div style="background:#000;padding:20px 0;text-align:center;">
+          <div style="font-size:52px;">💃🕺</div>
+          <div style="height:4px;background:#333;margin:8px 16px;border-radius:2px;">
+            <div style="width:34%;height:100%;background:#ff0000;border-radius:2px;"></div></div>
+          <div style="font-size:8px;color:#aaa;padding:0 16px;display:flex;justify-content:space-between;">
+            <span>1:23</span><span>3:38</span></div>
+        </div>
+        <div style="padding:8px 12px;">
+          <div style="color:#fff;font-weight:700;font-size:11px;">Los del Rio - Macarena (Official Video)</div>
+          <div style="color:#aaa;font-size:9px;">12,847,293,842 views · 1993</div>
+          <div style="color:#3ea6ff;font-size:9px;margin-top:2px;">♪ Daaale a tu cuerpo alegría Macarena ♪</div>
+        </div></div>` },
+
+    // 23. Fake YouTube — rickroll
+    { x: 28, y: 52, w: 300, delay: 2600, z: 27,
+      html: `<div style="background:#0f0f0f;border:1px solid #333;">
+        <div class="fp-bar" style="background:#202020;color:#fff;font-size:10px;">
+          <span style="color:#ff0000;font-weight:900;margin-right:4px;">▶</span>
+          <span style="flex:1;">YouTube</span><span style="color:#666;">✕</span></div>
+        <div style="background:#000;padding:18px 0;text-align:center;">
+          <div style="font-size:48px;">🕺🎤</div>
+          <div style="height:4px;background:#333;margin:8px 16px;border-radius:2px;">
+            <div style="width:67%;height:100%;background:#ff0000;border-radius:2px;"></div></div>
+        </div>
+        <div style="padding:8px 12px;">
+          <div style="color:#fff;font-weight:700;font-size:11px;">Rick Astley - Never Gonna Give You Up</div>
+          <div style="color:#aaa;font-size:9px;">1,658,302,117 views · 2009</div>
+          <div style="color:#3ea6ff;font-size:9px;margin-top:2px;">♪ Never gonna let you down ♪</div>
+        </div></div>` },
+
+    // 24. Fake image — "student_life.jpg" — chaos meme
+    { x: 75, y: 25, w: 200, delay: 2750, z: 28,
+      html: `<div style="background:#111;border:2px solid #334155;">
+        <div class="fp-bar" style="background:#0a0a0a;color:#666;">
+          <span style="flex:1;">🖼️ student_life.jpg</span><span>✕</span></div>
+        <div style="padding:16px;background:#111;text-align:center;">
+          <div style="font-size:36px;margin-bottom:6px;">📚➡️😴➡️😱➡️💀</div>
+          <div style="font-size:9px;color:#666;">The semester in 4 emojis</div>
+        </div></div>` },
+
+    // 25. Fake Instagram DM notification
+    { x: 20, y: 78, w: 270, delay: 2850, z: 29,
+      html: `<div style="background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);border-radius:12px;padding:2px;">
+        <div style="background:#1a1a1a;border-radius:10px;">
+          <div class="fp-body" style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#833ab4,#fd1d1d);
+              display:flex;align-items:center;justify-content:center;font-size:16px;">📸</div>
+            <div style="flex:1;">
+              <div style="color:#fff;font-weight:700;font-size:11px;">Instagram</div>
+              <div style="color:#8e8e8e;font-size:10px;">bestie_forever: "LOL are you getting hacked rn?? 😂😂"</div>
+            </div></div></div></div>` },
+
+    // 26. Final — salute emoji overlay (bumped delay)
+    { x: 50, y: 50, w: 160, delay: 3100, z: 35,
       html: `<div style="background:rgba(0,0,0,.9);border:3px solid #ffc400;">
         <div style="padding:20px;text-align:center;">
           <div style="font-size:72px;">🫡</div>
@@ -1920,7 +1851,7 @@ function startBreach() {
     setTimeout(() => sfxGlitch(), 2200);
 
     /* ── Phase 3b: POPUP AVALANCHE (10–15s) ──
-       22 popups spawn over 2.5 seconds.
+       26 popups spawn over 2.5 seconds.
        They stack, overlap, and FILL the entire screen.
        Then they all go CRAZY — shaking, bouncing, drifting.
        More spawn. They relocate. Total chaos.
@@ -2080,28 +2011,21 @@ const CHAT_INTRO = [
   { side: 'them', name: 'UNKNOWN', text: '...', typing: 1400 },
   { side: 'them', name: 'UNKNOWN', text: 'Connection established. Encrypted. Level 5.', delay: 400, cls: 'cls' },
   { side: 'me', name: 'YOU', text: 'Who is this?', delay: 700, pending: true },
-  { side: 'them', name: 'UNKNOWN', text: 'Someone who has been watching your class for three weeks.', delay: 900, typing: 1200 },
-  { side: 'them', name: 'UNKNOWN', text: 'Digital Innovation and Management. University of Bergamo.', delay: 600 },
-  { side: 'them', name: 'UNKNOWN', text: 'You study how products are built — from customer need to engineering specification.', delay: 700 },
-  { side: 'me', name: 'YOU', text: '…how do you know that?', delay: 800, pending: true },
-  { side: 'them', name: 'UNKNOWN', text: 'Because I need your help. I am patching through our field operative now.', delay: 700, cls: 'cls' },
+  { side: 'them', name: 'UNKNOWN', text: 'Someone who has been watching your class. Digital Innovation and Management. University of Bergamo.', delay: 800, typing: 1100 },
+  { side: 'me', name: 'YOU', text: '…how do you know that?', delay: 700, pending: true },
+  { side: 'them', name: 'UNKNOWN', text: 'Because I need your help. Patching through our field operative now.', delay: 600, cls: 'cls' },
 
-  // ── OMEGA speaks in first person ──
+  // ── OMEGA speaks ──
   { side: 'them', name: 'OMEGA', text: 'This is OMEGA. I don\'t have much time.', delay: 800, typing: 900, avatar: 'omega' },
-  { side: 'them', name: 'OMEGA', text: 'I\'m in the field. My cover depends on intercepting communications without being detected.', delay: 700, avatar: 'omega' },
-  { side: 'them', name: 'OMEGA', text: 'My standard-issue headphones failed two days ago. Background noise is compromising every transmission I receive.', delay: 800, avatar: 'omega', cls: 'urg' },
-  { side: 'them', name: 'OMEGA', text: 'I need custom noise-cancelling headphones. They must block ambient noise, last through a full operation, and be light enough to wear for hours without fatigue.', delay: 900, avatar: 'omega' },
-  { side: 'them', name: 'OMEGA', text: 'And they must cost what the agency budget allows — not a euro more.', delay: 600, avatar: 'omega' },
-  { side: 'me', name: 'YOU', text: 'What exactly do you need us to do?', delay: 800, pending: true },
+  { side: 'them', name: 'OMEGA', text: 'My headphones failed. Background noise is compromising every transmission I receive.', delay: 700, avatar: 'omega', cls: 'urg' },
+  { side: 'them', name: 'OMEGA', text: 'I need custom noise-cancelling headphones — light, long-lasting, within budget. No compromises on what matters.', delay: 800, avatar: 'omega' },
+  { side: 'me', name: 'YOU', text: 'What do you need us to do?', delay: 700, pending: true },
 
-  // ── UNKNOWN takes over with mission structure ──
-  { side: 'them', name: 'UNKNOWN', text: 'You will build the product specification sheet for OMEGA\'s headphones.', delay: 600 },
-  { side: 'them', name: 'UNKNOWN', text: 'Not a wishlist. A precise, measurable contract between what OMEGA needs and what engineering can deliver.', delay: 800 },
-  { side: 'them', name: 'UNKNOWN', text: 'Seven steps. Each teaches a concept from Chapter 6, then tests it under pressure.', delay: 700, typing: 1100 },
-  { side: 'them', name: 'UNKNOWN', text: 'Every choice has consequences — cost, weight, performance. There is no perfect answer.', delay: 600 },
-  { side: 'them', name: 'UNKNOWN', text: 'Only the least dangerous compromise.', delay: 400, cls: 'urg' },
-  { side: 'them', name: 'UNKNOWN', text: 'Get the specs wrong — OMEGA does not come home.', delay: 600, cls: 'urg' },
-  { side: 'me', name: 'YOU', text: "Let's begin.", delay: 600, pending: true, last: true },
+  // ── UNKNOWN mission brief ──
+  { side: 'them', name: 'UNKNOWN', text: 'Build the product specification sheet. Not a wishlist — a precise, measurable contract.', delay: 700 },
+  { side: 'them', name: 'UNKNOWN', text: 'Seven steps. Every choice has consequences. There is no perfect answer — only the least dangerous compromise.', delay: 700 },
+  { side: 'them', name: 'UNKNOWN', text: 'Get the specs wrong — OMEGA does not come home.', delay: 500, cls: 'urg' },
+  { side: 'me', name: 'YOU', text: "Let's begin.", delay: 500, pending: true, last: true },
 ];
 
 
@@ -2119,65 +2043,47 @@ function buildChatBetween(step) {
 
   const scripts = {
     1: [
-      { side: 'them', name: 'UNKNOWN', text: 'Step 1 complete. Results incoming.', delay: 300, cls: 'cls' },
       { side: 'them', name: 'UNKNOWN', text: '__LB__', delay: 400 },
-      { side: 'them', name: 'UNKNOWN', text: `${best} — sharp instincts. You understood immediately that customer language is not engineering language.`, delay: 700 },
-      ...(worst ? [{ side: 'them', name: 'UNKNOWN', text: `${worst} — remember: "block all noise" means nothing to an engineer. No units, no threshold, no test method. Ten engineers would build ten different products.`, delay: 600, cls: 'urg' }] : []),
-      { side: 'them', name: 'OMEGA', text: 'I told you what I need. But "block all noise" is my language, not yours. Turn it into numbers.', delay: 700, avatar: 'omega' },
-      { side: 'them', name: 'UNKNOWN', text: 'Key concept: customer needs are subjective. Before ANY engineering, translate them into measurable metrics — dependent variables with units and thresholds.', delay: 700 },
-      { side: 'me', name: 'YOU', text: 'Moving to metrics.', delay: 500, pending: true, last: true },
+      { side: 'them', name: 'UNKNOWN', text: `${best} — you understood that customer language is not engineering language.`, delay: 600 },
+      ...(worst ? [{ side: 'them', name: 'UNKNOWN', text: `${worst} — "block all noise" has no units, no threshold. That is the problem.`, delay: 500, cls: 'urg' }] : []),
+      { side: 'them', name: 'OMEGA', text: '"Block all noise" is my language, not yours. Turn it into numbers.', delay: 600, avatar: 'omega' },
+      { side: 'me', name: 'YOU', text: 'Moving to metrics.', delay: 400, pending: true, last: true },
     ],
     2: [
-      { side: 'them', name: 'UNKNOWN', text: 'Metrics mapped. Reviewing.', delay: 300, cls: 'cls' },
       { side: 'them', name: 'UNKNOWN', text: '__LB__', delay: 400 },
-      { side: 'them', name: 'UNKNOWN', text: `${best} — you know the difference between WHAT and HOW. That discipline will save this mission.`, delay: 600 },
-      ...(worst ? [{ side: 'them', name: 'UNKNOWN', text: `${worst} — "carbon fiber" is a design decision, not a specification. Specifications are dependent variables: "mass < 300g" lets engineers choose ANY material. (Ch.6, p.96)`, delay: 700, cls: 'urg' }] : []),
-      { side: 'them', name: 'UNKNOWN', text: 'Key concept: metrics measure OUTPUT. They say what the product must deliver — not how to build it.', delay: 700 },
-      { side: 'them', name: 'UNKNOWN', text: 'Now: you have metrics. Next you set TARGET values — the numbers you aim for.', delay: 500 },
-      { side: 'them', name: 'UNKNOWN', text: 'But targets come in pairs: an Ideal — what you hope for — and a Marginal — the floor below which the product fails commercially.', delay: 700 },
-      { side: 'me', name: 'YOU', text: 'Setting target values.', delay: 500, pending: true, last: true },
+      { side: 'them', name: 'UNKNOWN', text: `${best} — you know the difference between WHAT and HOW.`, delay: 500 },
+      ...(worst ? [{ side: 'them', name: 'UNKNOWN', text: `${worst} — "carbon fiber" is a design decision, not a spec. "Mass < 300g" is the correct metric.`, delay: 600, cls: 'urg' }] : []),
+      { side: 'them', name: 'UNKNOWN', text: 'Now set TARGET values: an Ideal (aspiration) and a Marginal (survival floor).', delay: 600 },
+      { side: 'me', name: 'YOU', text: 'Setting target values.', delay: 400, pending: true, last: true },
     ],
     3: [
-      { side: 'them', name: 'UNKNOWN', text: 'Target specs confirmed.', delay: 300, cls: 'cls' },
       { side: 'them', name: 'UNKNOWN', text: '__LB__', delay: 400 },
-      { side: 'them', name: 'UNKNOWN', text: `${best} — your targets show strategic thinking. Ambitious but grounded.`, delay: 600 },
-      { side: 'them', name: 'UNKNOWN', text: 'Key concept: Ideal = aspiration. Marginal = survival floor. Both are set BEFORE concept selection — these are TARGET specs.', delay: 700 },
-      { side: 'them', name: 'UNKNOWN', text: 'And that word — TARGET — matters. Target specs are written when you DON\'T yet know what the technology allows. They express what the market requires.', delay: 700 },
-      { side: 'them', name: 'UNKNOWN', text: 'Later, after concept selection, you will write FINAL specs. Those are constrained by real engineering limits. The gap between target and final is where trade-offs live.', delay: 800, cls: 'urg' },
-      { side: 'them', name: 'UNKNOWN', text: 'But first — targets are hopes. Time to face reality. I am bringing in a specialist.', delay: 600, cls: 'cls' },
-      { side: 'them', name: 'ENGINEER', text: 'Production Engineer online. I\'ve reviewed your target specifications.', delay: 800, cls: 'eng', avatar: 'eng' },
-      { side: 'them', name: 'ENGINEER', text: 'Impressive numbers on paper. Now let me show you what they actually cost to build.', delay: 700, cls: 'eng', avatar: 'eng' },
-      { side: 'them', name: 'ENGINEER', text: 'Target specs say "I want ANC ≥ 40dB." My Bill of Materials says "That chip costs €45." That is the reality check.', delay: 800, cls: 'eng', avatar: 'eng' },
-      { side: 'them', name: 'ENGINEER', text: 'The BOM is a cost model. Like the technical model predicts performance, the BOM predicts manufacturing cost from your design decisions. I use it for what-if analysis — before we build a single prototype.', delay: 800, cls: 'eng', avatar: 'eng' },
-      { side: 'me', name: 'YOU', text: 'Show us what it costs.', delay: 600, pending: true, last: true },
+      { side: 'them', name: 'UNKNOWN', text: 'Remember: these are TARGET specs — set BEFORE you know what\'s buildable. FINAL specs come after concept selection.', delay: 700 },
+      { side: 'them', name: 'UNKNOWN', text: 'Targets are hopes. Now face reality. Bringing in a specialist.', delay: 500, cls: 'cls' },
+      { side: 'them', name: 'ENGINEER', text: 'Production Engineer online. Your target says "ANC ≥ 40dB." My BOM says "That chip costs €45."', delay: 800, avatar: 'eng' },
+      { side: 'them', name: 'ENGINEER', text: 'The BOM is a cost model — it predicts what your design decisions actually cost.', delay: 600, avatar: 'eng' },
+      { side: 'me', name: 'YOU', text: 'Show us what it costs.', delay: 400, pending: true, last: true },
     ],
     4: [
-      { side: 'them', name: 'ENGINEER', text: 'BOM finalized. I have the numbers.', delay: 300, cls: 'eng', avatar: 'eng' },
       { side: 'them', name: 'UNKNOWN', text: '__LB__', delay: 400 },
-      { side: 'them', name: 'UNKNOWN', text: `${best} — your component choices were calculated. Good instincts.`, delay: 600 },
-      { side: 'them', name: 'ENGINEER', text: 'Key concept: every spec improvement has a cost. Premium ANC = €45 vs €18. Carbon fiber = €60 more than plastic. The BOM shows exactly where every euro goes.', delay: 800, cls: 'eng', avatar: 'eng' },
-      { side: 'them', name: 'UNKNOWN', text: 'Now the critical question: can the market afford what you built?', delay: 600, cls: 'urg' },
-      { side: 'them', name: 'UNKNOWN', text: 'Because you don\'t set the price. The market does. And now we find out if your BOM fits inside that price.', delay: 600 },
-      { side: 'me', name: 'YOU', text: 'Running target costing.', delay: 500, pending: true, last: true },
+      { side: 'them', name: 'UNKNOWN', text: `${best} — your component choices were calculated.`, delay: 500 },
+      { side: 'them', name: 'ENGINEER', text: 'Every spec improvement has a cost. Premium ANC = €45 vs €18. The BOM shows where every euro goes.', delay: 700, avatar: 'eng' },
+      { side: 'them', name: 'UNKNOWN', text: 'Can the market afford what you built? You don\'t set the price — the market does.', delay: 600, cls: 'urg' },
+      { side: 'me', name: 'YOU', text: 'Running target costing.', delay: 400, pending: true, last: true },
     ],
     5: [
-      { side: 'them', name: 'UNKNOWN', text: 'C* calculated. The verdict is in.', delay: 300, cls: 'cls' },
       { side: 'them', name: 'UNKNOWN', text: '__LB__', delay: 400 },
-      { side: 'them', name: 'UNKNOWN', text: 'Some of you are over budget. Some are not. Both groups face trade-offs.', delay: 600, cls: 'urg' },
-      { side: 'them', name: 'UNKNOWN', text: 'Key concept: target costing reverses cost-plus logic. The market sets the price. C* = Price × (1 − retailer margin) × (1 − manufacturer margin). Everything above C* is a problem you must solve.', delay: 800 },
-      { side: 'them', name: 'OMEGA', text: 'I don\'t care about your spreadsheets. I care about the headphones working when I\'m in the field.', delay: 700, avatar: 'omega', cls: 'urg' },
-      { side: 'them', name: 'UNKNOWN', text: 'And that is exactly the tension. OMEGA wants performance. The market demands a price. You are caught in the middle.', delay: 600 },
-      { side: 'them', name: 'UNKNOWN', text: 'Now you make the hard choices.', delay: 400 },
-      { side: 'me', name: 'YOU', text: 'Making trade-offs.', delay: 500, pending: true, last: true },
+      { side: 'them', name: 'UNKNOWN', text: 'C* = Price × (1−Mᵣ) × (1−Mₘ). Everything above C* is a problem.', delay: 600 },
+      { side: 'them', name: 'OMEGA', text: 'I don\'t care about your spreadsheets. I care about the headphones working.', delay: 600, avatar: 'omega', cls: 'urg' },
+      { side: 'them', name: 'UNKNOWN', text: 'OMEGA wants performance. The market demands a price. Now you choose.', delay: 500 },
+      { side: 'me', name: 'YOU', text: 'Making trade-offs.', delay: 400, pending: true, last: true },
     ],
     6: [
-      { side: 'them', name: 'UNKNOWN', text: 'Spec sheets locked. Final specifications are set.', delay: 300, cls: 'cls' },
       { side: 'them', name: 'UNKNOWN', text: '__LB__', delay: 400 },
-      { side: 'them', name: 'UNKNOWN', text: `${best} — your trade-offs were surgical. OMEGA would approve.`, delay: 600 },
-      { side: 'them', name: 'UNKNOWN', text: 'Key concept: trade-offs are inevitable. They happen between metrics (ANC vs weight) AND between performance and cost. The final spec is not the ideal — it is the least dangerous compromise.', delay: 800 },
-      { side: 'them', name: 'UNKNOWN', text: 'Notice: these are now your FINAL specs. They replaced the targets from Step 3. You started with aspirations and ended with reality. That is exactly how product development works.', delay: 800 },
-      { side: 'them', name: 'UNKNOWN', text: 'One final test. Prove you understood — not just the buttons, but the theory behind every step.', delay: 600 },
-      { side: 'me', name: 'YOU', text: 'Ready.', delay: 500, pending: true, last: true },
+      { side: 'them', name: 'UNKNOWN', text: `${best} — your trade-offs were surgical.`, delay: 500 },
+      { side: 'them', name: 'UNKNOWN', text: 'These are now FINAL specs — they replaced your targets from Step 3. Aspirations became reality.', delay: 700 },
+      { side: 'them', name: 'UNKNOWN', text: 'One final test. Prove you understood the theory.', delay: 500 },
+      { side: 'me', name: 'YOU', text: 'Ready.', delay: 400, pending: true, last: true },
     ],
   };
   return scripts[step] || [];
@@ -2301,11 +2207,21 @@ function renderChatMsg(msg) {
   const wrap = document.getElementById('chat-msgs');
   const d = document.createElement('div');
   d.className = 'cmsg ' + msg.side;
+  // Auto character color class
+  let charCls = '';
+  let nameCls = '';
+  if (msg.side === 'them') {
+    if (msg.name === 'OMEGA') { charCls = 'c-omega'; nameCls = 'cn-omega'; }
+    else if (msg.name === 'ENGINEER') { charCls = 'c-eng'; nameCls = 'cn-eng'; }
+    else { charCls = 'c-unk'; nameCls = 'cn-unk'; }
+  }
+  // Explicit cls overrides (urg, cls)
+  const extraCls = msg.cls === 'urg' ? ' urg' : msg.cls === 'cls' ? ' cls' : '';
   d.innerHTML = `
     ${getAvatar(msg)}
     <div class="cmsg-inner">
-      <div class="cname">${msg.name}</div>
-      <div class="cbub${msg.cls ? ' ' + msg.cls : ''}">${msg.text}</div>
+      <div class="cname ${nameCls}">${msg.name}</div>
+      <div class="cbub ${charCls}${extraCls}">${msg.text}</div>
     </div>`;
   wrap.appendChild(d);
   scrollChat();
@@ -2534,10 +2450,10 @@ function showFinal() {
   const closingChat = [
     { side: 'them', name: 'UNKNOWN', text: 'All spec sheets received. Analyzing.', delay: 300, cls: 'cls' },
     { side: 'them', name: 'UNKNOWN', text: wName.toUpperCase() + ' — your specification sheet has been selected for production.', delay: 700, cls: 'cls' },
-    { side: 'them', name: 'OMEGA', text: 'Equipment received. Headphones operational. Noise cancellation confirmed.', delay: 700, avatar: 'omega', cls: 'urg' },
-    { side: 'them', name: 'OMEGA', text: 'Communications restored. Proceeding with the mission. Thank you.', delay: 600, avatar: 'omega' },
-    { side: 'them', name: 'UNKNOWN', text: 'Good work. This channel is now closed. — OMEGA HANDLER', delay: 400, cls: 'cls' },
-    { side: 'me', name: 'YOU', text: 'Mission accomplished.', delay: 600, pending: true, last: true },
+    { side: 'them', name: 'OMEGA', text: 'Putting the headphones on now. …silence. Finally, silence.', delay: 800, avatar: 'omega' },
+    { side: 'them', name: 'OMEGA', text: 'Noise cancellation operational. Communications crystal clear. Thank you — all of you.', delay: 700, avatar: 'omega' },
+    { side: 'them', name: 'UNKNOWN', text: 'Good work. Channel closing. — OMEGA HANDLER', delay: 400, cls: 'cls' },
+    { side: 'me', name: 'YOU', text: 'Mission accomplished.', delay: 500, pending: true, last: true },
   ];
 
   runChat(closingChat, () => {
@@ -3751,7 +3667,7 @@ function showMobFinal() {
         …silence. Finally, silence.<br>
         Noise cancellation: operational.<br>
         Communications: crystal clear.<br>
-        Thank you. All of you.<br>
+        Thank you — all of you.<br>
         Proceeding with the mission."
       </div>
     </div>
@@ -3774,7 +3690,18 @@ function showMobFinal() {
     </div>
 
     <!-- Leaderboard (filled by Ably) -->
-    <div id="mfinal-lb" style="width:100%;max-width:360px;"></div>`;
+    <div id="mfinal-lb" style="width:100%;max-width:360px;"></div>
+
+    <!-- Real world message -->
+    <div style="width:100%;max-width:360px;margin-top:16px;background:rgba(255,196,0,.04);
+      border:1px solid rgba(255,196,0,.15);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:.78rem;color:var(--txt);line-height:1.6;">
+        This was a simplified mission — but the process is real. Every product around you went through these exact steps.
+      </div>
+      <div style="font-size:.78rem;color:var(--gold);line-height:1.6;margin-top:6px;">
+        The world is full of problems waiting to be translated into specifications. Headphones were just the beginning.
+      </div>
+    </div>`;
 
   // Generate twinkling stars
   const sb = document.getElementById('stars-final');
