@@ -5,1066 +5,629 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SPECMASTER · Operation Silent Ear</title>
 <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
+/* ══════════════════════════════════
+   DESIGN SYSTEM
+   Dark intelligence aesthetic.
+   Syne for impact, Space Mono for data, DM Sans for body.
+══════════════════════════════════ */
 :root{
-  --bg:#020810;--s1:#07111e;--s2:#0c1a2e;--bd:#1a2e48;
-  --cyan:#00e5ff;--gold:#ffc400;--grn:#00e676;--red:#ff3d5a;--pur:#b366ff;
-  --txt:#d4eaf8;--mut:#2e4a62;--r:14px;
-  --mono:'Share Tech Mono',monospace;--sans:'Inter',sans-serif;
+  --bg:#06090f;--s1:#0d1117;--s2:#161b22;--s3:#1c2333;
+  --bd:#21262d;--bd2:#30363d;
+  --cyan:#58a6ff;--gold:#d29922;--grn:#3fb950;--red:#f85149;--pur:#bc8cff;
+  --txt:#c9d1d9;--dim:#484f58;--white:#e6edf3;
+  --r:10px;
+  --mono:'Space Mono',monospace;--head:'Syne',sans-serif;--body:'DM Sans',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
-body{font-family:var(--sans);color:var(--txt);}
-canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+body{font-family:var(--body);color:var(--txt);}
 
-/* screens */
+/* ── SCREENS ── */
 .scr{position:absolute;inset:0;z-index:10;opacity:0;pointer-events:none;
-  transition:opacity .35s;overflow-y:auto;}
+  transition:opacity .4s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .scr::-webkit-scrollbar{display:none;}
 .scr.on{opacity:1;pointer-events:all;}
 
-/* toast */
-#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);
-  background:var(--s1);border:1px solid var(--cyan);border-radius:30px;
-  padding:9px 22px;font-size:.82rem;z-index:999;pointer-events:none;
-  white-space:nowrap;transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+/* ── TOAST ── */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);
+  background:var(--s2);border:1px solid var(--bd2);border-radius:8px;
+  padding:10px 20px;font-size:.8rem;z-index:999;pointer-events:none;
+  font-family:var(--mono);color:var(--cyan);white-space:nowrap;
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 8px 32px rgba(0,0,0,.5);}
 #toast.on{transform:translateX(-50%) translateY(0);}
 
-/* glitch */
-#gov{position:fixed;inset:0;z-index:800;pointer-events:none;opacity:0;background:#fff;}
-#gtxt{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:820;
-  font-family:var(--mono);font-size:clamp(.9rem,2.5vw,1.3rem);color:var(--red);
-  text-align:center;opacity:0;line-height:2.2;letter-spacing:.08em;
-  text-shadow:3px 0 var(--cyan),-3px 0 var(--red);}
-@keyframes gsh{0%,100%{transform:translate(-50%,-50%);}
-  25%{transform:translate(-52%,-49%);}75%{transform:translate(-48%,-51%);}}
-/* ── OMEGA FINAL SCENE ── */
-@keyframes omegawalk{
-  0%{left:-40px;opacity:0;}
-  20%{opacity:1;}
-  100%{left:calc(50% - 16px);opacity:1;}
-}
-@keyframes wavefade{0%{opacity:0;}100%{opacity:1;}}
-@keyframes flashsuccess{0%,100%{opacity:0;}50%{opacity:1;}}
-@keyframes textin{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-</style>
-<style>
-/* ══ BUTTONS ══ */
-.btn{display:flex;align-items:center;justify-content:center;gap:7px;
-  width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;
-  font-family:'Orbitron',monospace;font-size:.72rem;font-weight:700;
-  letter-spacing:.1em;transition:all .18s;position:relative;overflow:hidden;}
-.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.07);
-  opacity:0;transition:.15s;}
-.btn:hover::after,.btn:active::after{opacity:1;}
+/* ── GLITCH OVERLAY ── */
+#glitch-overlay{position:fixed;inset:0;z-index:800;pointer-events:none;}
+
+/* ── BUTTONS ── */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:14px;border-radius:8px;border:1px solid var(--bd);
+  cursor:pointer;font-family:var(--mono);font-size:.72rem;font-weight:700;
+  letter-spacing:.06em;transition:all .15s;position:relative;
+  background:var(--s2);color:var(--txt);}
 .btn:active{transform:scale(.97);}
-.bp{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;
-  box-shadow:0 0 22px rgba(0,229,255,.28);}
-.bs{background:var(--s2);border:1px solid var(--bd);color:var(--txt);}
-.bg{background:linear-gradient(135deg,var(--grn),#007a3d);color:#000;}
-.by{background:linear-gradient(135deg,var(--gold),#cc7000);color:#000;}
-.btn-sm{padding:10px 14px;font-size:.62rem;width:auto;}
+.btn.primary{background:var(--cyan);color:#000;border-color:var(--cyan);
+  box-shadow:0 0 20px rgba(88,166,255,.15);}
+.btn.primary:hover{box-shadow:0 0 30px rgba(88,166,255,.3);}
+.btn.danger{background:rgba(248,81,73,.12);border-color:var(--red);color:var(--red);}
+.btn.success{background:rgba(63,185,80,.12);border-color:var(--grn);color:var(--grn);}
+.btn.gold{background:rgba(210,153,34,.12);border-color:var(--gold);color:var(--gold);}
+.btn-sm{padding:10px 14px;font-size:.65rem;width:auto;}
 
-/* ══ KAHOOT FAKE ══ */
-#s-kahoot{display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:32px 20px;background:#fff;font-family:'Nunito',sans-serif;}
-.kh-head{width:100%;max-width:480px;background:#46178f;border-radius:14px;
-  padding:20px 24px;text-align:center;margin-bottom:24px;}
-.kh-head h1{color:#fff;font-size:clamp(1.5rem,5vw,2.2rem);font-weight:900;margin-bottom:4px;}
-.kh-head p{color:rgba(255,255,255,.7);font-size:.84rem;}
-.kh-card{width:100%;max-width:480px;background:#f0f0f0;border-radius:12px;
-  padding:22px;margin-bottom:20px;}
-.kh-card h2{color:#333;font-size:1rem;font-weight:800;margin-bottom:8px;}
-.kh-card p{color:#555;font-size:.86rem;line-height:1.6;}
-.kh-pins{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-.kh-pin{background:#fff;border:2px solid #e0e0e0;border-radius:8px;
-  padding:5px 12px;font-size:.76rem;font-weight:700;color:#333;}
-.kh-btn{width:100%;max-width:480px;padding:16px;border-radius:12px;border:none;
-  background:#ff3355;color:#fff;font-family:'Nunito',sans-serif;
-  font-size:1.1rem;font-weight:900;cursor:pointer;
-  box-shadow:0 4px 16px rgba(255,51,85,.4);transition:transform .1s;margin-bottom:12px;}
-.kh-btn:active{transform:scale(.98);}
-.kh-foot{font-size:.7rem;color:#999;text-align:center;}
-.skip-btn{margin-top:10px;background:transparent;border:1px solid #ccc;
-  border-radius:8px;padding:6px 16px;color:#bbb;font-size:.7rem;cursor:pointer;}
+/* ── CARD ── */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;}
 
-/* ══ CHAT ══ */
-#s-hchat{display:flex;flex-direction:column;background:var(--bg);padding:0;}
-#chat-wrap{flex:1;display:flex;flex-direction:column;max-width:700px;
-  width:100%;margin:0 auto;overflow:hidden;}
-#chat-hdr{padding:14px 20px;background:rgba(7,17,30,.98);
-  border-bottom:1px solid var(--bd);flex-shrink:0;}
-.ch-sig{display:flex;align-items:center;gap:8px;font-family:var(--mono);
-  font-size:.56rem;letter-spacing:.14em;color:var(--mut);margin-bottom:4px;}
-#sig-dot{width:7px;height:7px;border-radius:50%;background:var(--red);
-  animation:sigp 1s ease-in-out infinite;}
-#sig-dot.live{background:var(--grn);}
-@keyframes sigp{0%,100%{opacity:1;}50%{opacity:.25;}}
-.ch-from{font-family:'Orbitron',monospace;font-size:.72rem;font-weight:700;
-  color:var(--cyan);text-shadow:0 0 12px rgba(0,229,255,.45);}
-#chat-msgs{flex:1;overflow-y:auto;padding:16px 14px 8px;
-  display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
-#chat-msgs::-webkit-scrollbar{display:none;}
-.cmsg{max-width:80%;}
-.cmsg.them{align-self:flex-start;animation:msgL .32s cubic-bezier(.34,1.4,.64,1) both;}
-.cmsg.me{align-self:flex-end;animation:msgR .32s cubic-bezier(.34,1.4,.64,1) both;}
-@keyframes msgL{from{opacity:0;transform:translateX(-14px) scale(.95);}to{opacity:1;transform:none;}}
-@keyframes msgR{from{opacity:0;transform:translateX(14px) scale(.95);}to{opacity:1;transform:none;}}
-.cname{font-family:var(--mono);font-size:.54rem;letter-spacing:.1em;
-  color:var(--mut);margin-bottom:3px;padding:0 4px;}
-.cmsg.me .cname{text-align:right;color:rgba(0,229,255,.5);}
-.cbub{padding:11px 15px;border-radius:18px;font-size:.86rem;line-height:1.6;}
-.cmsg.them .cbub{background:var(--s1);border:1px solid var(--bd);
-  color:var(--txt);border-bottom-left-radius:4px;}
-.cmsg.me .cbub{background:rgba(0,229,255,.13);border:1px solid rgba(0,229,255,.28);
-  color:#b8e8f8;border-bottom-right-radius:4px;}
-.cbub.urg{border-color:rgba(255,61,90,.55)!important;background:rgba(255,61,90,.09)!important;}
-.cbub.cls{border-color:rgba(255,196,0,.45)!important;background:rgba(255,196,0,.07)!important;
-  font-family:var(--mono);font-size:.78rem;color:var(--gold)!important;}
-.cmsg-pending{align-self:flex-end;max-width:80%;
-  animation:msgR .32s cubic-bezier(.34,1.4,.64,1) both;}
-.cpend-lbl{font-family:var(--mono);font-size:.52rem;letter-spacing:.1em;
-  color:rgba(0,229,255,.4);margin-bottom:3px;text-align:right;padding:0 4px;}
-.cpend-bub{padding:11px 15px;border-radius:18px;border-bottom-right-radius:4px;
-  font-size:.86rem;line-height:1.6;background:rgba(0,229,255,.07);
-  border:2px dashed rgba(0,229,255,.4);color:rgba(184,232,248,.6);
-  cursor:pointer;transition:all .2s;}
-.cpend-bub:hover{background:rgba(0,229,255,.16);border-color:var(--cyan);color:#b8e8f8;}
-#chat-typing{padding:0 14px;flex-shrink:0;display:none;}
-.tbub{display:inline-flex;gap:4px;align-items:center;background:var(--s1);
-  border:1px solid var(--bd);padding:9px 14px;border-radius:18px;border-bottom-left-radius:4px;}
-.tbub span{width:6px;height:6px;background:var(--mut);border-radius:50%;animation:td 1.2s infinite;}
-.tbub span:nth-child(2){animation-delay:.2s;}.tbub span:nth-child(3){animation-delay:.4s;}
-@keyframes td{0%,80%,100%{transform:scale(1);opacity:.4;}40%{transform:scale(1.3);opacity:1;}}
-#chat-foot{padding:10px 14px;border-top:1px solid var(--bd);background:rgba(7,17,30,.95);
-  flex-shrink:0;max-width:700px;width:100%;margin:0 auto;}
-#chat-cta{font-size:.7rem;color:var(--mut);font-family:var(--mono);
-  text-align:center;letter-spacing:.1em;min-height:18px;}
-
-/* ══ HOST LOBBY ══ */
-#s-hlobby{display:flex;flex-direction:column;align-items:center;padding:28px 20px 40px;}
-.room-code{font-family:'Orbitron',monospace;font-size:2.8rem;color:var(--cyan);
-  letter-spacing:.22em;text-shadow:0 0 28px rgba(0,229,255,.5);}
-.qr-img{border-radius:12px;border:2px solid var(--cyan);width:155px;height:155px;display:block;}
-.ppill{display:inline-flex;align-items:center;gap:5px;background:var(--s2);
-  border:1px solid var(--bd);border-radius:20px;padding:5px 12px;margin:3px;
-  font-size:.78rem;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both;}
-@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
-.wdots span{animation:wd 1.3s infinite;display:inline-block;}
-.wdots span:nth-child(2){animation-delay:.22s;}.wdots span:nth-child(3){animation-delay:.44s;}
-@keyframes wd{0%,80%,100%{opacity:.15;}40%{opacity:1;}}
-
-/* ══ HOST GAME — the key redesign ══ */
-#s-hgame{display:flex;flex-direction:column;align-items:center;padding:0 0 40px;}
-
-/* mini terminal — fixed top, only 3 lines */
-#mini-term{
-  width:100%;background:rgba(2,8,16,.97);border-bottom:1px solid var(--bd);
-  padding:8px 20px;flex-shrink:0;
-  font-family:var(--mono);font-size:.72rem;color:#4a7a9b;line-height:1.7;
-  min-height:52px;max-height:72px;overflow:hidden;
-}
-#mini-term .tc{color:var(--cyan);}
-#mini-term .ty{color:var(--gold);}
-#mini-term .tr{color:var(--red);}
-#mini-term .tg{color:var(--grn);}
-
-/* main step panel — big and clear */
-#step-panel{
-  width:100%;max-width:860px;padding:28px 32px;
-}
-
-/* step header */
-.sp-badge{
-  display:inline-block;font-family:var(--mono);font-size:.62rem;
-  letter-spacing:.18em;color:var(--cyan);background:rgba(0,229,255,.08);
-  border:1px solid rgba(0,229,255,.25);padding:5px 16px;border-radius:20px;
-  margin-bottom:14px;
-}
-.sp-title{
-  font-family:'Orbitron',monospace;font-size:clamp(1.4rem,3.5vw,2rem);
-  font-weight:900;color:#fff;margin-bottom:16px;line-height:1.2;
-}
-
-/* two-column theory + instructions */
-.sp-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
-.sp-theory{
-  background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.2);
-  border-top:3px solid var(--cyan);border-radius:0 0 12px 12px;padding:16px 18px;
-}
-.sp-instr{
-  background:rgba(255,196,0,.04);border:1px solid rgba(255,196,0,.2);
-  border-top:3px solid var(--gold);border-radius:0 0 12px 12px;padding:16px 18px;
-}
-.sp-col-label{
-  font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;
-  margin-bottom:10px;font-weight:700;
-}
-.sp-theory .sp-col-label{color:var(--cyan);}
-.sp-instr .sp-col-label{color:var(--gold);}
-.sp-theory-text{font-size:.9rem;line-height:1.75;color:#8ab8d4;}
-.sp-theory-text strong{color:var(--cyan);}
-.sp-instr-text{font-size:.9rem;line-height:1.9;color:#e8c060;}
-.sp-instr-text li{margin-left:16px;margin-bottom:3px;}
-
-/* progress row */
-.sp-progress{
-  display:flex;align-items:center;gap:14px;
-  background:var(--s1);border:1px solid var(--bd);border-radius:12px;
-  padding:14px 18px;margin-bottom:16px;
-}
-.sp-prog-label{font-family:var(--mono);font-size:.65rem;color:var(--mut);white-space:nowrap;}
-.sp-prog-bar{flex:1;height:8px;background:var(--bd);border-radius:4px;overflow:hidden;}
-.sp-prog-fill{height:100%;background:var(--grn);border-radius:4px;transition:width .5s ease;}
-.sp-prog-count{font-family:var(--mono);font-size:.85rem;color:var(--grn);
-  font-weight:700;white-space:nowrap;min-width:60px;text-align:right;}
-
-/* action buttons */
-.sp-btns{display:flex;gap:12px;flex-wrap:wrap;}
-.sp-btns .btn{flex:1;min-width:160px;font-size:.75rem;padding:16px;}
-
-/* HOST FINAL */
-#s-hdash{display:flex;flex-direction:column;align-items:center;padding:24px 20px 40px;}
-.lb-row{display:flex;align-items:center;gap:12px;background:var(--s1);
-  border:1px solid var(--bd);border-radius:12px;padding:13px 16px;
-  margin-bottom:7px;width:100%;max-width:720px;
-  animation:sup .4s ease both;}
-@keyframes sup{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
-.agent-card{background:var(--s2);border:1px solid var(--bd);border-radius:12px;
-  padding:13px 16px;margin-bottom:8px;width:100%;max-width:720px;}
-.bar-row{display:flex;align-items:center;gap:8px;margin-top:4px;}
-.bar-lbl{font-size:.63rem;color:var(--mut);width:56px;flex-shrink:0;font-family:var(--mono);}
-.bar-bg{flex:1;height:5px;background:var(--bd);border-radius:3px;}
-.bar-fill{height:100%;border-radius:3px;}
-
-/* ══ MOBILE HUD ══ */
-#mob-hud{position:fixed;top:0;left:0;right:0;height:46px;z-index:200;
-  display:flex;align-items:center;padding:0 13px;gap:9px;
-  background:rgba(2,8,16,.95);border-bottom:1px solid var(--bd);
-  backdrop-filter:blur(14px);opacity:0;transition:opacity .3s;pointer-events:none;}
-#mob-hud.on{opacity:1;}
-#mhl{font-family:var(--mono);font-size:.56rem;color:var(--cyan);letter-spacing:.12em;}
+/* ── MOBILE HUD ── */
+#mob-hud{position:fixed;top:0;left:0;right:0;height:44px;z-index:200;
+  display:flex;align-items:center;padding:0 14px;gap:10px;
+  background:rgba(6,9,15,.96);border-bottom:1px solid var(--bd);
+  backdrop-filter:blur(12px);opacity:0;transition:opacity .3s;pointer-events:none;}
+#mob-hud.on{opacity:1;pointer-events:auto;}
+#mhl{font-family:var(--mono);font-size:.55rem;color:var(--cyan);letter-spacing:.1em;white-space:nowrap;}
 #mhbar{flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden;}
-#mhfill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--pur));
-  border-radius:2px;transition:width .6s ease;}
-#mhpts{font-family:var(--mono);font-size:.63rem;color:var(--gold);}
-#timer-strip{position:fixed;top:46px;left:0;right:0;height:3px;z-index:199;
-  background:var(--bd);display:none;}
-#tfill{height:100%;background:var(--gold);transition:width .5s linear;}
-#tfill.urg{background:var(--red);}
+#mhfill{height:100%;background:var(--cyan);border-radius:2px;transition:width .6s ease;width:0%;}
+#mhpts{font-family:var(--mono);font-size:.65rem;color:var(--gold);}
 
-/* ══ MOBILE COMPONENTS ══ */
-.mob{display:flex;flex-direction:column;align-items:center;padding:12px 14px 40px;}
-.stag{font-family:var(--mono);font-size:.56rem;letter-spacing:.15em;color:var(--cyan);
-  background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);
-  padding:4px 12px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;}
-.instr{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);
-  border-left:3px solid var(--cyan);border-radius:10px;
-  padding:12px 14px;margin-bottom:12px;font-size:.8rem;line-height:1.65;
-  color:#7ab8d4;width:100%;}
-.instr strong{color:var(--cyan);}
-.itag{font-family:var(--mono);font-size:.58rem;color:var(--gold);
-  letter-spacing:.1em;display:block;margin-bottom:5px;}
-.mc{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
-  padding:14px;width:100%;margin-bottom:10px;}
-.mc.glow{border-color:rgba(0,229,255,.35);}
-.mc.gold{border-color:rgba(255,196,0,.3);}
-.gsel{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);
-  padding:11px 13px;border-radius:10px;font-size:.84rem;outline:none;
-  font-family:var(--sans);appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232e4a62' stroke-width='1.8' fill='none'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
-.gsel:focus{border-color:var(--cyan);}
-input[type=range]{width:100%;height:6px;-webkit-appearance:none;appearance:none;
-  background:var(--bd);border-radius:3px;outline:none;cursor:pointer;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;
-  background:var(--cyan);border-radius:50%;border:3px solid var(--bg);
-  box-shadow:0 0 8px rgba(0,229,255,.6);cursor:pointer;transition:transform .12s;}
-input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
-.slrow{margin-bottom:14px;}
-.sltop{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.slname{font-size:.84rem;font-weight:600;}
-.slval{font-family:var(--mono);font-size:.84rem;color:var(--cyan);
-  background:rgba(0,229,255,.1);padding:2px 10px;border-radius:5px;}
-.crow{display:flex;justify-content:space-between;align-items:flex-start;
-  background:var(--s2);border:1px solid var(--bd);border-radius:10px;
-  padding:10px 13px;margin-bottom:6px;font-size:.8rem;gap:10px;}
-.crow.cg{border-color:rgba(0,230,118,.4);background:rgba(0,230,118,.05);}
-.crow.cr{border-color:rgba(255,61,90,.4);background:rgba(255,61,90,.05);}
-.camt{font-family:var(--mono);font-size:.84rem;font-weight:700;white-space:nowrap;flex-shrink:0;}
-.tcell{background:var(--s2);border:2px solid var(--bd);border-radius:10px;
-  padding:12px 10px;font-size:.78rem;font-weight:600;text-align:center;
-  cursor:pointer;transition:all .18s;line-height:1.5;}
-.tcell.pick{border-color:var(--grn);background:rgba(0,230,118,.08);color:var(--grn);}
-.qopt{width:100%;padding:14px 15px;background:var(--s2);border:2px solid var(--bd);
-  border-radius:12px;margin-bottom:8px;font-size:.88rem;font-weight:600;
-  cursor:pointer;text-align:left;color:var(--txt);transition:all .18s;}
-.qopt.ok{border-color:var(--grn);background:rgba(0,230,118,.1);color:var(--grn);}
-.qopt.bad{border-color:var(--red);background:rgba(255,61,90,.1);color:var(--red);}
-.qopt:disabled{cursor:default;}
-.fb{padding:11px 13px;border-radius:10px;font-size:.76rem;line-height:1.5;
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+@keyframes scanline{0%{top:-4px;}100%{top:100%;}}
+@keyframes typeChar{from{width:0;}to{width:100%;}}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
+@keyframes glitchH{
+  0%{clip-path:inset(40% 0 61% 0);}20%{clip-path:inset(92% 0 1% 0);}
+  40%{clip-path:inset(43% 0 1% 0);}60%{clip-path:inset(25% 0 58% 0);}
+  80%{clip-path:inset(54% 0 7% 0);}100%{clip-path:inset(58% 0 43% 0);}
+}
+
+/* ── KAHOOT FAKE ── */
+#s-kahoot{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:32px 20px;background:#f2f2f2;font-family:'Nunito',sans-serif;}
+.kh-banner{width:100%;max-width:460px;background:#46178f;border-radius:12px;
+  padding:24px;text-align:center;margin-bottom:20px;position:relative;overflow:hidden;}
+.kh-banner h1{color:#fff;font-size:clamp(1.4rem,5vw,2rem);font-weight:900;margin-bottom:2px;}
+.kh-banner p{color:rgba(255,255,255,.65);font-size:.82rem;}
+.kh-body{width:100%;max-width:460px;background:#fff;border-radius:10px;
+  padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);}
+.kh-body h2{color:#333;font-size:.95rem;font-weight:800;margin-bottom:6px;}
+.kh-body p{color:#666;font-size:.82rem;line-height:1.55;}
+.kh-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.kh-chip{background:#f5f5f5;border:1.5px solid #e0e0e0;border-radius:6px;
+  padding:4px 10px;font-size:.7rem;font-weight:700;color:#555;}
+.kh-go{width:100%;max-width:460px;padding:16px;border-radius:10px;border:none;
+  background:#e21b3c;color:#fff;font-family:'Nunito',sans-serif;
+  font-size:1.05rem;font-weight:900;cursor:pointer;
+  box-shadow:0 4px 16px rgba(226,27,60,.35);transition:all .15s;}
+.kh-go:active{transform:scale(.98);}
+.kh-foot{font-size:.68rem;color:#aaa;text-align:center;margin-top:12px;}
+
+/* ── CHAT ── */
+#s-hchat{display:flex;flex-direction:column;background:var(--bg);}
+#chat-wrap{flex:1;display:flex;flex-direction:column;max-width:640px;
+  width:100%;margin:0 auto;overflow:hidden;}
+#chat-hdr{padding:12px 18px;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.ch-sig{display:flex;align-items:center;gap:6px;font-family:var(--mono);
+  font-size:.52rem;letter-spacing:.12em;color:var(--dim);margin-bottom:3px;}
+.ch-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite;}
+.ch-dot.live{background:var(--grn);}
+.ch-from{font-family:var(--head);font-size:.78rem;font-weight:800;
+  color:var(--cyan);letter-spacing:.04em;}
+#chat-msgs{flex:1;overflow-y:auto;padding:14px 12px 8px;
+  display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth;}
+#chat-msgs::-webkit-scrollbar{display:none;}
+.cmsg{max-width:82%;}
+.cmsg.them{align-self:flex-start;animation:fadeUp .3s ease both;}
+.cmsg.me{align-self:flex-end;animation:fadeUp .3s ease both;}
+.cname{font-family:var(--mono);font-size:.5rem;letter-spacing:.08em;
+  color:var(--dim);margin-bottom:2px;padding:0 4px;}
+.cmsg.me .cname{text-align:right;color:rgba(88,166,255,.5);}
+.cbub{padding:10px 14px;border-radius:14px;font-size:.84rem;line-height:1.55;}
+.cmsg.them .cbub{background:var(--s2);border:1px solid var(--bd);
+  color:var(--txt);border-bottom-left-radius:4px;}
+.cmsg.me .cbub{background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.2);
+  color:var(--cyan);border-bottom-right-radius:4px;}
+.cbub.warn{border-color:rgba(248,81,73,.4)!important;background:rgba(248,81,73,.06)!important;}
+.cbub.classified{border-color:rgba(210,153,34,.35)!important;
+  background:rgba(210,153,34,.05)!important;font-family:var(--mono);font-size:.76rem;color:var(--gold)!important;}
+.cpend{align-self:flex-end;max-width:82%;animation:fadeUp .3s ease both;}
+.cpend-lbl{font-family:var(--mono);font-size:.48rem;letter-spacing:.08em;
+  color:rgba(88,166,255,.4);margin-bottom:2px;text-align:right;padding:0 4px;}
+.cpend-bub{padding:10px 14px;border-radius:14px;border-bottom-right-radius:4px;
+  font-size:.84rem;line-height:1.55;background:rgba(88,166,255,.05);
+  border:1.5px dashed rgba(88,166,255,.35);color:rgba(88,166,255,.55);
+  cursor:pointer;transition:all .2s;}
+.cpend-bub:hover,.cpend-bub:active{background:rgba(88,166,255,.12);
+  border-color:var(--cyan);color:var(--cyan);}
+#chat-typing{padding:0 12px;flex-shrink:0;display:none;}
+.typing-dots{display:inline-flex;gap:4px;align-items:center;background:var(--s2);
+  border:1px solid var(--bd);padding:8px 12px;border-radius:14px;border-bottom-left-radius:4px;}
+.typing-dots span{width:5px;height:5px;background:var(--dim);border-radius:50%;animation:pulse 1.2s infinite;}
+.typing-dots span:nth-child(2){animation-delay:.2s;}
+.typing-dots span:nth-child(3){animation-delay:.4s;}
+#chat-foot{padding:8px 14px;border-top:1px solid var(--bd);background:var(--s1);
+  flex-shrink:0;max-width:640px;width:100%;margin:0 auto;}
+#chat-cta{font-size:.65rem;color:var(--dim);font-family:var(--mono);
+  text-align:center;letter-spacing:.08em;min-height:16px;}
+
+/* ── HOST LOBBY ── */
+#s-hlobby .lobby-inner{display:flex;flex-direction:column;align-items:center;
+  padding:28px 20px 40px;width:100%;min-height:100vh;justify-content:center;}
+.room-code{font-family:var(--head);font-size:clamp(2.2rem,8vw,3.4rem);color:var(--white);
+  font-weight:800;letter-spacing:.18em;
+  text-shadow:0 0 40px rgba(88,166,255,.3);}
+.ppill{display:inline-flex;align-items:center;gap:5px;background:var(--s2);
+  border:1px solid var(--bd);border-radius:6px;padding:5px 12px;margin:3px;
+  font-size:.75rem;font-family:var(--mono);animation:fadeUp .3s ease both;}
+
+/* ── HOST GAME ── */
+#s-hgame{display:flex;flex-direction:column;}
+#mini-term{width:100%;background:var(--s1);border-bottom:1px solid var(--bd);
+  padding:8px 18px;flex-shrink:0;font-family:var(--mono);font-size:.68rem;
+  color:var(--dim);line-height:1.7;min-height:48px;max-height:68px;overflow:hidden;}
+#mini-term .tc{color:var(--cyan);}#mini-term .tg{color:var(--grn);}
+#mini-term .ty{color:var(--gold);}#mini-term .tr{color:var(--red);}
+#step-panel{width:100%;max-width:900px;margin:0 auto;padding:24px 28px;overflow-y:auto;flex:1;}
+#step-panel::-webkit-scrollbar{display:none;}
+.sp-badge{display:inline-block;font-family:var(--mono);font-size:.58rem;
+  letter-spacing:.14em;color:var(--cyan);background:rgba(88,166,255,.08);
+  border:1px solid rgba(88,166,255,.2);padding:4px 14px;border-radius:4px;margin-bottom:12px;}
+.sp-title{font-family:var(--head);font-size:clamp(1.3rem,3vw,1.8rem);
+  font-weight:800;color:var(--white);margin-bottom:16px;line-height:1.2;}
+.sp-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+@media(max-width:640px){.sp-cols{grid-template-columns:1fr;}}
+.sp-box{border:1px solid var(--bd);border-radius:var(--r);padding:16px;}
+.sp-box.theory{background:rgba(88,166,255,.03);border-top:2px solid var(--cyan);}
+.sp-box.task{background:rgba(210,153,34,.03);border-top:2px solid var(--gold);}
+.sp-box-label{font-family:var(--mono);font-size:.55rem;letter-spacing:.14em;
+  margin-bottom:8px;font-weight:700;}
+.sp-box.theory .sp-box-label{color:var(--cyan);}
+.sp-box.task .sp-box-label{color:var(--gold);}
+.sp-box-text{font-size:.85rem;line-height:1.7;color:var(--txt);}
+.sp-box-text strong{color:var(--white);}
+.sp-progress{display:flex;align-items:center;gap:12px;
+  background:var(--s1);border:1px solid var(--bd);border-radius:8px;
+  padding:12px 16px;margin-bottom:14px;}
+.sp-prog-label{font-family:var(--mono);font-size:.6rem;color:var(--dim);white-space:nowrap;}
+.sp-prog-bar{flex:1;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.sp-prog-fill{height:100%;background:var(--grn);border-radius:3px;transition:width .5s ease;width:0%;}
+.sp-prog-count{font-family:var(--mono);font-size:.78rem;color:var(--grn);font-weight:700;white-space:nowrap;}
+.sp-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.sp-btns .btn{flex:1;min-width:140px;}
+
+/* ── MOBILE COMPONENTS ── */
+.mob{display:flex;flex-direction:column;align-items:center;padding:14px 16px 40px;}
+.stag{font-family:var(--mono);font-size:.52rem;letter-spacing:.14em;color:var(--cyan);
+  background:rgba(88,166,255,.07);border:1px solid rgba(88,166,255,.18);
+  padding:3px 12px;border-radius:4px;margin-bottom:10px;}
+
+/* Opening question box */
+.oq-box{width:100%;background:var(--s1);border:1px solid var(--bd);
+  border-left:3px solid var(--pur);border-radius:0 var(--r) var(--r) 0;
+  padding:14px 16px;margin-bottom:14px;}
+.oq-label{font-family:var(--mono);font-size:.52rem;letter-spacing:.12em;
+  color:var(--pur);margin-bottom:6px;display:block;}
+.oq-text{font-size:.88rem;font-weight:600;line-height:1.5;color:var(--white);}
+.oq-opts{width:100%;margin-bottom:14px;}
+.oq-opt{width:100%;padding:12px 14px;background:var(--s2);border:1.5px solid var(--bd);
+  border-radius:8px;margin-bottom:6px;font-size:.84rem;font-weight:600;
+  cursor:pointer;text-align:left;color:var(--txt);transition:all .15s;font-family:var(--body);}
+.oq-opt.correct{border-color:var(--grn);background:rgba(63,185,80,.08);color:var(--grn);}
+.oq-opt.wrong{border-color:var(--red);background:rgba(248,81,73,.06);color:var(--red);}
+.oq-opt:disabled{cursor:default;opacity:.8;}
+
+/* Instruction box */
+.instr-box{width:100%;background:rgba(88,166,255,.04);border:1px solid rgba(88,166,255,.15);
+  border-left:3px solid var(--cyan);border-radius:0 var(--r) var(--r) 0;
+  padding:12px 14px;margin-bottom:12px;font-size:.82rem;line-height:1.6;color:var(--txt);}
+.instr-box strong{color:var(--cyan);}
+.instr-label{font-family:var(--mono);font-size:.52rem;letter-spacing:.1em;
+  color:var(--gold);display:block;margin-bottom:4px;}
+
+/* Debrief box */
+.debrief-box{width:100%;background:rgba(210,153,34,.04);border:1px solid rgba(210,153,34,.2);
+  border-left:3px solid var(--gold);border-radius:0 var(--r) var(--r) 0;
+  padding:12px 14px;margin-bottom:12px;font-size:.8rem;line-height:1.65;color:var(--gold);}
+.debrief-box strong{color:var(--white);}
+
+/* Feedback */
+.fb{padding:10px 12px;border-radius:8px;font-size:.78rem;line-height:1.5;
   margin-top:8px;width:100%;}
-.fb.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.25);color:#5eea9a;}
-.fb.bad{background:rgba(255,61,90,.07);border:1px solid rgba(255,61,90,.25);color:#ff7a8a;}
-.fb.warn{background:rgba(255,196,0,.07);border:1px solid rgba(255,196,0,.25);color:#e8c060;}
+.fb.ok{background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);color:var(--grn);}
+.fb.bad{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.2);color:var(--red);}
+.fb.info{background:rgba(210,153,34,.06);border:1px solid rgba(210,153,34,.2);color:var(--gold);}
+
+/* Select */
+.gsel{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);
+  padding:10px 12px;border-radius:8px;font-size:.82rem;outline:none;
+  font-family:var(--body);appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 5 5-5' stroke='%23484f58' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;}
+.gsel:focus{border-color:var(--cyan);}
+
+/* Number input */
+.num-input{width:100%;background:var(--s2);border:1.5px solid var(--bd);
+  color:var(--txt);padding:10px;border-radius:8px;font-family:var(--mono);
+  font-size:1.1rem;text-align:center;outline:none;-webkit-appearance:none;}
+.num-input:focus{border-color:var(--cyan);}
+.num-input.cyan{border-color:rgba(88,166,255,.3);color:var(--cyan);}
+.num-input.gold{border-color:rgba(210,153,34,.3);color:var(--gold);}
+
+/* BOM item */
+.bom-item{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
+  padding:12px;margin-bottom:8px;}
+.bom-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.bom-opt{padding:10px 8px;border-radius:8px;cursor:pointer;transition:all .15s;
+  border:1.5px solid var(--bd);background:var(--s2);color:var(--txt);
+  font-size:.72rem;line-height:1.5;font-family:var(--body);font-weight:600;text-align:center;}
+.bom-opt.picked{border-color:var(--cyan);background:rgba(88,166,255,.08);color:var(--cyan);}
+
+/* Cost chain row */
+.chain-row{display:flex;justify-content:space-between;align-items:center;
+  background:var(--s2);border:1px solid var(--bd);border-radius:8px;
+  padding:10px 14px;margin-bottom:5px;font-size:.8rem;gap:10px;}
+.chain-row.highlight{border-color:var(--grn);background:rgba(63,185,80,.04);}
+.chain-row.danger{border-color:var(--red);background:rgba(248,81,73,.04);}
+.chain-amt{font-family:var(--mono);font-size:.85rem;font-weight:700;white-space:nowrap;}
+
+/* Trade-off option */
+.trade-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.trade-opt{padding:10px;border-radius:8px;border:1.5px solid var(--bd);
+  background:var(--s2);color:var(--txt);font-size:.74rem;cursor:pointer;
+  transition:all .15s;font-family:var(--body);font-weight:600;line-height:1.5;text-align:center;}
+.trade-opt.picked-a{border-color:var(--gold);background:rgba(210,153,34,.08);color:var(--gold);}
+.trade-opt.picked-b{border-color:var(--cyan);background:rgba(88,166,255,.08);color:var(--cyan);}
+
+/* Wait screen */
 .mob-wait{display:flex;flex-direction:column;align-items:center;
-  justify-content:center;min-height:72vh;text-align:center;gap:10px;}
-.pring{width:60px;height:60px;border-radius:50%;border:2px solid var(--cyan);
-  animation:pr 2s ease-in-out infinite;margin:0 auto;}
-@keyframes pr{0%,100%{transform:scale(1);opacity:.3;}50%{transform:scale(1.2);opacity:.9;}}
-.land-input{width:100%;background:var(--s2);border:1px solid var(--bd);
-  color:var(--txt);padding:12px 14px;border-radius:10px;font-size:1rem;
-  outline:none;font-family:var(--sans);}
-.land-input:focus{border-color:var(--cyan);}
-.cf{position:fixed;width:8px;height:8px;z-index:500;pointer-events:none;
+  justify-content:center;min-height:80vh;text-align:center;gap:10px;}
+.wait-ring{width:48px;height:48px;border-radius:50%;border:2px solid var(--cyan);
+  animation:pulse 2s ease-in-out infinite;}
+
+/* Quiz option */
+.quiz-opt{width:100%;padding:13px 14px;background:var(--s2);border:1.5px solid var(--bd);
+  border-radius:8px;margin-bottom:6px;font-size:.86rem;font-weight:600;
+  cursor:pointer;text-align:left;color:var(--txt);transition:all .15s;font-family:var(--body);}
+.quiz-opt.correct{border-color:var(--grn);background:rgba(63,185,80,.08);color:var(--grn);}
+.quiz-opt.wrong{border-color:var(--red);background:rgba(248,81,73,.06);color:var(--red);}
+.quiz-opt:disabled{cursor:default;}
+
+/* Confetti */
+.cf{position:fixed;width:7px;height:7px;z-index:500;pointer-events:none;
   animation:cffall 2.5s ease-in forwards;}
 @keyframes cffall{0%{opacity:1;transform:translateY(-10px) rotate(0);}
   100%{opacity:0;transform:translateY(100vh) rotate(600deg);}}
-.g8{height:8px;}.g12{height:12px;}.g16{height:16px;}.g20{height:20px;}
 
-/* drag-to-rank */
-.need-row{display:flex;align-items:center;gap:10px;background:var(--s1);
-  border:2px solid var(--bd);border-radius:10px;padding:12px 14px;
-  margin-bottom:8px;cursor:grab;user-select:none;touch-action:none;
-  transition:border-color .18s,box-shadow .18s;}
-.need-row.dragging{opacity:.5;border-color:var(--cyan);}
-.need-row.over{border-color:var(--cyan);box-shadow:0 0 12px rgba(0,229,255,.2);}
-.rank-badge{font-family:var(--mono);font-size:.9rem;color:var(--cyan);
-  background:rgba(0,229,255,.1);width:28px;height:28px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.need-text{font-size:.84rem;font-weight:600;flex:1;}
-.drag-handle{font-size:1rem;color:var(--mut);}
+/* ── FINAL SCREENS ── */
+.lb-row{display:flex;align-items:center;gap:10px;background:var(--s1);
+  border:1px solid var(--bd);border-radius:8px;padding:11px 14px;
+  margin-bottom:6px;animation:fadeUp .4s ease both;}
 
-@media(max-width:600px){
-  .sp-cols{grid-template-columns:1fr;}
-  .sp-title{font-size:1.2rem;}
-}
-@keyframes flashb{from{box-shadow:none;}to{box-shadow:0 0 20px rgba(255,61,90,.4);}}
+/* Slider */
+input[type=range]{width:100%;height:5px;-webkit-appearance:none;appearance:none;
+  background:var(--bd);border-radius:3px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;
+  background:var(--cyan);border-radius:50%;border:2px solid var(--bg);
+  box-shadow:0 0 8px rgba(88,166,255,.4);cursor:pointer;}
 </style>
 </head>
 <body>
-<canvas id="bg"></canvas>
-<div id="gov"></div><div id="gtxt"></div>
+
+<div id="glitch-overlay"></div>
 <div id="toast"></div>
 <div id="mob-hud">
   <div id="mhl">—</div>
-  <div id="mhbar"><div id="mhfill" style="width:0%"></div></div>
+  <div id="mhbar"><div id="mhfill"></div></div>
   <div id="mhpts">0 pts</div>
 </div>
-<div id="timer-strip"><div id="tfill" style="width:100%"></div></div>
 
-<!-- ══════════════════════════════════════
-     KAHOOT FAKE
-══════════════════════════════════════ -->
+<!-- ═══════════════════════════════
+     FAKE KAHOOT SCREEN
+═══════════════════════════════ -->
 <div class="scr on" id="s-kahoot">
-  <div class="kh-head">
-    <h1>📚 Product Specifications</h1>
-    <p>Chapter 6 · Ulrich &amp; Eppinger · Interactive Session</p>
+  <div class="kh-banner">
+    <h1 id="kh-title">Product Specifications</h1>
+    <p>Chapter 6 · Ulrich & Eppinger · Interactive Quiz</p>
   </div>
-  <div class="kh-card">
-    <h2 id="kh-h2">Welcome to today's quiz!</h2>
-    <p id="kh-p">Test your knowledge on Product Specifications and Target Costing. Work as a team to build the best spec sheet!</p>
-    <div class="kh-pins">
-      <span class="kh-pin">⏱ 7 Steps</span>
-      <span class="kh-pin">🎯 Chapter 6</span>
-      <span class="kh-pin">👥 Multiplayer</span>
+  <div class="kh-body">
+    <h2 id="kh-h2">Welcome, class!</h2>
+    <p id="kh-p">Test your knowledge on Product Specifications, Target Costing, and Trade-Off analysis. Work as a team!</p>
+    <div class="kh-chips">
+      <span class="kh-chip">7 Steps</span>
+      <span class="kh-chip">Chapter 6</span>
+      <span class="kh-chip">Multiplayer</span>
     </div>
   </div>
-  <button class="kh-btn" id="kh-btn" onclick="startBreach()">▶ START SESSION</button>
-  <div class="kh-foot">Hosted by Prof. · Digital Innovation &amp; Management · UniBg</div>
-  <button class="skip-btn" onclick="skipToLobby()">⏭ Skip intro (dev)</button>
+  <button class="kh-go" id="kh-go" onclick="initBreach()">▶ START SESSION</button>
+  <div class="kh-foot">Hosted by Prof. · Digital Innovation & Management · UniBg</div>
 </div>
 
-<!-- ══════════════════════════════════════
-     LANDING (fallback for direct URL)
-══════════════════════════════════════ -->
+<!-- ═══════════════════════════════
+     LANDING
+═══════════════════════════════ -->
 <div class="scr" id="s-land">
   <div style="display:flex;flex-direction:column;align-items:center;
-    justify-content:center;min-height:100vh;padding:24px;gap:12px;">
-    <div style="font-family:'Orbitron',monospace;font-weight:900;
-      font-size:clamp(2rem,8vw,3rem);text-align:center;
-      background:linear-gradient(135deg,#fff,var(--cyan) 45%,var(--pur));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-      background-clip:text;filter:drop-shadow(0 0 24px rgba(0,229,255,.4));">
-      SPECMASTER
+    justify-content:center;min-height:100vh;padding:24px;gap:14px;">
+    <div style="font-family:var(--head);font-weight:800;
+      font-size:clamp(1.8rem,7vw,2.8rem);text-align:center;color:var(--white);
+      letter-spacing:.04em;">SPECMASTER</div>
+    <div style="font-family:var(--mono);font-size:.55rem;letter-spacing:.18em;
+      color:var(--dim);margin-bottom:16px;">OPERATION SILENT EAR</div>
+    <div class="card" style="width:100%;max-width:340px;margin-bottom:6px;">
+      <div style="font-size:.7rem;color:var(--dim);margin-bottom:6px;">Your codename:</div>
+      <input class="num-input" id="nick" placeholder="e.g. SHADOW" maxlength="16"
+        autocomplete="off" style="text-align:left;font-size:.9rem;">
     </div>
-    <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;
-      color:var(--mut);margin-bottom:12px;">OPERATION SILENT EAR</div>
-    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
-      padding:16px;width:100%;max-width:360px;margin-bottom:4px;">
-      <div style="font-size:.72rem;color:var(--mut);margin-bottom:7px;">Your codename:</div>
-      <input class="land-input" id="nick" placeholder="e.g. SHADOW, ACE…" maxlength="16" autocomplete="off">
-    </div>
-    <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:9px;">
-      <button class="btn bp" onclick="startHost()">🖥️ HOST — present to class</button>
-      <button class="btn bs" onclick="startJoin()">📱 JOIN — I'm a student</button>
+    <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px;">
+      <button class="btn primary" onclick="startHost()">HOST — present to class</button>
+      <button class="btn" onclick="startJoin()">JOIN — I'm a student</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     JOIN (mobile)
-══════════════════════════════════════ -->
+<!-- ═══════════════════════════════
+     JOIN
+═══════════════════════════════ -->
 <div class="scr" id="s-mjoin">
   <div style="display:flex;flex-direction:column;align-items:center;
     justify-content:center;min-height:100vh;padding:24px;gap:10px;">
-    <div style="font-family:'Orbitron',monospace;font-size:1.3rem;
-      font-weight:700;margin-bottom:6px;">JOIN MISSION</div>
-    <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;">
+    <div style="font-family:var(--head);font-size:1.2rem;font-weight:800;margin-bottom:8px;color:var(--white);">JOIN MISSION</div>
+    <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px;">
       <div>
-        <div style="font-size:.72rem;color:var(--mut);margin-bottom:6px;">Your codename:</div>
-        <input class="land-input" id="m-nick" placeholder="e.g. SHADOW, ACE…" maxlength="16" autocomplete="off">
+        <div style="font-size:.7rem;color:var(--dim);margin-bottom:5px;">Codename:</div>
+        <input class="num-input" id="m-nick" placeholder="e.g. SHADOW" maxlength="16"
+          autocomplete="off" style="text-align:left;font-size:.9rem;">
       </div>
       <div>
-        <div style="font-size:.72rem;color:var(--mut);margin-bottom:6px;">Room code:</div>
-        <input class="land-input" id="m-code" placeholder="e.g. ECHO77" maxlength="8"
-          style="font-family:var(--mono);font-size:1.2rem;letter-spacing:.2em;
-          text-transform:uppercase;text-align:center;">
+        <div style="font-size:.7rem;color:var(--dim);margin-bottom:5px;">Room code:</div>
+        <input class="num-input" id="m-code" placeholder="ECHO77" maxlength="8"
+          style="text-transform:uppercase;letter-spacing:.18em;">
       </div>
-      <button class="btn bp" onclick="mobileJoin()">JOIN →</button>
-      <button class="btn bs" onclick="go('s-land')">← Back</button>
+      <button class="btn primary" onclick="mobileJoin()">JOIN →</button>
+      <button class="btn" onclick="go('s-land')">← Back</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
+<!-- ═══════════════════════════════
      HOST LOBBY
-══════════════════════════════════════ -->
+═══════════════════════════════ -->
 <div class="scr" id="s-hlobby">
-  <div style="display:flex;flex-direction:column;align-items:center;padding:28px 20px 40px;width:100%;">
-    <div style="font-family:var(--mono);font-size:.6rem;color:var(--mut);
-      letter-spacing:.18em;margin-bottom:8px;">ROOM CODE</div>
+  <div class="lobby-inner">
+    <div style="font-family:var(--mono);font-size:.55rem;color:var(--dim);
+      letter-spacing:.16em;margin-bottom:6px;">ROOM CODE</div>
     <div class="room-code" id="room-disp">———</div>
-    <div style="font-size:.68rem;color:var(--mut);margin-top:4px;margin-bottom:14px;">
-      Share this code · or scan QR ↓
-    </div>
+    <div style="font-size:.65rem;color:var(--dim);margin-top:4px;margin-bottom:14px;">
+      Share this code or scan QR</div>
     <div id="qr-wrap" style="margin-bottom:16px;text-align:center;"></div>
-    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
-      padding:14px 18px;width:100%;max-width:480px;margin-bottom:16px;">
-      <div style="font-size:.62rem;color:var(--mut);font-family:var(--mono);
-        margin-bottom:8px;letter-spacing:.1em;">AGENTS CONNECTED:</div>
-      <div id="plist" style="min-height:28px;"></div>
-      <div class="wdots" style="color:var(--mut);font-size:.75rem;margin-top:8px;">
-        Waiting<span>.</span><span>.</span><span>.</span>
-      </div>
+    <div class="card" style="width:100%;max-width:420px;margin-bottom:16px;">
+      <div style="font-size:.58rem;color:var(--dim);font-family:var(--mono);
+        margin-bottom:6px;letter-spacing:.1em;">AGENTS CONNECTED:</div>
+      <div id="plist" style="min-height:24px;"></div>
     </div>
-    <button class="btn by" onclick="hostLaunch()" style="max-width:480px;width:100%;">
+    <button class="btn gold" onclick="hostLaunch()" style="max-width:420px;width:100%;">
       ▶ LAUNCH MISSION
     </button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
+<!-- ═══════════════════════════════
      HOST CHAT
-══════════════════════════════════════ -->
+═══════════════════════════════ -->
 <div class="scr" id="s-hchat">
   <div id="chat-wrap">
     <div id="chat-hdr">
-      <div class="ch-sig"><span id="sig-dot"></span><span id="sig-txt">CONNECTING…</span></div>
+      <div class="ch-sig"><span class="ch-dot" id="sig-dot"></span><span id="sig-txt">CONNECTING…</span></div>
       <div class="ch-from" id="chat-from">UNKNOWN</div>
     </div>
     <div id="chat-msgs"></div>
-    <div id="chat-typing"><div class="tbub"><span></span><span></span><span></span></div></div>
+    <div id="chat-typing"><div class="typing-dots"><span></span><span></span><span></span></div></div>
   </div>
   <div id="chat-foot"><div id="chat-cta"></div></div>
 </div>
 
-<!-- ══════════════════════════════════════
-     HOST GAME — REDESIGNED
-══════════════════════════════════════ -->
+<!-- ═══════════════════════════════
+     HOST GAME (step panel)
+═══════════════════════════════ -->
 <div class="scr" id="s-hgame">
-  <!-- Mini terminal: 3 lines max, always visible -->
   <div id="mini-term"></div>
-  <!-- Step panel: big, clear, readable -->
   <div id="step-panel"></div>
 </div>
 
-<!-- ══════════════════════════════════════
+<!-- ═══════════════════════════════
      HOST FINAL DASHBOARD
-══════════════════════════════════════ -->
+═══════════════════════════════ -->
 <div class="scr" id="s-hdash">
-  <div style="width:100%;max-width:720px;padding:24px 20px 40px;margin:0 auto;">
+  <div style="width:100%;max-width:700px;padding:24px 20px 40px;margin:0 auto;">
     <div style="text-align:center;margin-bottom:18px;">
-      <div style="font-family:'Orbitron',monospace;font-size:1.3rem;
-        font-weight:700;margin-bottom:6px;">MISSION DEBRIEF</div>
-      <div id="hdash-winner" style="font-family:var(--mono);font-size:.82rem;
+      <div style="font-family:var(--head);font-size:1.2rem;font-weight:800;
+        color:var(--white);margin-bottom:6px;">MISSION DEBRIEF</div>
+      <div id="hdash-winner" style="font-family:var(--mono);font-size:.78rem;
         color:var(--cyan);line-height:1.8;"></div>
     </div>
     <div id="hdash-lb" style="margin-bottom:18px;"></div>
-    <div style="font-family:var(--mono);font-size:.65rem;color:var(--mut);
-      margin-bottom:8px;letter-spacing:.1em;">AGENT SPEC SHEETS:</div>
     <div id="hdash-cards"></div>
-    <div class="g20"></div>
-    <button class="btn bs" onclick="location.reload()" style="max-width:480px;width:100%;">
-      NEW MISSION ↺
+    <div style="height:20px;"></div>
+    <button class="btn" onclick="location.reload()" style="max-width:420px;width:100%;margin:0 auto;">
+      NEW MISSION
     </button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
+<!-- ═══════════════════════════════
      MOBILE WAIT
-══════════════════════════════════════ -->
+═══════════════════════════════ -->
 <div class="scr" id="s-mwait">
   <div class="mob mob-wait">
-    <div class="pring"></div>
-    <div style="font-family:var(--mono);font-size:.62rem;color:var(--cyan);
-      letter-spacing:.15em;" id="mw-step">CONNECTED</div>
-    <div style="font-size:1rem;font-weight:700;" id="mw-title">Waiting for host…</div>
-    <div style="font-size:.78rem;color:var(--mut);max-width:250px;line-height:1.5;"
+    <div class="wait-ring"></div>
+    <div style="font-family:var(--mono);font-size:.58rem;color:var(--cyan);
+      letter-spacing:.12em;" id="mw-step">CONNECTED</div>
+    <div style="font-size:.95rem;font-weight:700;color:var(--white);" id="mw-title">Waiting for host…</div>
+    <div style="font-size:.75rem;color:var(--dim);max-width:240px;line-height:1.5;"
       id="mw-sub">Stand by</div>
-    <div class="wdots" style="color:var(--cyan);font-size:1rem;margin-top:6px;">
-      <span>●</span><span>●</span><span>●</span>
-    </div>
-    <div class="g20"></div>
-    <div style="font-size:.7rem;color:var(--mut);">
+    <div style="height:16px;"></div>
+    <div style="font-size:.7rem;color:var(--dim);">
       Score: <span style="font-family:var(--mono);color:var(--gold);" id="mw-score">0</span> pts
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     MOBILE STEPS
-══════════════════════════════════════ -->
+<!-- ═══════════════════════════════
+     MOBILE STEPS 1-7 (dynamic content)
+═══════════════════════════════ -->
+<div class="scr" id="s-m1"><div class="mob" style="padding-top:56px;" id="m1-content"></div></div>
+<div class="scr" id="s-m2"><div class="mob" style="padding-top:56px;" id="m2-content"></div></div>
+<div class="scr" id="s-m3"><div class="mob" style="padding-top:56px;" id="m3-content"></div></div>
+<div class="scr" id="s-m4"><div class="mob" style="padding-top:56px;" id="m4-content"></div></div>
+<div class="scr" id="s-m5"><div class="mob" style="padding-top:56px;" id="m5-content"></div></div>
+<div class="scr" id="s-m6"><div class="mob" style="padding-top:56px;" id="m6-content"></div></div>
+<div class="scr" id="s-m7"><div class="mob" style="padding-top:56px;" id="m7-content"></div></div>
 
-<!-- S1: Rank needs -->
-<div class="scr" id="s-m1">
-<div class="mob" style="padding-top:58px;">
-  <div class="stag">STEP 1 · CUSTOMER NEEDS</div>
-  <div class="instr">
-    <span class="itag">🕵️ OMEGA SAYS:</span>
-    <em>"I need headphones that block noise completely, last 8 hours, are lightweight,
-    pair instantly with any device, and look like ordinary headphones."</em>
-  </div>
-  <div class="instr" style="border-left-color:var(--gold);">
-    <span class="itag" style="color:var(--gold);">📋 YOUR TASK</span>
-    Drag the needs into <strong>priority order</strong>. 1 = most critical for the mission.
-  </div>
-  <div style="font-size:.68rem;font-family:var(--mono);color:var(--cyan);
-    margin-bottom:8px;width:100%;">↕ DRAG TO RANK:</div>
-  <div id="needs-list" style="width:100%;margin-bottom:14px;"></div>
-  <button class="btn bp" style="width:100%;" onclick="submitS1()">LOCK PRIORITIES →</button>
-  <div id="s1-fb" style="display:none;width:100%;"></div>
-</div>
-</div>
-
-<!-- S2: Match needs to metrics -->
-<div class="scr" id="s-m2">
-<div class="mob" style="padding-top:58px;">
-  <div class="stag">STEP 2 · NEEDS → METRICS</div>
-  <div class="instr">
-    <span class="itag">📐 YOUR TASK</span>
-    For each customer need, choose the correct <strong>engineering metric</strong>.
-    A metric is objective and measurable — it says WHAT, not HOW.
-  </div>
-  <div id="m2-rows" style="width:100%;"></div>
-  <button class="btn bp" style="width:100%;" onclick="submitS2()">LOCK METRICS →</button>
-  <div id="s2-fb" style="display:none;width:100%;"></div>
-</div>
-</div>
-
-<!-- S3: Target values — empty number inputs -->
-<div class="scr" id="s-m3">
-<div class="mob" style="padding-top:58px;">
-  <div class="stag">STEP 3 · TARGET VALUES</div>
-  <div class="instr">
-    <span class="itag">📊 COMPETITOR REFERENCE:</span>
-    <strong>BrandB</strong> (budget/marginal): ANC 18dB · Battery 12h · Weight 380g<br>
-    <strong>BrandX</strong> (mid): ANC 28dB · Battery 20h · Weight 330g<br>
-    <strong>BrandZ</strong> (upper-mid): ANC 35dB · Battery 30h · Weight 295g<br>
-    <strong>BrandS</strong> (premium/ideal): ANC 44dB · Battery 40h · Weight 240g
-  </div>
-  <div class="instr" style="border-left-color:var(--gold);">
-    <span class="itag" style="color:var(--gold);">📋 YOUR TASK</span>
-    Study the data above. For each metric enter your <strong style="color:var(--cyan)">Ideal</strong>
-    (the best you want) and your <strong style="color:var(--gold)">Marginal</strong>
-    (the minimum to stay competitive). Fields are empty — think before you type.
-  </div>
-
-  <!-- ANC -->
-  <div class="mc" style="width:100%;margin-bottom:10px;">
-    <div style="font-size:.78rem;font-weight:700;margin-bottom:10px;">🎧 ANC Attenuation (dB)</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div>
-        <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);
-          margin-bottom:6px;letter-spacing:.1em;">IDEAL (dB)</div>
-        <input type="number" id="s3-anc-i" placeholder="?" min="10" max="60"
-          style="width:100%;background:var(--s2);border:2px solid rgba(0,229,255,.3);
-          color:var(--cyan);padding:12px;border-radius:10px;font-family:var(--mono);
-          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
-      </div>
-      <div>
-        <div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);
-          margin-bottom:6px;letter-spacing:.1em;">MARGINAL (dB)</div>
-        <input type="number" id="s3-anc-m" placeholder="?" min="10" max="60"
-          style="width:100%;background:var(--s2);border:2px solid rgba(255,196,0,.3);
-          color:var(--gold);padding:12px;border-radius:10px;font-family:var(--mono);
-          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
-      </div>
-    </div>
-  </div>
-
-  <!-- Battery -->
-  <div class="mc" style="width:100%;margin-bottom:10px;">
-    <div style="font-size:.78rem;font-weight:700;margin-bottom:10px;">🔋 Battery Life (hours)</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div>
-        <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);
-          margin-bottom:6px;letter-spacing:.1em;">IDEAL (h)</div>
-        <input type="number" id="s3-bat-i" placeholder="?" min="4" max="60"
-          style="width:100%;background:var(--s2);border:2px solid rgba(0,229,255,.3);
-          color:var(--cyan);padding:12px;border-radius:10px;font-family:var(--mono);
-          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
-      </div>
-      <div>
-        <div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);
-          margin-bottom:6px;letter-spacing:.1em;">MARGINAL (h)</div>
-        <input type="number" id="s3-bat-m" placeholder="?" min="4" max="60"
-          style="width:100%;background:var(--s2);border:2px solid rgba(255,196,0,.3);
-          color:var(--gold);padding:12px;border-radius:10px;font-family:var(--mono);
-          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
-      </div>
-    </div>
-  </div>
-
-  <!-- Weight -->
-  <div class="mc" style="width:100%;margin-bottom:10px;">
-    <div style="font-size:.78rem;font-weight:700;margin-bottom:4px;">⚖️ Total Mass (grams)</div>
-    <div style="font-size:.68rem;color:var(--mut);margin-bottom:10px;">Lower is better — ideal = lightest</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div>
-        <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);
-          margin-bottom:6px;letter-spacing:.1em;">IDEAL (g)</div>
-        <input type="number" id="s3-wt-i" placeholder="?" min="100" max="500"
-          style="width:100%;background:var(--s2);border:2px solid rgba(0,229,255,.3);
-          color:var(--cyan);padding:12px;border-radius:10px;font-family:var(--mono);
-          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
-      </div>
-      <div>
-        <div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);
-          margin-bottom:6px;letter-spacing:.1em;">MARGINAL (g)</div>
-        <input type="number" id="s3-wt-m" placeholder="?" min="100" max="500"
-          style="width:100%;background:var(--s2);border:2px solid rgba(255,196,0,.3);
-          color:var(--gold);padding:12px;border-radius:10px;font-family:var(--mono);
-          font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;">
-      </div>
-    </div>
-  </div>
-
-  <!-- Retail price -->
-  <div class="mc gold" style="width:100%;margin-bottom:14px;">
-    <div style="font-size:.7rem;font-family:var(--mono);color:var(--gold);margin-bottom:8px;">
-      💰 YOUR RETAIL PRICE TARGET
-    </div>
-    <div style="font-size:.76rem;color:#8ab8d4;margin-bottom:10px;">
-      This sets your allowable cost C* in Step 5. BrandB=€89 · BrandS=€380
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <input type="range" id="price-slider" min="80" max="450" value="200" step="10"
-        oninput="updPrice()" style="flex:1;">
-      <span style="font-family:var(--mono);font-size:1rem;color:var(--gold);
-        background:rgba(255,196,0,.1);padding:4px 14px;border-radius:8px;
-        white-space:nowrap;font-weight:700;" id="price-val">€200</span>
-    </div>
-    <div style="font-size:.68rem;color:var(--mut);margin-top:6px;">
-      C* = €<span id="cstar-prev">84</span> (price × 0.70 × 0.60)
-    </div>
-  </div>
-
-  <button class="btn bp" style="width:100%;" onclick="submitS3()">LOCK TARGET SPECS →</button>
-  <div id="s3-fb" style="display:none;width:100%;"></div>
-</div>
-</div>
-
-<!-- S4: BOM — choose LOW or HIGH per component -->
-<div class="scr" id="s-m4">
-<div class="mob" style="padding-top:58px;">
-  <div class="stag">STEP 4 · BILL OF MATERIALS</div>
-  <div class="instr">
-    <span class="itag">🏭 YOUR TASK</span>
-    Build your Bill of Materials. For each component choose
-    <strong>LOW</strong> (cheaper, lower performance) or
-    <strong>HIGH</strong> (expensive, better performance).
-    Your total cost updates live.
-  </div>
-  <div class="mc gold" style="width:100%;margin-bottom:12px;">
-    <div style="font-size:.62rem;font-family:var(--mono);color:var(--gold);margin-bottom:4px;">
-      🔒 YOUR TARGETS (Step 3):
-    </div>
-    <div style="font-size:.76rem;color:#8ab8d4;" id="s4-targets"></div>
-  </div>
-
-  <!-- Component selectors -->
-  <div id="bom-items" style="width:100%;margin-bottom:12px;"></div>
-
-  <!-- Total -->
-  <div style="background:var(--s1);border:2px solid var(--bd);border-radius:12px;
-    padding:14px 16px;width:100%;margin-bottom:12px;text-align:center;">
-    <div style="font-size:.6rem;font-family:var(--mono);color:var(--mut);
-      letter-spacing:.12em;margin-bottom:6px;">TOTAL MFG COST</div>
-    <div style="font-family:var(--mono);font-size:1.8rem;font-weight:700;"
-      id="bom-total">€0</div>
-    <div style="font-size:.7rem;color:var(--mut);margin-top:4px;" id="bom-vs-cstar">This is your manufacturing cost. You will compare it to C* in Step 5.</div>
-  </div>
-  <div style="font-size:.74rem;padding:10px 12px;border-radius:10px;
-    margin-bottom:12px;width:100%;line-height:1.5;" id="bom-weight-status"></div>
-
-  <button class="btn bp" style="width:100%;" onclick="submitS4()">LOCK BOM →</button>
-</div>
-</div>
-<!-- S5: Target costing -->
-<div class="scr" id="s-m5">
-<div class="mob" style="padding-top:58px;">
-  <div class="stag">STEP 5 · TARGET COSTING</div>
-  <div class="instr">
-    <span class="itag">💰 C* = P × (1 − Mᵣ) × (1 − Mₘ)</span>
-    Start from your retail price. Subtract the retailer cut (30%), then the manufacturer cut (40%).
-    What remains = <strong>maximum you can spend building it</strong>.
-  </div>
-  <div id="s5-chain" style="width:100%;margin-bottom:10px;"></div>
-  <div id="s5-disaster" style="display:none;background:rgba(255,61,90,.1);
-    border:2px solid var(--red);border-radius:12px;padding:14px;text-align:center;
-    margin-bottom:12px;width:100%;animation:flashb .8s ease-in-out infinite alternate;">
-    <div style="font-family:var(--mono);font-size:.9rem;font-weight:700;
-      color:var(--red);margin-bottom:5px;">FINANCIAL DISASTER!</div>
-    <div style="font-size:.78rem;color:#ff7a8a;" id="s5-dis-sub"></div>
-  </div>
-  <div id="s5-verdict" style="display:none;padding:13px;border-radius:12px;
-    text-align:center;margin-bottom:12px;font-size:.84rem;line-height:1.6;width:100%;"></div>
-  <button class="btn bp" style="width:100%;" onclick="submitS5()">CONTINUE</button>
-</div>
-</div>
-
-<!-- S6: Trade-offs -->
-<div class="scr" id="s-m6">
-<div class="mob" style="padding-top:58px;">
-  <div class="stag">STEP 6 · TRADE-OFFS</div>
-  <div class="instr">
-    <span class="itag">SITUATION</span>
-    <span id="s6-intro"></span>
-  </div>
-  <div style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;
-    padding:12px 16px;width:100%;margin-bottom:14px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;">
-      <div><div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">COST</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;" id="t6-cost">-</div></div>
-      <div><div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">C*</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--cyan);" id="t6-cstar">-</div></div>
-      <div><div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">GAP</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;" id="t6-gap">-</div></div>
-    </div>
-  </div>
-  <div id="s6-opts" style="width:100%;margin-bottom:12px;"></div>
-  <div id="s6-warn" style="display:none;width:100%;margin-bottom:10px;"></div>
-  <button class="btn bp" style="width:100%;" onclick="submitS6()">FINALIZE</button>
-  <div id="s6-fb" style="display:none;width:100%;"></div>
-</div>
-</div>
-
-<!-- S7: Quiz -->
-<div class="scr" id="s-m7">
-<div class="mob" style="padding-top:58px;">
-  <div style="font-family:var(--mono);font-size:.62rem;color:var(--cyan);
-    letter-spacing:.12em;margin-bottom:4px;text-align:center;" id="s7-ref"></div>
-  <div class="stag" id="s7-num">QUESTION 1/7</div>
-  <div style="font-size:.96rem;font-weight:700;line-height:1.45;margin-bottom:16px;
-    text-align:center;width:100%;" id="s7-q"></div>
-  <div id="s7-opts" style="width:100%;"></div>
-  <div id="s7-exp" style="display:none;width:100%;"></div>
-</div>
-</div>
-
-<!-- MOBILE FINAL -->
+<!-- ═══════════════════════════════
+     MOBILE FINAL
+═══════════════════════════════ -->
 <div class="scr" id="s-mfinal">
-<div class="mob" style="padding-top:40px;align-items:center;justify-content:center;min-height:100vh;">
-  <!-- OMEGA animation -->
-  <div id="omega-scene" style="width:100%;max-width:340px;text-align:center;margin-bottom:20px;">
-    <!-- city silhouette -->
-    <div style="position:relative;height:180px;overflow:hidden;border-radius:16px;
-      background:linear-gradient(180deg,#020810 0%,#07111e 60%,#0c1a2e 100%);
-      border:1px solid var(--bd);margin-bottom:0;">
-      <!-- stars -->
-      <div id="stars-bg" style="position:absolute;inset:0;"></div>
-      <!-- city -->
-      <svg width="100%" height="80" viewBox="0 0 340 80" style="position:absolute;bottom:0;">
-        <rect x="10" y="30" width="20" height="50" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="14" y="25" width="12" height="10" fill="#0c1a2e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="40" y="15" width="30" height="65" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="44" y="10" width="22" height="12" fill="#0c1a2e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="80" y="35" width="18" height="45" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="110" y="20" width="25" height="60" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="145" y="40" width="15" height="40" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="170" y="10" width="35" height="70" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="175" y="5" width="25" height="12" fill="#0c1a2e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="215" y="30" width="20" height="50" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="245" y="18" width="28" height="62" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="283" y="35" width="22" height="45" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="315" y="25" width="18" height="55" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <!-- windows glow -->
-        <rect x="44" y="20" width="4" height="4" fill="rgba(0,229,255,.4)" rx="1"/>
-        <rect x="50" y="20" width="4" height="4" fill="rgba(255,196,0,.3)" rx="1"/>
-        <rect x="175" y="15" width="4" height="4" fill="rgba(0,229,255,.5)" rx="1"/>
-        <rect x="181" y="15" width="4" height="4" fill="rgba(0,229,255,.3)" rx="1"/>
-        <rect x="250" y="28" width="4" height="4" fill="rgba(255,196,0,.4)" rx="1"/>
-      </svg>
-      <!-- OMEGA figure — spy silhouette walking -->
-      <div id="omega-figure" style="position:absolute;bottom:12px;
-        animation:omegawalk 2s ease forwards;opacity:0;">
-        <svg width="32" height="60" viewBox="0 0 32 60" fill="none">
-          <!-- body silhouette -->
-          <ellipse cx="16" cy="8" rx="6" ry="7" fill="white"/>
-          <path d="M8 16 Q16 14 24 16 L26 38 Q22 36 16 37 Q10 36 6 38 Z" fill="white"/>
-          <!-- coat -->
-          <path d="M6 38 L4 58 L9 58 L12 44 L20 44 L23 58 L28 58 L26 38 Z" fill="white"/>
-          <!-- arm with headphones -->
-          <path d="M24 20 L30 32 L27 33 L22 22 Z" fill="white"/>
-          <!-- headphones in hand -->
-          <rect x="26" y="29" width="8" height="5" rx="2" fill="rgba(0,229,255,.9)"/>
-          <rect x="24" y="27" width="3" height="7" rx="1" fill="rgba(0,229,255,.9)"/>
-          <!-- glowing eyes -->
-          <ellipse cx="13" cy="7" rx="1.5" ry="1.5" fill="rgba(0,229,255,.9)"/>
-          <ellipse cx="19" cy="7" rx="1.5" ry="1.5" fill="rgba(0,229,255,.9)"/>
-        </svg>
-      </div>
-      <!-- signal waves -->
-      <div id="signal-waves" style="position:absolute;top:10px;right:15px;opacity:0;
-        animation:wavefade 1s ease .8s forwards;">
-        <svg width="40" height="30" viewBox="0 0 40 30">
-          <path d="M5 15 Q10 5 15 15 Q20 25 25 15 Q30 5 35 15" stroke="rgba(0,229,255,.6)"
-            stroke-width="2" fill="none" stroke-linecap="round"/>
-          <path d="M0 15 Q7 2 14 15 Q21 28 28 15 Q35 2 40 15" stroke="rgba(0,229,255,.3)"
-            stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <!-- mission success flash -->
-      <div id="success-flash" style="position:absolute;inset:0;background:rgba(0,230,118,.15);
-        border-radius:16px;opacity:0;animation:flashsuccess 1s ease .5s forwards;"></div>
-      <!-- mission complete text -->
-      <div style="position:absolute;top:12px;left:0;right:0;text-align:center;
-        font-family:var(--mono);font-size:.58rem;color:rgba(0,230,118,.8);
-        letter-spacing:.2em;animation:textin 1s ease .6s both;">
-        MISSION: SUCCESS
+  <div class="mob" style="padding-top:40px;align-items:center;justify-content:center;min-height:100vh;">
+    <div style="text-align:center;margin-bottom:14px;width:100%;">
+      <div style="font-family:var(--head);font-size:1.1rem;font-weight:800;
+        color:var(--grn);margin-bottom:4px;" id="mfinal-title">Mission Complete</div>
+      <div style="font-size:.8rem;color:var(--dim);line-height:1.5;" id="mfinal-sub"></div>
+      <div style="font-size:1rem;font-weight:700;margin-top:10px;color:var(--white);">
+        Your score: <span style="font-family:var(--mono);color:var(--gold);
+          font-size:1.2rem;" id="mfinal-score">0</span> pts
       </div>
     </div>
-    <!-- transmission text -->
-    <div id="omega-msg" style="background:rgba(7,17,30,.95);border:1px solid rgba(0,230,118,.3);
-      border-radius:0 0 16px 16px;padding:12px 16px;font-family:var(--mono);
-      font-size:.72rem;color:var(--grn);line-height:1.7;text-align:left;
-      animation:textin .8s ease .4s both;">
-      <span style="font-size:.58rem;color:var(--mut);display:block;margin-bottom:4px;">
-        TRANSMISSION — OMEGA TO BASE:
-      </span>
-      "Equipment received. Headphones are operational.<br>
-      Noise cancellation: confirmed.<br>
-      Communications: restored.<br>
-      Proceeding with the mission."
-    </div>
+    <div id="mfinal-lb" style="width:100%;max-width:340px;"></div>
   </div>
-
-  <!-- Score and leaderboard -->
-  <div style="text-align:center;margin-bottom:14px;width:100%;">
-    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;
-      color:var(--grn);margin-bottom:4px;" id="mfinal-title">Mission Complete</div>
-    <div style="font-size:.82rem;color:var(--mut);line-height:1.5;" id="mfinal-sub"></div>
-    <div style="font-size:1rem;font-weight:700;margin-top:10px;">
-      Your score: <span style="font-family:var(--mono);color:var(--gold);
-        font-size:1.3rem;" id="mfinal-score">0</span> pts
-    </div>
-  </div>
-  <!-- Leaderboard (filled dynamically) -->
-  <div id="mfinal-lb" style="width:100%;max-width:340px;"></div>
-</div>
 </div>
 
 <script>
 'use strict';
 
 // ═══════════════════════════════════
-// BG CANVAS
-// ═══════════════════════════════════
-(function(){
-  const c=document.getElementById('bg');if(!c)return;
-  const x=c.getContext('2d');let t=0;
-  const r=()=>{c.width=innerWidth;c.height=innerHeight;};
-  r();window.addEventListener('resize',r);
-  (function loop(){
-    c.width=c.width;
-    for(let i=0;i<3;i++){
-      x.strokeStyle=`rgba(0,${155+i*22},${215+i*12},${.022+i*.007})`;
-      x.lineWidth=1;x.beginPath();
-      for(let px=0;px<=c.width;px+=6){
-        const py=c.height*.5+Math.sin(px*.006+t+i*1.1)*26*(i*.45+.7)
-          +Math.sin(px*.016+t*.75)*9;
-        px===0?x.moveTo(px,py):x.lineTo(px,py);
-      }
-      x.stroke();
-    }
-    t+=.005;requestAnimationFrame(loop);
-  })();
-})();
-
-// ═══════════════════════════════════
-// SPY JAZZ MUSIC
+// AUDIO
 // ═══════════════════════════════════
 let AC=null;
-function ac(){
-  if(!AC) AC=new(window.AudioContext||window.webkitAudioContext)();
-  if(AC.state==='suspended') AC.resume();
-  return AC;
-}
-function note(f,t,d,v=0.08,del=0){
-  try{
-    const a=ac(),o=a.createOscillator(),g=a.createGain();
-    o.connect(g);g.connect(a.destination);
-    o.type=t;o.frequency.value=f;
-    const s=a.currentTime+del;
-    g.gain.setValueAtTime(0,s);
-    g.gain.linearRampToValueAtTime(v,s+.025);
-    g.gain.exponentialRampToValueAtTime(.0001,s+d);
-    o.start(s);o.stop(s+d+.05);
-  }catch(e){}
-}
-function sfxOk(){note(523,'sine',.07);note(659,'sine',.07,.09,.09);note(784,'sine',.12,.09,.18);}
-function sfxBad(){note(220,'sawtooth',.22,.08);note(185,'sawtooth',.18,.06,.08);}
-function sfxClick(){note(880,'sine',.035,.055);}
-function sfxBig(){[262,330,392,523,659].forEach((f,i)=>note(f,'triangle',.12,.08,i*.06));}
-function sfxWin(){[523,659,784,1047,1319].forEach((f,i)=>note(f,'sine',.2,.08,i*.08));}
-
-// Spy Jazz: walking bass + hi-hat + trumpet stabs
-let jazzTimer=null,jazzOn=false;
-const JAZZ_SCALE=[220,247,262,294,330,349,392,440,494,523,587,659];
-const BASS_WALK=[55,62,65,73,55,49,52,58]; // A1,D2,E2,Bb2...
-let bassIdx=0,jazzBeat=0;
-function startJazz(){
-  if(jazzOn)return;jazzOn=true;
-  jazzLoop();
-}
-function jazzLoop(){
-  if(!jazzOn)return;
-  const bpm=112,beat=60/bpm*1000;
-  // walking bass every beat
-  const bf=BASS_WALK[bassIdx%BASS_WALK.length];
-  note(bf,'triangle',.18,.11);
-  bassIdx++;
-  // hi-hat on every beat, accent on 1&3
-  const hv=jazzBeat%2===0?.045:.028;
-  note(4400,'sawtooth',.04,hv);
-  // snare on 2&4
-  if(jazzBeat%4===1||jazzBeat%4===3){
-    note(220,'sawtooth',.06,.06);
-    note(280,'sawtooth',.05,.04,.02);
-  }
-  // trumpet stab: occasional, on beat 1
-  if(jazzBeat%8===0&&Math.random()>.4){
-    const ti=Math.floor(Math.random()*JAZZ_SCALE.length);
-    const tf=JAZZ_SCALE[ti]*2;// octave up
-    note(tf,'sawtooth',.15,.05,.05);
-    note(tf*1.25,'sawtooth',.12,.03,.08);
-  }
-  // piano comp: every 2 beats
-  if(jazzBeat%2===0){
-    const chord=[JAZZ_SCALE[0],JAZZ_SCALE[2],JAZZ_SCALE[4]];
-    const root=Math.floor(jazzBeat/8)%4;
-    chord.forEach((f,i)=>note(f*(1+root*.05)*2,.85,.22,.02,i*.01));
-  }
-  jazzBeat++;
-  jazzTimer=setTimeout(jazzLoop,beat);
-}
-function stopJazz(){jazzOn=false;if(jazzTimer)clearTimeout(jazzTimer);}
+function ac(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
+function note(f,t,d,v=.07,del=0){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=t;o.frequency.value=f;const s=a.currentTime+del;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.start(s);o.stop(s+d+.05);}catch(e){}}
+function sfxOk(){note(523,'sine',.06);note(659,'sine',.06,.08,.08);note(784,'sine',.1,.08,.16);}
+function sfxBad(){note(220,'sawtooth',.2,.07);note(185,'sawtooth',.16,.05,.07);}
+function sfxClick(){note(880,'sine',.03,.045);}
+function sfxBig(){[262,330,392,523].forEach((f,i)=>note(f,'triangle',.1,.07,i*.05));}
+function sfxWin(){[523,659,784,1047,1319].forEach((f,i)=>note(f,'sine',.18,.07,i*.07));}
 
 // ═══════════════════════════════════
-// KAHOOT BREACH
+// UI HELPERS
+// ═══════════════════════════════════
+function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  const el=document.getElementById(id);if(el)el.classList.add('on');}
+function toast(msg,dur=2500){const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),dur);}
+let myScore=0;
+function addPts(n){myScore+=n;document.getElementById('mhpts').textContent=myScore+' pts';
+  document.getElementById('mw-score').textContent=myScore;
+  if(n>0)toast('+'+n+' pts');else if(n<0)toast(n+' pts');}
+function setHUD(lbl,pct){document.getElementById('mob-hud').classList.add('on');
+  document.getElementById('mhl').textContent=lbl;
+  document.getElementById('mhfill').style.width=pct+'%';}
+function setWait(s,t,sub){document.getElementById('mw-step').textContent=s;
+  document.getElementById('mw-title').textContent=t;
+  document.getElementById('mw-sub').textContent=sub;}
+function showFb(el,cls,html){if(typeof el==='string')el=document.getElementById(el);
+  if(!el)return;el.style.display='block';el.className='fb '+cls;el.innerHTML=html;}
+function confetti(){const cols=['#58a6ff','#d29922','#3fb950','#f85149','#bc8cff','#fff'];
+  for(let i=0;i<45;i++){const c=document.createElement('div');c.className='cf';
+    c.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]};
+      animation-delay:${Math.random()*1.4}s;animation-duration:${2+Math.random()*1.5}s;
+      border-radius:${Math.random()>.5?'50%':'2px'}`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}}
+const medals=['🥇','🥈','🥉'];
+
+// ═══════════════════════════════════
+// BREACH — completely new
 // ═══════════════════════════════════
 let breachDone=false;
-function skipToLobby(){
-  breachDone=true;startJazz();
-  myRoom=genRoom();go('s-hlobby');launchHostSetup();
-}
-function startBreach(){
+function initBreach(){
   if(breachDone)return;breachDone=true;
-  const btn=document.getElementById('kh-btn');
+  const btn=document.getElementById('kh-go');
+  const title=document.getElementById('kh-title');
   const h2=document.getElementById('kh-h2');
-  const hp=document.getElementById('kh-p');
-  btn.textContent='Loading…';btn.style.background='#888';
-  // phase 0: normal 3s
+  const p=document.getElementById('kh-p');
+  btn.textContent='Loading quiz…';btn.style.background='#999';
+
+  // Phase 1: subtle corruption (2s)
   setTimeout(()=>{
-    document.getElementById('s-kahoot').style.animation='ksh1 .3s ease';
-    h2.textContent="Welcome to tod4y's quiz!";
-    note(440,'sawtooth',.08,.06);
-  },3000);
+    title.style.fontFamily='monospace';
+    title.textContent='Pr0duct Sp3cif1cat10ns';
+    note(300,'sawtooth',.1,.06);
+  },2000);
+
+  // Phase 2: screen noise (3.5s)
   setTimeout(()=>{
-    h2.textContent='W3LC0M3 T0 THE █████!';
-    hp.textContent='ERROR: NULL_REFERENCE at quiz_engine.js:247';
-    btn.textContent='MEMORY FAULT 0x4F2A';btn.style.background='#c00';
-    note(200,'sawtooth',.2,.1);
-  },3800);
-  // phase 1: full glitch
-  setTimeout(()=>{
-    const ov=document.getElementById('gov');
-    const gt=document.getElementById('gtxt');
-    ov.style.background='#fff';ov.style.opacity='1';
-    document.getElementById('s-kahoot').style.animation='ksh2 .12s ease infinite';
-    for(let i=0;i<22;i++){
-      const l=document.createElement('div');
-      l.style.cssText=`position:absolute;left:0;right:0;
-        height:${Math.random()*6+1}px;top:${Math.random()*100}%;
-        opacity:${Math.random()*.8+.3};
-        background:${i%3===0?'rgba(255,61,90,.9)':i%3===1?'rgba(0,229,255,.8)':'rgba(255,196,0,.7)'}`;
-      ov.appendChild(l);
+    h2.textContent='ERR: session_auth_null';
+    h2.style.color='#c00';
+    p.textContent='> socket.override(0xFFFF) … injecting payload';
+    p.style.fontFamily='monospace';p.style.color='#c00';p.style.fontSize='.75rem';
+    btn.textContent='█████████';btn.style.background='#000';btn.style.color='#c00';
+    const ov=document.getElementById('glitch-overlay');
+    ov.style.cssText='position:fixed;inset:0;z-index:800;pointer-events:none;background:rgba(0,0,0,.15);';
+    // Scanlines
+    for(let i=0;i<8;i++){
+      const line=document.createElement('div');
+      line.style.cssText=`position:absolute;left:0;right:0;height:${1+Math.random()*3}px;
+        top:${Math.random()*100}%;background:rgba(${i%2?'248,81,73':'88,166,255'},.${2+Math.floor(Math.random()*5)});
+        animation:scanline ${.8+Math.random()}s linear infinite;`;
+      ov.appendChild(line);
     }
-    for(let i=0;i<14;i++){
-      const b=document.createElement('div');
-      b.style.cssText=`position:absolute;
-        left:${Math.random()*90}%;top:${Math.random()*90}%;
-        width:${Math.random()*280+60}px;height:${Math.random()*55+8}px;
-        background:${i%2?'rgba(255,61,90,.22)':'rgba(0,229,255,.18)'};
-        animation:none;`;
-      ov.appendChild(b);
-    }
-    const junk=['▓▓▓▓▓▓','01001000','SEGFAULT','NULL PTR','0x000000','STACK OVERFLOW'];
-    let ji=0;
-    const ji2=setInterval(()=>{h2.textContent=junk[ji%junk.length];ji++;},55);
-    for(let i=0;i<5;i++) note(80+i*35,'sawtooth',.3,.12,i*.04);
-    // phase 2: go dark after 6s of glitch
+    for(let i=0;i<5;i++) note(60+i*40,'sawtooth',.25,.1,i*.03);
+  },3500);
+
+  // Phase 3: blackout (5.5s)
+  setTimeout(()=>{
+    const ov=document.getElementById('glitch-overlay');
+    ov.innerHTML='';
+    ov.style.cssText='position:fixed;inset:0;z-index:800;pointer-events:none;background:#000;opacity:0;transition:opacity .6s;';
+    requestAnimationFrame(()=>ov.style.opacity='1');
+
+    // Terminal text appears on black
     setTimeout(()=>{
-      clearInterval(ji2);
-      document.getElementById('s-kahoot').style.animation='';
-      ov.style.transition='background .8s';ov.style.background='#020810';
-      gt.style.cssText=`position:fixed;top:50%;left:50%;
-        transform:translate(-50%,-50%);z-index:820;font-family:var(--mono);
-        font-size:clamp(.9rem,2.5vw,1.3rem);color:var(--red);text-align:center;
-        opacity:1;line-height:2.2;text-shadow:3px 0 var(--cyan),-3px 0 var(--red);
-        letter-spacing:.08em;animation:gsh .12s ease-in-out infinite;`;
-      gt.innerHTML='⚠ SYSTEM BREACH DETECTED ⚠<br><span style="color:var(--cyan)">FIREWALL BYPASSED</span><br><span style="color:var(--gold);font-size:.85em;">REMOTE CHANNEL ESTABLISHED</span>';
-      note(60,'sawtooth',.8,.18);
+      ov.innerHTML=`
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          font-family:var(--mono);text-align:center;color:var(--red);
+          font-size:clamp(.7rem,2vw,1rem);line-height:2.4;letter-spacing:.06em;">
+          <div style="animation:fadeIn .4s ease;">⚠ SYSTEM BREACH DETECTED</div>
+          <div style="animation:fadeIn .4s ease .5s both;color:var(--cyan);">FIREWALL BYPASSED · CHANNEL OPEN</div>
+          <div style="animation:fadeIn .4s ease 1s both;color:var(--dim);font-size:.7em;">
+            Establishing encrypted connection…</div>
+        </div>`;
+      note(55,'sawtooth',.7,.15);
+    },700);
+
+    // Phase 4: fade to game (8s)
+    setTimeout(()=>{
+      ov.style.opacity='0';
       setTimeout(()=>{
-        ov.style.opacity='0';ov.style.transition='opacity .5s';
-        gt.style.opacity='0';gt.style.transition='opacity .4s';
-        setTimeout(()=>{
-          ov.innerHTML='';gt.innerHTML='';
-          ov.style.cssText='';gt.style.cssText='';
-          startJazz();
-          myRoom=genRoom();
-          go('s-hchat');
-          runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostSetup();});
-        },600);
-      },1400);
-    },6200);
-  },4600);
+        ov.innerHTML='';ov.style.cssText='';
+        myRoom=genRoom();
+        go('s-hchat');
+        runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostSetup();});
+      },600);
+    },3200);
+  },5500);
 }
 
 // ═══════════════════════════════════
-// TERMINAL (mini — 3 lines only)
+// TERMINAL (mini, 3 lines)
 // ═══════════════════════════════════
 let termLines=[];
 function termAdd(text,cls=''){
-  termLines.push({text,cls});
-  if(termLines.length>3) termLines.shift();
-  const el=document.getElementById('mini-term');
-  if(!el)return;
-  el.innerHTML=termLines.map(l=>
-    `<div ${l.cls?`class="${l.cls}"`:''}>▸ ${l.text}</div>`
-  ).join('');
+  termLines.push({text,cls});if(termLines.length>3)termLines.shift();
+  const el=document.getElementById('mini-term');if(!el)return;
+  el.innerHTML=termLines.map(l=>`<div ${l.cls?`class="${l.cls}"`:''}>▸ ${l.text}</div>`).join('');
 }
 
 // ═══════════════════════════════════
@@ -1072,54 +635,45 @@ function termAdd(text,cls=''){
 // ═══════════════════════════════════
 const CHAT_INTRO=[
   {side:'them',name:'UNKNOWN',text:'...',typing:1200},
-  {side:'them',name:'UNKNOWN',text:'Connection established.',delay:300},
-  {side:'them',name:'UNKNOWN',text:'Encrypted. Level 5.',delay:500,cls:'cls'},
-  {side:'me',name:'YOU',text:'Who is this?',delay:600,pending:true},
-  {side:'them',name:'UNKNOWN',text:'Someone who has been watching your class for three weeks.',delay:800,typing:1100},
-  {side:'them',name:'UNKNOWN',text:'Digital Innovation and Management. University of Bergamo.',delay:600},
-  {side:'them',name:'UNKNOWN',text:'You study how products are built — from customer need to specification.',delay:700},
-  {side:'me',name:'YOU',text:'...how do you know that?',delay:800,pending:true},
-  {side:'them',name:'UNKNOWN',text:'We know a lot of things. Right now, what matters is this:',delay:600,typing:1000},
-  {side:'them',name:'UNKNOWN',text:'We have an operative in the field. Codename: OMEGA.',delay:700,cls:'cls'},
-  {side:'them',name:'UNKNOWN',text:'She has lost communication. Her standard headphones cannot handle the noise.',delay:800,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'She needs custom noise-cancelling headphones. Spec\'d from scratch.',delay:700},
-  {side:'me',name:'YOU',text:'What does this have to do with me?',delay:800,pending:true},
-  {side:'them',name:'UNKNOWN',text:'Your team will build the specification sheet.',delay:600,typing:1000},
-  {side:'them',name:'UNKNOWN',text:'Specifications are not wishes. They are precise, measurable targets.',delay:700,cls:'urg'},
-  {side:'them',name:'UNKNOWN',text:'Get them wrong — she does not come home.',delay:600,cls:'urg'},
-  {side:'me',name:'YOU',text:'Understood. What do we need to do?',delay:800,pending:true},
-  {side:'them',name:'UNKNOWN',text:'Seven steps. Each agent works on their phone. You control the pace.',delay:700,typing:1100},
-  {side:'them',name:'UNKNOWN',text:'Step 1 — rank customer needs. Step 2 — choose metrics. Step 3 — set target values.',delay:600},
-  {side:'them',name:'UNKNOWN',text:'Step 4 — configure final specs. Step 5 — check if it\'s profitable.',delay:600},
-  {side:'them',name:'UNKNOWN',text:'Step 6 — make trade-offs if needed. Step 7 — final quiz.',delay:600},
-  {side:'them',name:'UNKNOWN',text:'OMEGA is counting on you. Do not fail her.',delay:400,cls:'urg'},
-  {side:'me',name:'YOU',text:"Let's begin.",delay:600,pending:true,last:true},
+  {side:'them',name:'UNKNOWN',text:'Connection secured. Level 5 encryption.',delay:400,cls:'classified'},
+  {side:'me',name:'YOU',text:'Who is this?',delay:700,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Irrelevant. What matters is what you know.',delay:700,typing:1000},
+  {side:'them',name:'UNKNOWN',text:'Digital Innovation and Management. University of Bergamo. You study how products are designed — from customer need to engineering specification.',delay:700},
+  {side:'me',name:'YOU',text:'How do you know that?',delay:700,pending:true},
+  {side:'them',name:'UNKNOWN',text:'We have an operative in the field. Codename: OMEGA.',delay:600,cls:'classified'},
+  {side:'them',name:'UNKNOWN',text:'Her communication equipment has failed. She needs custom noise-cancelling headphones — specified from scratch, manufactured to budget.',delay:800,cls:'warn'},
+  {side:'them',name:'UNKNOWN',text:'Your team will build the specification sheet. Not a wishlist. A precise, measurable contract between what the customer needs and what engineering can deliver.',delay:700},
+  {side:'me',name:'YOU',text:'What do we need to do?',delay:700,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Seven steps. Each one teaches a concept, then tests it. Every choice has consequences — cost, weight, performance. There is no perfect answer. Only the least dangerous compromise.',delay:800},
+  {side:'them',name:'UNKNOWN',text:'Get the specs wrong, she cannot hear her team. Get the cost wrong, the mission is cancelled.',delay:500,cls:'warn'},
+  {side:'me',name:'YOU',text:'Understood. We are ready.',delay:600,pending:true,last:true},
 ];
+
 const CHAT_BETWEEN={
-  1:[{side:'them',name:'UNKNOWN',text:'Step 1 done. Analyzing…',delay:300,cls:'cls'},
+  1:[{side:'them',name:'UNKNOWN',text:'Step 1 complete. Priorities locked.',delay:300,cls:'classified'},
      {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'Remember: not all needs are equal. The most critical drive the most important specs.',delay:600},
-     {side:'me',name:'YOU',text:'Moving to Step 2.',delay:500,pending:true,last:true}],
-  2:[{side:'them',name:'UNKNOWN',text:'Metrics locked.',delay:300,cls:'cls'},
+     {side:'them',name:'UNKNOWN',text:'Customer needs are subjective. They must be translated into something engineers can measure. That is Step 2.',delay:600},
+     {side:'me',name:'YOU',text:'Moving to metrics.',delay:500,pending:true,last:true}],
+  2:[{side:'them',name:'UNKNOWN',text:'Metrics mapped.',delay:300,cls:'classified'},
      {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'Good. A metric is a dependent variable — it measures what the product delivers.',delay:600},
-     {side:'me',name:'YOU',text:'Step 3 — setting target values.',delay:500,pending:true,last:true}],
-  3:[{side:'them',name:'UNKNOWN',text:'Target specs confirmed.',delay:300,cls:'cls'},
+     {side:'them',name:'UNKNOWN',text:'Now set the boundaries. How good must the product be to survive? How good could it be if everything goes right?',delay:700},
+     {side:'me',name:'YOU',text:'Setting target values.',delay:500,pending:true,last:true}],
+  3:[{side:'them',name:'UNKNOWN',text:'Target specifications confirmed.',delay:300,cls:'classified'},
      {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'Now the final specifications. Every slider choice has a real cost consequence.',delay:600,cls:'urg'},
-     {side:'me',name:'YOU',text:'Configuring the product now.',delay:500,pending:true,last:true}],
-  4:[{side:'them',name:'UNKNOWN',text:'Spec sheet configured.',delay:300,cls:'cls'},
+     {side:'them',name:'UNKNOWN',text:'Targets are aspirations. Now build the product and discover what aspirations actually cost.',delay:600,cls:'warn'},
+     {side:'me',name:'YOU',text:'Configuring the BOM.',delay:500,pending:true,last:true}],
+  4:[{side:'them',name:'UNKNOWN',text:'Bill of Materials finalized.',delay:300,cls:'classified'},
      {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'Now the critical question: can you actually afford to build it?',delay:600,cls:'urg'},
+     {side:'them',name:'UNKNOWN',text:'You know what it costs to build. Now the critical question: can the market afford it?',delay:600,cls:'warn'},
      {side:'me',name:'YOU',text:'Running target costing.',delay:500,pending:true,last:true}],
-  5:[{side:'them',name:'UNKNOWN',text:'Costing analysis complete.',delay:300,cls:'cls'},
+  5:[{side:'them',name:'UNKNOWN',text:'C* calculated.',delay:300,cls:'classified'},
      {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'Some of you have a problem. Hard choices ahead.',delay:500,cls:'urg'},
-     {side:'me',name:'YOU',text:'Making the trade-offs.',delay:500,pending:true,last:true}],
-  6:[{side:'them',name:'UNKNOWN',text:'Trade-offs finalized.',delay:300,cls:'cls'},
+     {side:'them',name:'UNKNOWN',text:'Some of you are over budget. Hard choices ahead. What you sacrifice defines the product.',delay:500,cls:'warn'},
+     {side:'me',name:'YOU',text:'Making trade-offs.',delay:500,pending:true,last:true}],
+  6:[{side:'them',name:'UNKNOWN',text:'Trade-offs finalized. Spec sheets locked.',delay:300,cls:'classified'},
      {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'One last test. Prove you understood — not just the task, but the theory.',delay:600},
-     {side:'me',name:'YOU',text:'Ready for the final quiz.',delay:500,pending:true,last:true}],
+     {side:'them',name:'UNKNOWN',text:'One final test. Prove you understood the theory — not just the buttons.',delay:600},
+     {side:'me',name:'YOU',text:'Ready.',delay:500,pending:true,last:true}],
 };
 
 let chatQ=[],chatI=0,chatCB=null;
@@ -1130,45 +684,41 @@ function runChat(lines,cb){
   document.getElementById('chat-cta').textContent='';
   go('s-hchat');
   document.getElementById('sig-dot').classList.add('live');
-  document.getElementById('sig-txt').textContent='ENCRYPTED CHANNEL · ACTIVE';
+  document.getElementById('sig-txt').textContent='ENCRYPTED · ACTIVE';
   nextMsg();
 }
 function nextMsg(){
   if(chatI>=chatQ.length){if(chatCB){const f=chatCB;chatCB=null;f();}return;}
   const msg=chatQ[chatI];
   document.getElementById('chat-cta').textContent='';
-  if(msg.text==='__LB__'){renderLBMsg();chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));return;}
+  if(msg.text==='__LB__'){renderLBChat();chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));return;}
   if(msg.side==='me'&&msg.pending){
     const wrap=document.getElementById('chat-msgs');
-    const pd=document.createElement('div');pd.className='cmsg-pending';
-    pd.innerHTML=`<div class="cpend-lbl">TAP TO SEND ↓</div>
-      <div class="cpend-bub" onclick="sendPend(this,'${esc(msg.text)}','${msg.name}',${msg.last||false})">${msg.text}</div>`;
+    const pd=document.createElement('div');pd.className='cpend';
+    pd.innerHTML=`<div class="cpend-lbl">TAP TO SEND</div>
+      <div class="cpend-bub" onclick="sendPend(this,'${esc(msg.text)}','${msg.name}',${!!msg.last})">${msg.text}</div>`;
     wrap.appendChild(pd);scrollChat();
-    document.getElementById('chat-cta').textContent='👆 tap the message to send it';
+    document.getElementById('chat-cta').textContent='↑ tap the message above';
     return;
   }
   if(msg.side==='them'){
     document.getElementById('chat-typing').style.display='block';scrollChat();
-    const dur=msg.typing||(msg.text.length*32+400);
+    const dur=msg.typing||(msg.text.length*28+400);
     setTimeout(()=>{
       document.getElementById('chat-typing').style.display='none';
-      renderMsg(msg);chatI++;
-      setTimeout(nextMsg,(chatQ[chatI]?.delay||400));
+      renderMsg(msg);chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));
     },dur);
-  } else {
+  }else{
     setTimeout(()=>{renderMsg(msg);chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));},80);
   }
 }
 function esc(s){return s.replace(/'/g,"\\'");}
 function sendPend(el,text,name,isLast){
   sfxClick();
-  const pd=el.closest('.cmsg-pending');
-  if(pd){
-    const d=document.createElement('div');d.className='cmsg me';
+  const pd=el.closest('.cpend');
+  if(pd){const d=document.createElement('div');d.className='cmsg me';
     d.innerHTML=`<div class="cname">${name}</div><div class="cbub">${text}</div>`;
-    pd.replaceWith(d);scrollChat();
-  }
-  note(600,'sine',.05,.035);
+    pd.replaceWith(d);scrollChat();}
   chatI++;
   if(isLast){document.getElementById('chat-cta').textContent='';
     setTimeout(()=>{if(chatCB){const f=chatCB;chatCB=null;f();}},500);return;}
@@ -1180,40 +730,34 @@ function renderMsg(msg){
   d.innerHTML=`<div class="cname">${msg.name}</div>
     <div class="cbub${msg.cls?' '+msg.cls:''}">${msg.text}</div>`;
   wrap.appendChild(d);scrollChat();
-  if(msg.side==='them') note(440+Math.random()*60,'sine',.055,.035);
 }
-function renderLBMsg(){
+function renderLBChat(){
   const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
   if(!sorted.length)return;
-  const lines=sorted.map(([n,d],i)=>
-    `${['🥇','🥈','🥉'][i]||'·'} ${n}: ${d.score||0} pts`).join('<br>');
+  const lines=sorted.map(([n,d],i)=>`${medals[i]||'·'} ${n}: ${d.score||0} pts`).join('<br>');
   const wrap=document.getElementById('chat-msgs');
   const d=document.createElement('div');d.className='cmsg them';
   d.innerHTML=`<div class="cname">UNKNOWN</div>
-    <div class="cbub cls" style="font-family:var(--mono);font-size:.76rem;line-height:1.9;">${lines}</div>`;
+    <div class="cbub classified" style="font-size:.74rem;line-height:1.8;">${lines}</div>`;
   wrap.appendChild(d);scrollChat();
 }
-function scrollChat(){
-  setTimeout(()=>{const w=document.getElementById('chat-msgs');if(w)w.scrollTop=w.scrollHeight;},50);
-}
+function scrollChat(){setTimeout(()=>{const w=document.getElementById('chat-msgs');if(w)w.scrollTop=w.scrollHeight;},50);}
 
 // ═══════════════════════════════════
 // ABLY
 // ═══════════════════════════════════
 const ABLY_KEY='xC3oQQ.lm_9hg:boqSp-TCWIv_mIHQzAxWLI7KZcsMUjE7U7tAd6cZDbM';
-let ably=null,ch=null;
-let myNick='',myRoom='',myScore=0;
+let ably=null,ch=null,myNick='',myRoom='';
 let players={};
-
-function genRoom(){return Array.from({length:6},()=>
-  'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');}
+function genRoom(){return Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 async function connectAbly(room){
   for(let i=0;i<25;i++){if(typeof Ably!=='undefined')break;await sleep(300);}
   if(typeof Ably==='undefined')return false;
   try{
-    if(ably){try{ably.close();}catch(e){}}
+    if(ably)try{ably.close();}catch(e){}
     ably=new Ably.Realtime({key:ABLY_KEY,clientId:(myNick||'u')+'_'+Date.now()});
-    ch=ably.channels.get('sm6-'+room);
+    ch=ably.channels.get('sm7-'+room);
     await new Promise((res,rej)=>{
       ably.connection.on('connected',res);
       ably.connection.on('failed',()=>rej(new Error('failed')));
@@ -1224,1069 +768,731 @@ async function connectAbly(room){
 }
 function pub(ev,d){if(ch)ch.publish(ev,d).catch(()=>{});}
 function sub(ev,fn){if(ch)ch.subscribe(ev,m=>fn(m.data));}
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-
-// ═══════════════════════════════════
-// UI HELPERS
-// ═══════════════════════════════════
-function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
-  const el=document.getElementById(id);if(el)el.classList.add('on');}
-function toast(msg,dur=2400){const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),dur);}
-function addPts(n){myScore+=n;document.getElementById('mhpts').textContent=myScore+' pts';
-  document.getElementById('mw-score').textContent=myScore;
-  if(n>0)toast('+'+n+' pts 🎯');else if(n<0)toast(n+' pts');}
-function setHUD(lbl,pct){document.getElementById('mob-hud').classList.add('on');
-  document.getElementById('mhl').textContent=lbl;
-  document.getElementById('mhfill').style.width=pct+'%';}
-function setWait(s,t,sub){document.getElementById('mw-step').textContent=s;
-  document.getElementById('mw-title').textContent=t;
-  document.getElementById('mw-sub').textContent=sub;}
-function showFb(id,cls,html){const el=document.getElementById(id);if(!el)return;
-  el.style.display='block';el.className='fb '+cls;el.innerHTML=html;}
-function confetti(){
-  const cols=['#00e5ff','#ffc400','#00e676','#ff3d5a','#b366ff','#fff'];
-  for(let i=0;i<52;i++){const c=document.createElement('div');c.className='cf';
-    c.style.cssText=`left:${Math.random()*100}vw;top:-10px;
-      background:${cols[i%cols.length]};
-      animation-delay:${Math.random()*1.5}s;
-      animation-duration:${2+Math.random()*1.5}s;
-      border-radius:${Math.random()>.5?'50%':'2px'}`;
-    document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}
-}
-let timerInt=null;
-function startTimer(s){
-  clearInterval(timerInt);
-  document.getElementById('timer-strip').style.display='block';
-  const fill=document.getElementById('tfill'),start=Date.now();
-  timerInt=setInterval(()=>{
-    const el=(Date.now()-start)/1000,pct=Math.max(0,(s-el)/s*100);
-    fill.style.width=pct+'%';fill.classList.toggle('urg',el>s-15);
-    if(el>=s)clearInterval(timerInt);
-  },200);
-}
-function stopTimer(){clearInterval(timerInt);document.getElementById('timer-strip').style.display='none';}
-function showSpyToast(msg){
-  const t=document.getElementById('toast');
-  t.innerHTML=`<span style="font-size:.6rem;color:var(--mut);font-family:var(--mono);">HANDLER: </span>${msg}`;
-  t.classList.add('on');setTimeout(()=>t.classList.remove('on'),4000);
-}
 
 // ═══════════════════════════════════
 // HOST FLOW
 // ═══════════════════════════════════
 let currentStep=0;
-
 function startHost(){
-  sfxClick();
-  myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);
-  myRoom=genRoom();startJazz();
-  go('s-hchat');
-  runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostSetup();});
+  sfxClick();myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);
+  myRoom=genRoom();
+  go('s-hchat');runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostSetup();});
 }
-function startJoin(){
-  sfxClick();
+function startJoin(){sfxClick();
   const p=new URLSearchParams(location.search);
   const r=p.get('room');if(r)document.getElementById('m-code').value=r.toUpperCase();
   go('s-mjoin');
 }
-
 async function launchHostSetup(){
   document.getElementById('room-disp').textContent=myRoom;
-  buildQR();
+  const base=location.href.split('?')[0];
+  const url=encodeURIComponent(base+'?room='+myRoom+'&role=player');
+  document.getElementById('qr-wrap').innerHTML=
+    `<img style="border-radius:8px;border:1px solid var(--bd);width:140px;height:140px;"
+      src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${url}&bgcolor=06090f&color=58a6ff&margin=6" alt="QR">
+    <div style="font-family:var(--mono);font-size:.48rem;color:var(--dim);margin-top:4px;">${myRoom}</div>`;
   const ok=await connectAbly(myRoom);
-  if(!ok){toast('⚠️ Offline mode');}
+  if(!ok){toast('⚠ Offline mode');}
   else{
-    sub('join',d=>{
-      players[d.nick]={score:0,step:0};
-      renderPList();toast('🕵️ '+d.nick+' joined!');
-      termAdd(d.nick+' connected','tc');
-    });
+    sub('join',d=>{players[d.nick]={score:0,step:0};renderPList();toast(d.nick+' joined');termAdd(d.nick+' connected','tc');});
     sub('step-result',d=>{
       if(!players[d.nick])players[d.nick]={score:0,step:0};
       Object.assign(players[d.nick],d.data,{step:d.step,score:d.score||0});
       updateProgress();
-      broadcastComment(d.nick,d.score||0);
     });
     sub('quiz-ans',d=>{
-      if(players[d.nick]&&d.correct)
-        players[d.nick].score=(players[d.nick].score||0)+80;
+      if(players[d.nick]&&d.correct) players[d.nick].score=(players[d.nick].score||0)+100;
       updateProgress();
     });
   }
 }
-function buildQR(){
-  const base='https://lruggeri8-wq.github.io/specmaster/';
-  const url=encodeURIComponent(base+'?room='+myRoom+'&role=player');
-  document.getElementById('qr-wrap').innerHTML=
-    `<img style="border-radius:12px;border:2px solid var(--cyan);width:155px;height:155px;"
-      src="https://api.qrserver.com/v1/create-qr-code/?size=155x155&data=${url}&bgcolor=020810&color=00e5ff&margin=8" alt="QR">
-    <div style="font-family:var(--mono);font-size:.5rem;color:var(--mut);
-      text-align:center;margin-top:5px;">room: ${myRoom}</div>`;
-}
-function renderPList(){
-  document.getElementById('plist').innerHTML=
-    Object.keys(players).map(n=>`<span class="ppill">🕵️ ${n}</span>`).join('');
-}
+function renderPList(){document.getElementById('plist').innerHTML=
+  Object.keys(players).map(n=>`<span class="ppill">${n}</span>`).join('');}
 function updateProgress(){
   const total=Object.keys(players).length;
   const done=Object.values(players).filter(p=>p.step>=currentStep).length;
   const fill=document.getElementById('sp-prog-fill');
   const count=document.getElementById('sp-prog-count');
-  if(fill) fill.style.width=(total?Math.round(done/total*100):0)+'%';
-  if(count) count.textContent=done+'/'+total+' done';
-}
-function broadcastComment(nick,score){
-  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
-  const rank=sorted.findIndex(([n])=>n===nick)+1;
-  const total=sorted.length;
-  let c='';
-  if(rank===1&&total>1) c=nick+' leads. Sharp.';
-  else if(rank===total&&total>1) c='Keep going, '+nick+'. We need every agent.';
-  else c=nick+' — solid. Keep pushing.';
-  termAdd('HANDLER: '+c,'ty');
-  pub('spy-msg',{msg:c});
+  if(fill)fill.style.width=(total?Math.round(done/total*100):0)+'%';
+  if(count)count.textContent=done+'/'+total;
 }
 
-// HOST STEP DEFINITIONS
-const HOST_STEPS={
-  1:{
-    title:'What are Customer Needs?',
-    theory:'Customer needs are expressed in the <strong>language of the customer</strong> — subjective, vague, emotional. Before writing any specification, the team must identify and prioritize these needs. The most critical needs drive the most important metrics.',
-    instructions:['Students read OMEGA\'s message on their phone','They drag the 6 needs into priority order (1 = most critical)','Top priorities: noise cancellation, battery life, weight','This ranking guides all future specification decisions'],
-    term:'STEP 1: CUSTOMER NEEDS PRIORITIZATION'
-  },
-  2:{
-    title:'What are Metrics?',
-    theory:'A <strong>metric</strong> is a measurable quantity that reflects how well a customer need is satisfied. Metrics must be <strong>dependent variables</strong> — they measure WHAT the product delivers, not HOW it is designed. "Mass (grams)" is a metric. "Material = Carbon Fiber" is a design decision.',
-    instructions:['Students see each customer need','They choose the correct engineering metric from a dropdown','Wrong: "ear pad material" · Right: "ANC attenuation (dB)"','One need → one metric → one target value'],
-    term:'STEP 2: NEEDS → METRICS MAPPING'
-  },
-  3:{
-    title:'Setting Target Values',
-    theory:'For each metric, teams set two values: the <strong>Ideal value</strong> (best achievable, e.g. BrandS level) and the <strong>Marginal value</strong> (minimum acceptable to compete, e.g. BrandB level). These are target specifications — aspirational goals set BEFORE concept selection.',
-    instructions:['Students study the competitor table (BrandB/X/Z/S)','They manually enter Ideal and Marginal for each metric','Fields are EMPTY — they must think, not copy','They also set their retail price → this drives C* in Step 5'],
-    term:'STEP 3: TARGET SPECS — IDEAL & MARGINAL VALUES'
-  },
-  4:{
-    title:'Final Specifications',
-    theory:'After concept selection, target specs become <strong>final specifications</strong>. Engineers configure the exact values within the Marginal–Ideal range. Every choice has a cost consequence — this is the cost model linking spec values to manufacturing cost.',
-    instructions:['Sliders are constrained between their Marginal and Ideal values','ANC: each dB above 20 costs €2.50 extra','Battery: 8h base, each hour adds cost','Material: Plastic (+50g, free) or Carbon Fiber (+€60, −80g)','BOM total updates live as they adjust'],
-    term:'STEP 4: FINAL SPECS — BILL OF MATERIALS'
-  },
-  5:{
-    title:'Target Costing',
-    theory:'Target costing reverses the cost-plus logic. Formula (Appendix p.114): <strong>C* = P × (1−Mᵣ) × (1−Mₘ)</strong>. Start from the market price, subtract the retailer\'s margin (30%), then the manufacturer\'s (40%). The result is the maximum allowable manufacturing cost.',
-    instructions:['Students see the full cost chain applied to their price','Green = profitable · Red = Financial Disaster','If cost > C*, they MUST make trade-offs in Step 6','Example: P=€200 → C* = 200 × 0.70 × 0.60 = €84'],
-    term:'STEP 5: TARGET COSTING — C* = P×0.70×0.60'
-  },
-  6:{
-    title:'Trade-Off Decisions',
-    theory:'Final specifications require <strong>hard trade-offs</strong>. Three options: A) Reduce ANC −5dB (saves €12.50 but may breach client requirement), B) Switch to Carbon Fiber (+€60, −80g), C) Raise retail price +€50 (increases C* but weakens competitive position). Every choice cascades.',
-    instructions:['Live tracker shows Cost vs C* gap in real time','Option A: saves cost, risks ANC below client minimum','Option B: fixes weight problems but increases cost','Option C: raises price → raises C* → more budget room','Final spec sheet generated automatically'],
-    term:'STEP 6: TRADE-OFF DECISIONS'
-  },
-  7:{
-    title:'Theory Verification Quiz',
-    theory:'Seven questions — one per step — verify that students understood not just the task but the academic concept behind it. Questions cover: customer needs vs specs, dependent variables, ideal vs marginal values, cost models, target costing formula, trade-off logic, and when specs are set.',
-    instructions:['One question per step completed','Each correct answer = +80 pts','Explanation appears after each answer','No time pressure — accuracy over speed'],
-    term:'STEP 7: FINAL THEORY QUIZ'
-  },
+// HOST STEP CONFIG
+const HSTEPS={
+  1:{title:'Customer Needs',badge:'STEP 1 OF 7',
+    theory:'Customer needs are expressed in the <strong>"language of the customer"</strong> — subjective, vague, emotional. Before any engineering work, the team must understand what the customer actually wants and separate feelings from facts. (Ulrich & Eppinger, p.92)',
+    task:'Students receive a question: can you give a vague customer wish to an engineer? Then they classify 5 statements as subjective needs or objective metrics.',
+    term:'STEP 1: CUSTOMER NEEDS — SUBJECTIVE vs OBJECTIVE'},
+  2:{title:'Needs → Metrics',badge:'STEP 2 OF 7',
+    theory:'A <strong>metric</strong> is a measurable quantity that reflects how well a customer need is satisfied. Metrics must be <strong>dependent variables</strong> — they measure WHAT the product delivers, not HOW it is built. "Mass (g)" is a metric. "Carbon fiber" is a design decision. (p.95–97)',
+    task:'Opening question: can you order engineers to use a specific material? Then students match each customer need to the correct engineering metric.',
+    term:'STEP 2: NEEDS → METRICS — DEPENDENT VARIABLES'},
+  3:{title:'Target Values',badge:'STEP 3 OF 7',
+    theory:'For each metric, the team sets two values: the <strong>Ideal</strong> (best the team could hope for) and the <strong>Marginal</strong> (minimum to be commercially viable). These are target specifications — aspirational, set before concept selection. (p.99–103)',
+    task:'Students study a competitor benchmarking table, then manually enter Ideal and Marginal values for 3 key metrics. They also set a retail price.',
+    term:'STEP 3: TARGET VALUES — IDEAL & MARGINAL'},
+  4:{title:'Bill of Materials',badge:'STEP 4 OF 7',
+    theory:'The <strong>cost model</strong> predicts manufacturing cost from design decisions. The BOM lists components with high/low cost estimates. Each improvement in one metric increases cost in another — specs are interdependent. (p.105–107, Exhibit 6-10)',
+    task:'Students choose LOW or HIGH for each component (ANC chip, battery, housing, driver). Total cost and weight update live. They see the trade-off in real time.',
+    term:'STEP 4: BILL OF MATERIALS — COST MODEL'},
+  5:{title:'Target Costing',badge:'STEP 5 OF 7',
+    theory:'<strong>C* = P × Π(1 − Mᵢ)</strong>. Target costing works backwards from market price. Subtract retailer margin (~30%), then manufacturer margin (~40%). What remains is the maximum allowable manufacturing cost. The reverse of cost-plus. (Appendix, p.114)',
+    task:'Students see the full cost chain applied to their price. Green = profitable. Red = financial disaster. If cost > C*, they must make trade-offs in Step 6.',
+    term:'STEP 5: TARGET COSTING — C* = P × 0.70 × 0.60'},
+  6:{title:'Trade-Offs',badge:'STEP 6 OF 7',
+    theory:'Final specifications require <strong>hard trade-offs</strong>. Trade-offs occur between performance metrics AND between performance and cost. The competitive map (Exhibit 6-11) visualizes this: high performance = high cost. The team must find the sweet spot. (p.108)',
+    task:'Three binary choices: cut ANC, cut driver quality, or raise price. Each has consequences displayed in real time. Final spec sheet auto-generated.',
+    term:'STEP 6: TRADE-OFF DECISIONS'},
+  7:{title:'Master Quiz',badge:'STEP 7 OF 7',
+    theory:'Three final questions test whether students understood the core concepts: the nature of specs as dependent variables, the logic of target costing, and the inevitability of trade-offs.',
+    task:'3 multiple-choice questions. Each correct answer = +100 pts. Explanations shown after each answer.',
+    term:'STEP 7: MASTER QUIZ'},
 };
 
-function hostLaunch(){
-  sfxBig();pub('game-start',{});
-  termAdd('BREACH ACTIVE — OMEGA UNIT ONLINE','tr');
-  termAdd('Mission launched: '+Object.keys(players).length+' agents','tc');
-  showHostStep(1);
-}
-
+function hostLaunch(){sfxBig();pub('game-start',{});
+  termAdd('MISSION LAUNCHED — '+Object.keys(players).length+' agents','tr');
+  showHostStep(1);}
 function showHostStep(step){
-  currentStep=step;
-  const cfg=HOST_STEPS[step];if(!cfg)return;
-  go('s-hgame');
+  currentStep=step;const cfg=HSTEPS[step];if(!cfg)return;go('s-hgame');
   termAdd(cfg.term,'ty');
-
-  const isLast=step===7;
-  const hasPrev=step>1;
+  const isLast=step===7,hasPrev=step>1;
   document.getElementById('step-panel').innerHTML=`
-    <div class="sp-badge">STEP ${step} OF 7</div>
+    <div class="sp-badge">${cfg.badge}</div>
     <div class="sp-title">${step}. ${cfg.title}</div>
-
     <div class="sp-cols">
-      <div class="sp-theory">
-        <div class="sp-col-label">📖 THE CONCEPT (WHY)</div>
-        <div class="sp-theory-text">${cfg.theory}</div>
+      <div class="sp-box theory">
+        <div class="sp-box-label">THE CONCEPT</div>
+        <div class="sp-box-text">${cfg.theory}</div>
       </div>
-      <div class="sp-instr">
-        <div class="sp-col-label">📱 STUDENT TASK (HOW)</div>
-        <ol class="sp-instr-text" style="padding-left:0;list-style:none;">
-          ${cfg.instructions.map((l,i)=>`<li><strong style="color:var(--gold)">${i+1}.</strong> ${l}</li>`).join('')}
-        </ol>
+      <div class="sp-box task">
+        <div class="sp-box-label">STUDENT TASK</div>
+        <div class="sp-box-text">${cfg.task}</div>
       </div>
     </div>
-
     <div class="sp-progress">
-      <div class="sp-prog-label">STUDENT PROGRESS</div>
-      <div class="sp-prog-bar">
-        <div class="sp-prog-fill" id="sp-prog-fill" style="width:0%"></div>
-      </div>
-      <div class="sp-prog-count" id="sp-prog-count">0/0 done</div>
+      <div class="sp-prog-label">PROGRESS</div>
+      <div class="sp-prog-bar"><div class="sp-prog-fill" id="sp-prog-fill"></div></div>
+      <div class="sp-prog-count" id="sp-prog-count">0/0</div>
     </div>
-
     <div class="sp-btns">
-      ${hasPrev?`<button class="btn bs btn-sm" onclick="showHostStep(${step-1})">← Prev</button>`:''}
-      <button class="btn by" onclick="hostFireStep(${step})" style="flex:2;">
-        ▶ LAUNCH TO PHONES
-      </button>
-      ${!isLast?`<button class="btn bp btn-sm" onclick="goNextStep(${step})">Chat + Next →</button>`:''}
-      ${isLast?`<button class="btn bg btn-sm" onclick="showFinal()">🏆 Results</button>`:''}
+      ${hasPrev?`<button class="btn btn-sm" onclick="showHostStep(${step-1})">← Prev</button>`:''}
+      <button class="btn gold" onclick="hostFireStep(${step})" style="flex:2;">▶ LAUNCH TO PHONES</button>
+      ${!isLast?`<button class="btn primary btn-sm" onclick="goNextStep(${step})">Chat + Next →</button>`:''}
+      ${isLast?`<button class="btn success btn-sm" onclick="showFinal()">RESULTS</button>`:''}
     </div>`;
   updateProgress();
 }
-
-function hostFireStep(step){
-  sfxBig();
-  pub('launch',{step,dur:step===7?0:150});
-  toast('Step '+step+' launched to all phones!');
-}
-function goNextStep(step){
-  sfxClick();
-  const next=step+1;
-  const script=CHAT_BETWEEN[step];
+function hostFireStep(step){sfxBig();pub('launch',{step});toast('Step '+step+' sent!');}
+function goNextStep(step){sfxClick();
+  const next=step+1;const script=CHAT_BETWEEN[step];
   if(!script){showHostStep(next);return;}
   runChat(script.map(l=>({...l})),()=>showHostStep(next));
 }
 function showFinal(){
   sfxWin();confetti();
-  const sorted=Object.entries(players)
-    .sort((a,b)=>(b[1].score||0)-(a[1].score||0));
-  const winner=sorted[0];
-  const wName=winner?winner[0]:'your team';
-  // Run closing chat first, then show dashboard
+  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
+  const winner=sorted[0];const wName=winner?winner[0]:'your team';
   const closingChat=[
-    {side:'them',name:'UNKNOWN',text:'Analysis complete.',delay:300,cls:'cls'},
-    {side:'them',name:'UNKNOWN',text:'We have reviewed all submitted spec sheets.',delay:600,typing:1000},
-    {side:'them',name:'UNKNOWN',text:'One stood out.',delay:500},
-    {side:'them',name:'UNKNOWN',text:wName.toUpperCase()+' — your specification sheet has been selected.',delay:700,cls:'cls'},
-    {side:'them',name:'UNKNOWN',text:'ANC targets met. Cost within C*. Weight within limits.',delay:600},
-    {side:'them',name:'UNKNOWN',text:'OMEGA has received the headphones.',delay:500,cls:'cls'},
-    {side:'them',name:'UNKNOWN',text:'"Equipment operational. Communications restored. Proceeding with mission."',delay:700,cls:'urg'},
-    {side:'them',name:'UNKNOWN',text:'Good work, DIM unit. This channel is now closed.',delay:500},
-    {side:'them',name:'UNKNOWN',text:'— OMEGA HANDLER',delay:300,cls:'cls'},
-    {side:'me',name:'YOU',text:'Mission accomplished.',delay:600,pending:true,last:true},
+    {side:'them',name:'UNKNOWN',text:'All spec sheets received. Analyzing.',delay:300,cls:'classified'},
+    {side:'them',name:'UNKNOWN',text:wName.toUpperCase()+' — your specification sheet has been selected for production.',delay:700,cls:'classified'},
+    {side:'them',name:'UNKNOWN',text:'OMEGA reports: "Equipment operational. Communications restored. Proceeding."',delay:600,cls:'warn'},
+    {side:'them',name:'UNKNOWN',text:'This channel is now closed. — OMEGA HANDLER',delay:400,cls:'classified'},
+    {side:'me',name:'YOU',text:'Mission accomplished.',delay:500,pending:true,last:true},
   ];
   runChat(closingChat,()=>{
-    go('s-hdash');
-    pub('final-lb',{sorted:sorted.map(([n,d])=>[n,d.score||0])});
-    if(winner){
-      termAdd('DEBRIEF COMPLETE — BEST: '+winner[0].toUpperCase(),'tg');
-      document.getElementById('hdash-winner').innerHTML=
-        `> Agent <span style="color:var(--gold)">${winner[0]}</span>, your spec sheet was approved for production.<br>
-        > OMEGA is equipped. The mission proceeds.`;
-    }
-    document.getElementById('hdash-lb').innerHTML=sorted.map(([n,d],i)=>`
-    <div class="lb-row" style="animation-delay:${i*.1}s;">
-      <div style="font-size:1.1rem;width:26px;">${medals[i]||i+1}</div>
-      <div style="flex:1;font-weight:700;">${n}</div>
-      <div style="font-family:var(--mono);color:var(--gold);">${d.score||0} pts</div>
-    </div>`).join('');
-  document.getElementById('hdash-cards').innerHTML=sorted.map(([n,d])=>`
-    <div class="agent-card">
-      <div style="font-family:var(--mono);font-size:.7rem;color:var(--cyan);
-        margin-bottom:8px;">🕵️ ${n} · ${d.score||0} pts</div>
-      <div style="font-size:.7rem;color:var(--mut);margin-bottom:6px;">
-        ANC: ${d.finalANC||'—'}dB · Weight: ${d.finalWeight||'—'}g ·
-        Cost: €${d.finalCost||'—'} · C*: €${d.finalCstar||'—'}
-      </div>
-      ${d.finalCost&&d.finalCstar?`
-      <div class="bar-row">
-        <div class="bar-lbl">Cost vs C*</div>
-        <div class="bar-bg">
-          <div class="bar-fill" style="width:${Math.min(100,(d.finalCost/d.finalCstar)*70)}%;
-            background:${d.finalCost<=d.finalCstar?'var(--grn)':'var(--red)'};">
-          </div>
-        </div>
-        <span style="font-size:.65rem;color:${d.finalCost<=d.finalCstar?'var(--grn)':'var(--red)'};">
-          ${d.finalCost<=d.finalCstar?'✅ OK':'❌ Over'}
-        </span>
-      </div>`:''}
-    </div>`).join('');
-  });// end runChat callback
+    go('s-hdash');pub('final-lb',{sorted:sorted.map(([n,d])=>[n,d.score||0])});
+    if(winner) document.getElementById('hdash-winner').innerHTML=
+      `Agent <span style="color:var(--gold)">${winner[0]}</span> — spec sheet approved for production.`;
+    document.getElementById('hdash-lb').innerHTML=sorted.map(([n,d],i)=>
+      `<div class="lb-row" style="animation-delay:${i*.08}s;">
+        <div style="font-size:1rem;width:24px;">${medals[i]||i+1}</div>
+        <div style="flex:1;font-weight:700;">${n}</div>
+        <div style="font-family:var(--mono);color:var(--gold);">${d.score||0} pts</div>
+      </div>`).join('');
+    document.getElementById('hdash-cards').innerHTML=sorted.map(([n,d])=>
+      `<div class="card" style="margin-bottom:8px;">
+        <div style="font-family:var(--mono);font-size:.68rem;color:var(--cyan);margin-bottom:4px;">${n} · ${d.score||0} pts</div>
+        <div style="font-size:.7rem;color:var(--dim);">ANC: ${d.finalANC||'—'}dB · Weight: ${d.finalWeight||'—'}g · Cost: €${d.finalCost||'—'} · C*: €${d.finalCstar||'—'}</div>
+      </div>`).join('');
+  });
 }
 
 // ═══════════════════════════════════
 // MOBILE FLOW
 // ═══════════════════════════════════
-let mNick='',mRoom='',mStep=0;
-// Step 3 results
-let tgtIdeal={anc:0,battery:0,weight:0},tgtMarg={anc:0,battery:0,weight:0};
-let tgtPrice=200;
-// Step 4 results
-let specANC=35,specBattery=24,specMat=0;
+let mNick='',mRoom='';
+let tgtIdeal={anc:0,bat:0,wt:0},tgtMarg={anc:0,bat:0,wt:0},tgtPrice=200;
+let bomChoices={anc:'low',bat:'low',mat:'low',drv:'low'};
 let finalCost=0,finalWeight=0,finalCstar=0;
+const BOM_BASE=50;
 
 async function mobileJoin(){
   sfxClick();
   mNick=(document.getElementById('m-nick').value.trim()||'AGENT'+Math.floor(Math.random()*99)).substring(0,16);
   mRoom=(document.getElementById('m-code').value||'').trim().toUpperCase();
-  if(!mRoom){toast('Enter a room code!');return;}
-  myNick=mNick;myRoom=mRoom;
-  toast('Connecting…');
+  if(!mRoom){toast('Enter room code!');return;}
+  myNick=mNick;myRoom=mRoom;toast('Connecting…');
   let ok=await connectAbly(mRoom);
   if(!ok){await sleep(2000);ok=await connectAbly(mRoom);}
-  if(!ok){toast('❌ Cannot connect. Check WiFi.');return;}
+  if(!ok){toast('Cannot connect. Check WiFi.');return;}
   pub('join',{nick:mNick});
   document.getElementById('mob-hud').classList.add('on');
   sub('game-start',()=>{go('s-mwait');setWait('STANDBY','Mission starting…','Stand by');});
-  sub('launch',d=>{
-    mStep=d.step;setHUD('STEP '+d.step,Math.round(d.step/7*100));
-    if(d.dur>0)startTimer(d.dur);
-    launchStep(d.step);
-  });
-  sub('spy-msg',d=>showSpyToast(d.msg));
+  sub('launch',d=>{setHUD('STEP '+d.step,Math.round(d.step/7*100));launchMobStep(d.step);});
+  sub('spy-msg',d=>toast(d.msg));
   sub('final-lb',d=>{
-    // update mobile leaderboard
-    const el=document.getElementById('mfinal-lb');
-    if(!el)return;
-    const medals=['🥇','🥈','🥉'];
-    el.innerHTML=d.sorted.map(([n,s],i)=>`
-      <div style="display:flex;align-items:center;gap:10px;background:${n===mNick?'rgba(0,229,255,.08)':'var(--s1)'};
-        border:1px solid ${n===mNick?'rgba(0,229,255,.3)':'var(--bd)'};
-        border-radius:10px;padding:10px 14px;margin-bottom:6px;
-        animation:sup .4s ease ${i*.1}s both;">
+    const el=document.getElementById('mfinal-lb');if(!el)return;
+    el.innerHTML=d.sorted.map(([n,s],i)=>
+      `<div class="lb-row" style="animation-delay:${i*.08}s;${n===mNick?'border-color:var(--cyan);':''}"">
         <div style="font-size:1rem;width:24px;">${medals[i]||i+1}</div>
         <div style="flex:1;font-weight:700;${n===mNick?'color:var(--cyan)':''}">${n}${n===mNick?' (you)':''}</div>
         <div style="font-family:var(--mono);color:var(--gold);">${s} pts</div>
       </div>`).join('');
   });
-  go('s-mwait');setWait('CONNECTED','Waiting for host…','Stand by');
-  toast('✅ Joined as '+mNick);startJazz();
+  go('s-mwait');setWait('CONNECTED','Waiting for host…','Stand by');toast('Joined as '+mNick);
 }
 
-function launchStep(s){
-  if(s===1){initS1();go('s-m1');}
-  else if(s===2){initS2();go('s-m2');}
-  else if(s===3){initS3();go('s-m3');}
-  else if(s===4){initS4();go('s-m4');}
-  else if(s===5){initS5();go('s-m5');}
-  else if(s===6){initS6();go('s-m6');}
-  else if(s===7){initS7();go('s-m7');}
+function launchMobStep(s){
+  if(s===1)initS1();else if(s===2)initS2();else if(s===3)initS3();
+  else if(s===4)initS4();else if(s===5)initS5();else if(s===6)initS6();
+  else if(s===7)initS7();
   else{go('s-mwait');setWait('STEP '+s,'Coming soon…','Wait for host');}
 }
-function doneStep(step,data){
-  pub('step-result',{nick:mNick,step,score:myScore,data});
-  stopTimer();go('s-mwait');
-  setWait('STEP '+step+' ✓','Stand by…','Waiting for host to continue');
-}
+function doneStep(step,data){pub('step-result',{nick:mNick,step,score:myScore,data});
+  go('s-mwait');setWait('STEP '+step+' ✓','Stand by…','Waiting for host');}
 
-// ─── STEP 1: Drag to rank ───
-const NEEDS=[
-  {id:'noise',  text:'Completely blocks background noise',        correct:1},
-  {id:'battery',text:'Lasts at least 8 hours',                   correct:2},
-  {id:'weight', text:'Does not slow the agent down — lightweight',correct:3},
-  {id:'audio',  text:'Crystal-clear audio for instructions',      correct:4},
-  {id:'pairing',text:'Pairs instantly with any device',           correct:5},
-  {id:'looks',  text:'Looks like ordinary headphones',            correct:6},
+// ═══════════════════════════════════
+// STEP 1: Customer Needs — classify subjective vs objective
+// ═══════════════════════════════════
+const S1_ITEMS=[
+  {text:'"I need headphones that block all noise."',type:'subj',why:'Subjective — "all noise" is vague. How much? At what frequency?'},
+  {text:'"Battery life ≥ 8 hours."',type:'obj',why:'Objective — measurable, with a unit and threshold.'},
+  {text:'"They should feel light on my head."',type:'subj',why:'Subjective — "feel light" varies by person. Needs a metric (grams).'},
+  {text:'"Bluetooth pairing time < 3 seconds."',type:'obj',why:'Objective — precise, testable, with units.'},
+  {text:'"They should look like normal headphones."',type:'subj',why:'Subjective — "look normal" is a perception, not a measurement.'},
 ];
-let dragSrc=null;
+let s1Answers={},s1Done=false;
 function initS1(){
-  document.getElementById('s1-fb').style.display='none';
-  const list=document.getElementById('needs-list');list.innerHTML='';
-  [...NEEDS].sort(()=>Math.random()-.5).forEach((n,i)=>{
-    const row=document.createElement('div');
-    row.className='need-row';row.dataset.id=n.id;row.draggable=true;
-    row.innerHTML=`<div class="rank-badge">${i+1}</div>
-      <div class="need-text">${n.text}</div>
-      <div class="drag-handle">☰</div>`;
-    row.addEventListener('dragstart',()=>{dragSrc=row;row.classList.add('dragging');});
-    row.addEventListener('dragend',()=>{row.classList.remove('dragging');});
-    row.addEventListener('dragover',e=>{e.preventDefault();row.classList.add('over');});
-    row.addEventListener('dragleave',()=>row.classList.remove('over'));
-    row.addEventListener('drop',e=>{
-      e.preventDefault();row.classList.remove('over');
-      if(dragSrc&&dragSrc!==row){
-        const all=[...list.querySelectorAll('.need-row')];
-        const si=all.indexOf(dragSrc),ti=all.indexOf(row);
-        if(si<ti)list.insertBefore(dragSrc,row.nextSibling);
-        else list.insertBefore(dragSrc,row);
-        updRanks();sfxClick();
-      }
-    });
-    // touch
-    let ty0=0;
-    row.addEventListener('touchstart',e=>{dragSrc=row;ty0=e.touches[0].clientY;row.classList.add('dragging');},{passive:true});
-    row.addEventListener('touchmove',e=>{
-      e.preventDefault();
-      const y=e.touches[0].clientY;
-      const all=[...list.querySelectorAll('.need-row')];
-      const target=all.find(el=>{
-        const r=el.getBoundingClientRect();
-        return y>=r.top&&y<=r.bottom&&el!==dragSrc;
-      });
-      if(target){
-        const si=all.indexOf(dragSrc),ti=all.indexOf(target);
-        if(si<ti)list.insertBefore(dragSrc,target.nextSibling);
-        else list.insertBefore(dragSrc,target);
-        updRanks();
-      }
-    },{passive:false});
-    row.addEventListener('touchend',()=>{dragSrc=null;row.classList.remove('dragging');},{passive:true});
-    list.appendChild(row);
-  });
+  s1Done=false;s1Answers={};
+  const el=document.getElementById('m1-content');
+  el.innerHTML=`
+    <div class="stag">STEP 1 · CUSTOMER NEEDS</div>
+    <div class="oq-box">
+      <span class="oq-label">UNKNOWN ASKS:</span>
+      <div class="oq-text">OMEGA says: "I need headphones that block noise completely." Can you hand this sentence to an engineer and expect a product?</div>
+    </div>
+    <div class="oq-opts">
+      <button class="oq-opt" onclick="ansOQ1(this,true)">No — it's too vague. Engineers need precise, measurable targets.</button>
+      <button class="oq-opt" onclick="ansOQ1(this,false)">Yes — the engineer will figure out the details.</button>
+    </div>
+    <div id="s1-oq-fb" style="display:none;width:100%;"></div>
+    <div id="s1-task" style="display:none;width:100%;">
+      <div class="instr-box">
+        <span class="instr-label">YOUR TASK</span>
+        For each statement below, classify it as <strong>SUBJECTIVE</strong> (customer language, vague) or <strong>OBJECTIVE</strong> (already a measurable metric).
+      </div>
+      <div id="s1-items"></div>
+      <button class="btn primary" style="width:100%;margin-top:10px;" id="s1-submit" onclick="submitS1()">LOCK ANSWERS →</button>
+      <div id="s1-fb" style="display:none;width:100%;"></div>
+    </div>`;
+  go('s-m1');
 }
-function updRanks(){
-  document.querySelectorAll('#needs-list .rank-badge').forEach((el,i)=>el.textContent=i+1);
+function ansOQ1(btn,correct){
+  document.querySelectorAll('#m1-content .oq-opt').forEach(b=>{b.disabled=true;});
+  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
+    showFb('s1-oq-fb','ok','Correct. Customer needs are subjective — they must be translated into engineering metrics.');}
+  else{btn.classList.add('wrong');sfxBad();
+    showFb('s1-oq-fb','bad','Not quite. "Block noise completely" is vague. How many dB? At what frequency? Engineers need numbers.');}
+  document.getElementById('s1-task').style.display='block';
+  renderS1Items();
+}
+function renderS1Items(){
+  document.getElementById('s1-items').innerHTML=S1_ITEMS.map((item,i)=>`
+    <div class="card" style="margin-bottom:8px;">
+      <div style="font-size:.84rem;font-weight:600;margin-bottom:8px;">${item.text}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <button class="oq-opt" style="margin:0;font-size:.76rem;padding:10px;" onclick="pickS1(${i},'subj',this)">SUBJECTIVE</button>
+        <button class="oq-opt" style="margin:0;font-size:.76rem;padding:10px;" onclick="pickS1(${i},'obj',this)">OBJECTIVE</button>
+      </div>
+    </div>`).join('');
+}
+function pickS1(idx,type,btn){
+  sfxClick();s1Answers[idx]=type;
+  const card=btn.closest('.card');
+  card.querySelectorAll('.oq-opt').forEach(b=>{b.style.borderColor='var(--bd)';b.style.background='var(--s2)';b.style.color='var(--txt)';});
+  btn.style.borderColor=type==='subj'?'var(--pur)':'var(--cyan)';
+  btn.style.background=type==='subj'?'rgba(188,140,255,.08)':'rgba(88,166,255,.08)';
+  btn.style.color=type==='subj'?'var(--pur)':'var(--cyan)';
 }
 function submitS1(){
-  sfxClick();
-  const rows=[...document.getElementById('needs-list').querySelectorAll('.need-row')];
-  const ranked=rows.map((r,i)=>({id:r.dataset.id,rank:i+1}));
-  const correctTop3=['noise','battery','weight'];
-  const playerTop3=ranked.slice(0,3).map(n=>n.id);
-  let pts=0;
-  correctTop3.forEach(id=>{if(playerTop3.includes(id))pts+=40;});
-  addPts(pts);
-  rows.forEach((r,i)=>{
-    const n=ranked[i];const cor=NEEDS.find(x=>x.id===n.id).correct;
-    const diff=Math.abs(cor-(i+1));
-    r.style.borderColor=diff===0?'var(--grn)':diff<=1?'var(--gold)':'var(--bd)';
-  });
-  if(pts>=80)sfxOk();else sfxBad();
-  showFb('s1-fb',pts>=80?'ok':'warn',
-    `Top 3 priorities locked · +${pts} pts<br>
-    <small>Noise (1st), Battery (2nd), Weight (3rd) are OMEGA's critical constraints.</small>`);
-  setTimeout(()=>doneStep(1,{needs:ranked}),2400);
+  if(Object.keys(s1Answers).length<S1_ITEMS.length){toast('Classify all statements!');return;}
+  if(s1Done)return;s1Done=true;sfxClick();
+  let correct=0;
+  S1_ITEMS.forEach((item,i)=>{if(s1Answers[i]===item.type)correct++;});
+  const pts=correct*30;addPts(pts);
+  if(correct>=4)sfxOk();else sfxBad();
+  showFb('s1-fb',correct>=4?'ok':'info',
+    `${correct}/${S1_ITEMS.length} correct · +${pts} pts`);
+  // Show debrief
+  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
+  db.innerHTML=`<strong>UNKNOWN:</strong> Customer needs are expressed in vague, emotional language. Before any engineering work begins, they must be translated into precise, measurable specifications. That translation — from wish to metric — is the foundation of product development.`;
+  document.getElementById('m1-content').appendChild(db);
+  setTimeout(()=>doneStep(1,{correct}),2800);
 }
 
-// ─── STEP 2: Needs → Metrics ───
-const M2=[
-  {id:'noise',  need:'"Completely blocks background noise"',
-   opts:['ANC attenuation (dB)','Speaker impedance (ohms)','Ear pad foam density','Headband spring force'],c:0},
-  {id:'battery',need:'"Lasts at least 8 hours"',
-   opts:['Charge cable length','Battery playback time (hours)','Headphone mass (g)','Bluetooth codec'],c:1},
-  {id:'weight', need:'"Does not slow the agent down"',
-   opts:['Color options','Total assembled mass (grams)','Cable type','Driver diameter'],c:1},
-  {id:'audio',  need:'"Crystal-clear audio for instructions"',
-   opts:['THD+N — Total harmonic distortion + noise (%)','Box material','Logo size','Warranty period'],c:0},
-  {id:'pairing',need:'"Pairs instantly with any device"',
-   opts:['Headband width','App list','Bluetooth initial pairing time (seconds)','Hinge material'],c:2},
+// ═══════════════════════════════════
+// STEP 2: Needs → Metrics
+// ═══════════════════════════════════
+const S2_MATCHES=[
+  {need:'"Block all background noise"',
+   opts:['ANC attenuation (dB)','Ear pad foam density (kg/m³)','Speaker impedance (Ω)','Headband spring force (N)'],c:0},
+  {need:'"Last at least 8 hours"',
+   opts:['Bluetooth codec version','Battery playback time (hours)','Charging cable length (cm)','Total mass (g)'],c:1},
+  {need:'"Light on the head"',
+   opts:['Number of color options','Total assembled mass (grams)','Driver diameter (mm)','Cable thickness (mm)'],c:1},
+  {need:'"Pair instantly with any device"',
+   opts:['App download size (MB)','Headband width (mm)','Bluetooth initial pairing time (s)','Box material'],c:2},
 ];
+let s2Done=false;
 function initS2(){
-  document.getElementById('s2-fb').style.display='none';
-  document.getElementById('m2-rows').innerHTML=M2.map((m,i)=>`
-    <div class="mc" style="margin-bottom:9px;">
-      <div style="font-size:.65rem;font-family:var(--mono);color:var(--mut);margin-bottom:4px;">
-        CUSTOMER NEED:
+  s2Done=false;
+  const el=document.getElementById('m2-content');
+  el.innerHTML=`
+    <div class="stag">STEP 2 · NEEDS → METRICS</div>
+    <div class="oq-box">
+      <span class="oq-label">UNKNOWN ASKS:</span>
+      <div class="oq-text">Can you order your engineers to use "carbon fiber housing"?</div>
+    </div>
+    <div class="oq-opts">
+      <button class="oq-opt" onclick="ansOQ2(this,false)">Yes — it solves the weight problem directly.</button>
+      <button class="oq-opt" onclick="ansOQ2(this,true)">No — that's a design decision, not a specification. Specs say WHAT, not HOW.</button>
+    </div>
+    <div id="s2-oq-fb" style="display:none;width:100%;"></div>
+    <div id="s2-task" style="display:none;width:100%;">
+      <div class="instr-box">
+        <span class="instr-label">YOUR TASK</span>
+        Match each customer need to the correct <strong>engineering metric</strong>. A metric is a dependent variable — it measures output, not input.
       </div>
-      <div style="font-weight:700;font-size:.86rem;margin-bottom:9px;">${m.need}</div>
-      <select id="m2-${m.id}" class="gsel" onchange="sfxClick()">
-        <option value="">— choose the correct metric —</option>
-        ${[...m.opts].sort(()=>Math.random()-.5)
-          .map(o=>`<option value="${o}">${o}</option>`).join('')}
+      <div id="s2-rows"></div>
+      <button class="btn primary" style="width:100%;margin-top:10px;" onclick="submitS2()">LOCK METRICS →</button>
+      <div id="s2-fb" style="display:none;width:100%;"></div>
+    </div>`;
+  go('s-m2');
+}
+function ansOQ2(btn,correct){
+  document.querySelectorAll('#m2-content .oq-opt').forEach(b=>b.disabled=true);
+  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
+    showFb('s2-oq-fb','ok','Correct. "Carbon fiber" is an independent variable — a design choice. Specs must be dependent variables: mass (g), not material.');}
+  else{btn.classList.add('wrong');sfxBad();
+    showFb('s2-oq-fb','bad','Wrong. Specifying "carbon fiber" constrains the design too early. The metric should be "total mass (grams)" — then engineers choose the best material to hit that target.');}
+  document.getElementById('s2-task').style.display='block';
+  document.getElementById('s2-rows').innerHTML=S2_MATCHES.map((m,i)=>`
+    <div class="card" style="margin-bottom:8px;">
+      <div style="font-size:.65rem;font-family:var(--mono);color:var(--dim);margin-bottom:4px;">NEED:</div>
+      <div style="font-weight:700;font-size:.84rem;margin-bottom:8px;">${m.need}</div>
+      <select id="s2-sel-${i}" class="gsel" onchange="sfxClick()">
+        <option value="">— choose metric —</option>
+        ${[...m.opts].sort(()=>Math.random()-.5).map(o=>`<option value="${o}">${o}</option>`).join('')}
       </select>
     </div>`).join('');
 }
 function submitS2(){
-  sfxClick();let ok=0;
-  M2.forEach(m=>{
-    const sel=document.getElementById('m2-'+m.id);if(!sel)return;
-    const good=sel.value===m.opts[m.c];
-    if(good)ok++;
-    sel.style.borderColor=good?'var(--grn)':'var(--red)';
-    sel.style.color=good?'var(--grn)':'var(--red)';
+  if(s2Done)return;s2Done=true;sfxClick();
+  let ok=0;
+  S2_MATCHES.forEach((m,i)=>{
+    const sel=document.getElementById('s2-sel-'+i);if(!sel)return;
+    const good=sel.value===m.opts[m.c];if(good)ok++;
+    sel.style.borderColor=good?'var(--grn)':'var(--red)';sel.style.color=good?'var(--grn)':'var(--red)';
   });
-  const pts=ok*36;addPts(pts);
-  if(ok>=4)sfxOk();else sfxBad();
-  showFb('s2-fb',ok>=4?'ok':'bad',
-    `${ok}/${M2.length} correct · +${pts} pts<br>
-    <small>Metrics = dependent variables. They measure WHAT the product delivers, not HOW it's built.</small>`);
-  setTimeout(()=>doneStep(2,{}),2400);
+  const pts=ok*40;addPts(pts);if(ok>=3)sfxOk();else sfxBad();
+  showFb('s2-fb',ok>=3?'ok':'bad',`${ok}/${S2_MATCHES.length} correct · +${pts} pts`);
+  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
+  db.innerHTML=`<strong>UNKNOWN:</strong> Metrics are dependent variables. They measure what the product delivers — not how it's built. "Mass in grams" leaves engineers free to choose steel, aluminum, or carbon fiber. "Use carbon fiber" locks them into one solution before exploring alternatives.`;
+  document.getElementById('m2-content').appendChild(db);
+  setTimeout(()=>doneStep(2,{correct:ok}),2800);
 }
 
-// ─── STEP 3: Target values — empty fields ───
-/* dup removed */
-
+// ═══════════════════════════════════
+// STEP 3: Target Values
+// ═══════════════════════════════════
 function initS3(){
-  document.getElementById('s3-fb').style.display='none';
-  // clear all fields
-  ['s3-anc-i','s3-anc-m','s3-bat-i','s3-bat-m','s3-wt-i','s3-wt-m'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
-  updPrice();
+  const el=document.getElementById('m3-content');
+  el.innerHTML=`
+    <div class="stag">STEP 3 · TARGET VALUES</div>
+    <div class="oq-box">
+      <span class="oq-label">UNKNOWN ASKS:</span>
+      <div class="oq-text">The worst competitor has ANC 18dB. The best has 44dB. Should your target be 44dB?</div>
+    </div>
+    <div class="oq-opts">
+      <button class="oq-opt" onclick="ansOQ3(this,false)">Yes — always aim for the best.</button>
+      <button class="oq-opt" onclick="ansOQ3(this,true)">Not necessarily — you need an Ideal (aspiration) AND a Marginal (minimum to compete). The gap between them is your design space.</button>
+    </div>
+    <div id="s3-oq-fb" style="display:none;width:100%;"></div>
+    <div id="s3-task" style="display:none;width:100%;">
+      <div class="instr-box">
+        <span class="instr-label">COMPETITOR DATA</span>
+        <strong>BrandB</strong> (budget): ANC 18dB · Battery 12h · Weight 380g<br>
+        <strong>BrandX</strong> (mid): ANC 28dB · Battery 20h · Weight 330g<br>
+        <strong>BrandZ</strong> (upper): ANC 35dB · Battery 30h · Weight 295g<br>
+        <strong>BrandS</strong> (premium): ANC 44dB · Battery 40h · Weight 240g
+      </div>
+      <div class="instr-box" style="border-left-color:var(--gold);">
+        <span class="instr-label">YOUR TASK</span>
+        Set <strong style="color:var(--cyan)">Ideal</strong> (best you aim for) and <strong style="color:var(--gold)">Marginal</strong> (minimum to survive). Fields are empty — think before typing.
+      </div>
+      ${renderTargetInput('ANC Attenuation','dB','anc','Higher = better')}
+      ${renderTargetInput('Battery Life','hours','bat','Higher = better')}
+      ${renderTargetInput('Total Mass','grams','wt','Lower = better (Ideal < Marginal)')}
+      <div class="card" style="margin-bottom:12px;border-color:rgba(210,153,34,.3);">
+        <div style="font-size:.68rem;font-family:var(--mono);color:var(--gold);margin-bottom:6px;">RETAIL PRICE TARGET</div>
+        <div style="font-size:.75rem;color:var(--dim);margin-bottom:8px;">Sets your C* in Step 5. BrandB=€89 · BrandS=€380</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" id="price-slider" min="80" max="450" value="200" step="10" oninput="updPrice()">
+          <span id="price-val" style="font-family:var(--mono);color:var(--gold);font-weight:700;min-width:50px;">€200</span>
+        </div>
+        <div style="font-size:.65rem;color:var(--dim);margin-top:4px;">C* ≈ €<span id="cstar-prev">84</span></div>
+      </div>
+      <button class="btn primary" style="width:100%;" onclick="submitS3()">LOCK TARGET SPECS →</button>
+      <div id="s3-fb" style="display:none;width:100%;"></div>
+    </div>`;
+  go('s-m3');
 }
-function updPrice(){
-  tgtPrice=+document.getElementById('price-slider').value||200;
+function renderTargetInput(label,unit,key,hint){
+  return `<div class="card" style="margin-bottom:10px;">
+    <div style="font-size:.78rem;font-weight:700;margin-bottom:2px;">${label} (${unit})</div>
+    <div style="font-size:.65rem;color:var(--dim);margin-bottom:8px;">${hint}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div><div style="font-size:.55rem;font-family:var(--mono);color:var(--cyan);margin-bottom:4px;">IDEAL</div>
+        <input type="number" id="s3-${key}-i" class="num-input cyan" placeholder="?"></div>
+      <div><div style="font-size:.55rem;font-family:var(--mono);color:var(--gold);margin-bottom:4px;">MARGINAL</div>
+        <input type="number" id="s3-${key}-m" class="num-input gold" placeholder="?"></div>
+    </div>
+  </div>`;
+}
+function ansOQ3(btn,correct){
+  document.querySelectorAll('#m3-content .oq-opt').forEach(b=>b.disabled=true);
+  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
+    showFb('s3-oq-fb','ok','Correct. Ideal is the aspiration. Marginal is the survival threshold. The space between them is where engineering happens.');}
+  else{btn.classList.add('wrong');sfxBad();
+    showFb('s3-oq-fb','bad','Aiming for the best sounds good, but it may be unaffordable. You need TWO targets: Ideal (dream) and Marginal (minimum to compete).');}
+  document.getElementById('s3-task').style.display='block';updPrice();
+}
+function updPrice(){tgtPrice=+document.getElementById('price-slider').value||200;
   document.getElementById('price-val').textContent='€'+tgtPrice;
-  document.getElementById('cstar-prev').textContent=Math.round(tgtPrice*.70*.60);
-}
+  document.getElementById('cstar-prev').textContent=Math.round(tgtPrice*.70*.60);}
 function submitS3(){
   sfxClick();
-  tgtIdeal.anc=+document.getElementById('s3-anc-i').value;
-  tgtMarg.anc=+document.getElementById('s3-anc-m').value;
-  tgtIdeal.bat=+document.getElementById('s3-bat-i').value;
-  tgtMarg.bat=+document.getElementById('s3-bat-m').value;
-  tgtIdeal.wt=+document.getElementById('s3-wt-i').value;
-  tgtMarg.wt=+document.getElementById('s3-wt-m').value;
+  tgtIdeal.anc=+document.getElementById('s3-anc-i').value;tgtMarg.anc=+document.getElementById('s3-anc-m').value;
+  tgtIdeal.bat=+document.getElementById('s3-bat-i').value;tgtMarg.bat=+document.getElementById('s3-bat-m').value;
+  tgtIdeal.wt=+document.getElementById('s3-wt-i').value;tgtMarg.wt=+document.getElementById('s3-wt-m').value;
   tgtPrice=+document.getElementById('price-slider').value||200;
-  // validate
-  if(!tgtIdeal.anc||!tgtMarg.anc){toast('Enter ANC values!');return;}
-  if(!tgtIdeal.bat||!tgtMarg.bat){toast('Enter Battery values!');return;}
-  if(!tgtIdeal.wt||!tgtMarg.wt){toast('Enter Weight values!');return;}
-  // sanity check: ideal must be better than marginal
-  const ancOk=tgtIdeal.anc>=tgtMarg.anc;// higher is better
-  const batOk=tgtIdeal.bat>=tgtMarg.bat;// higher is better
-  const wtOk=tgtIdeal.wt<=tgtMarg.wt;// lower is better
-  let pts=120;
-  if(!ancOk){showFb('s3-fb','bad','Ideal ANC must be ≥ Marginal (higher = better noise cancellation)');return;}
-  if(!batOk){showFb('s3-fb','bad','Ideal Battery must be ≥ Marginal (more hours = better)');return;}
-  if(!wtOk){showFb('s3-fb','bad','Ideal Weight must be ≤ Marginal (lighter = better)');return;}
-  // bonus for being ambitious but realistic
-  if(tgtIdeal.anc>=40) pts+=20;
-  if(tgtIdeal.bat>=30) pts+=20;
-  if(tgtIdeal.wt<=260) pts+=20;
+  if(!tgtIdeal.anc||!tgtMarg.anc||!tgtIdeal.bat||!tgtMarg.bat||!tgtIdeal.wt||!tgtMarg.wt){toast('Fill all fields!');return;}
+  if(tgtIdeal.anc<tgtMarg.anc){showFb('s3-fb','bad','Ideal ANC must be ≥ Marginal (higher = better)');return;}
+  if(tgtIdeal.bat<tgtMarg.bat){showFb('s3-fb','bad','Ideal Battery must be ≥ Marginal');return;}
+  if(tgtIdeal.wt>tgtMarg.wt){showFb('s3-fb','bad','Ideal Weight must be ≤ Marginal (lighter = better)');return;}
+  let pts=100;
+  if(tgtIdeal.anc>=40)pts+=20;if(tgtIdeal.bat>=30)pts+=20;if(tgtIdeal.wt<=260)pts+=20;
   addPts(pts);sfxOk();
-  showFb('s3-fb','ok',`Target specs locked! +${pts} pts<br>
-    <small>ANC: ${tgtMarg.anc}–${tgtIdeal.anc}dB · Battery: ${tgtMarg.bat}–${tgtIdeal.bat}h · Weight: ${tgtIdeal.wt}–${tgtMarg.wt}g · Price: €${tgtPrice}</small>`);
-  setTimeout(()=>doneStep(3,{ideal:tgtIdeal,marg:tgtMarg,price:tgtPrice}),2400);
+  showFb('s3-fb','ok',`Targets locked! +${pts} pts`);
+  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
+  db.innerHTML=`<strong>UNKNOWN:</strong> The Ideal value is the best result the team could hope for. The Marginal value is the bare minimum to make the product commercially viable. Both are set BEFORE concept selection — they represent hopes, not guarantees.`;
+  document.getElementById('m3-content').appendChild(db);
+  setTimeout(()=>doneStep(3,{ideal:tgtIdeal,marg:tgtMarg,price:tgtPrice}),2800);
 }
 
-// ─── STEP 4: BOM — LOW / HIGH per component ───
+// ═══════════════════════════════════
+// STEP 4: BOM
+// ═══════════════════════════════════
 const BOM_ITEMS=[
-  {id:'anc', label:'ANC Chip',
-   low:{name:'Standard ANC (≈25dB)',cost:18,ancPerf:25,note:'Good but below BrandS level'},
-   high:{name:'Premium ANC (≈40dB)',cost:45,ancPerf:40,note:'Approaches BrandS performance'}},
-  {id:'bat', label:'Battery Pack',
-   low:{name:'Standard (16h)',cost:12,batPerf:16,note:'Meets minimum requirement'},
-   high:{name:'Large (32h)',cost:28,batPerf:32,note:'Exceeds BrandS battery life'}},
-  {id:'mat', label:'Housing Material',
-   low:{name:'Plastic housing',cost:0,weightAdd:50,note:'+50g, no extra cost'},
-   high:{name:'Carbon Fiber',cost:60,weightAdd:-80,note:'-80g but +€60 cost'}},
-  {id:'drv', label:'Audio Driver',
-   low:{name:'Standard 40mm driver',cost:8,note:'Good audio quality'},
-   high:{name:'Premium 45mm driver',cost:18,note:'Audiophile-grade clarity'}},
+  {id:'anc',label:'ANC Chip',low:{name:'Standard (~25dB)',cost:18},high:{name:'Premium (~40dB)',cost:45}},
+  {id:'bat',label:'Battery Pack',low:{name:'Standard (16h)',cost:12},high:{name:'Large (32h)',cost:28}},
+  {id:'mat',label:'Housing',low:{name:'Plastic (+50g)',cost:0,wDelta:50},high:{name:'Carbon Fiber (−80g)',cost:60,wDelta:-80}},
+  {id:'drv',label:'Audio Driver',low:{name:'Standard 40mm',cost:8},high:{name:'Premium 45mm',cost:18}},
 ];
-const BOM_BASE=50;// base electronics: PCB, Bluetooth, assembly
-let bomChoices={anc:'low',bat:'low',mat:'low',drv:'low'};
-/* dup removed */
-
 function initS4(){
-  const el=document.getElementById('s4-targets');
-  if(el) el.innerHTML=`ANC: <b>${tgtMarg.anc}–${tgtIdeal.anc}dB</b> · Battery: <b>${tgtMarg.bat}–${tgtIdeal.bat}h</b> · Weight: <b>&lt;${tgtMarg.wt}g</b> · Price: <b>€${tgtPrice}</b>`;
   bomChoices={anc:'low',bat:'low',mat:'low',drv:'low'};
-  renderBOM();
+  const el=document.getElementById('m4-content');
+  el.innerHTML=`
+    <div class="stag">STEP 4 · BILL OF MATERIALS</div>
+    <div class="oq-box">
+      <span class="oq-label">UNKNOWN ASKS:</span>
+      <div class="oq-text">Every improvement you make to one metric costs something in another dimension. Is any spec free?</div>
+    </div>
+    <div class="oq-opts">
+      <button class="oq-opt" onclick="ansOQ4(this,true)">No — better ANC costs more, lighter housing costs more, longer battery costs more. Specs are interdependent.</button>
+      <button class="oq-opt" onclick="ansOQ4(this,false)">Yes — good engineering can improve specs without trade-offs.</button>
+    </div>
+    <div id="s4-oq-fb" style="display:none;width:100%;"></div>
+    <div id="s4-task" style="display:none;width:100%;">
+      <div class="instr-box">
+        <span class="instr-label">YOUR TASK</span>
+        Choose <strong>LOW</strong> (cheaper, lower performance) or <strong>HIGH</strong> (expensive, better) for each component. Watch cost and weight change.
+      </div>
+      <div style="font-size:.7rem;color:var(--dim);margin-bottom:8px;font-family:var(--mono);">
+        Your targets: ANC ${tgtMarg.anc}–${tgtIdeal.anc}dB · Battery ${tgtMarg.bat}–${tgtIdeal.bat}h · Weight &lt;${tgtMarg.wt}g · Price €${tgtPrice}
+      </div>
+      <div id="s4-bom"></div>
+      <div class="card" style="text-align:center;margin-bottom:12px;">
+        <div style="font-size:.55rem;font-family:var(--mono);color:var(--dim);margin-bottom:4px;">TOTAL MFG COST</div>
+        <div id="s4-total" style="font-family:var(--mono);font-size:1.6rem;font-weight:700;">€0</div>
+        <div id="s4-weight" style="font-size:.7rem;color:var(--dim);margin-top:4px;"></div>
+      </div>
+      <button class="btn primary" style="width:100%;" onclick="submitS4()">LOCK BOM →</button>
+    </div>`;
+  go('s-m4');
+}
+function ansOQ4(btn,correct){
+  document.querySelectorAll('#m4-content .oq-opt').forEach(b=>b.disabled=true);
+  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
+    showFb('s4-oq-fb','ok','Correct. The cost model shows that every specification improvement has a cost consequence. This is the core tension of product development.');}
+  else{btn.classList.add('wrong');sfxBad();
+    showFb('s4-oq-fb','bad','In reality, improving one spec almost always costs something — money, weight, complexity. The BOM will show you exactly how.');}
+  document.getElementById('s4-task').style.display='block';renderBOM();
 }
 function renderBOM(){
-  const cstar=Math.round(tgtPrice*.70*.60);
-  document.getElementById('bom-items').innerHTML=BOM_ITEMS.map(item=>{
-    const chosen=bomChoices[item.id];
-    const low=item.low,high=item.high;
-    return `<div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;
-      padding:12px 14px;margin-bottom:8px;">
-      <div style="font-size:.75rem;font-weight:700;margin-bottom:8px;">${item.label}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button onclick="setBOM('${item.id}','low')"
-          style="padding:10px 8px;border-radius:10px;cursor:pointer;transition:all .18s;
-          border:2px solid ${chosen==='low'?'var(--grn)':'var(--bd)'};
-          background:${chosen==='low'?'rgba(0,230,118,.1)':'var(--s2)'};
-          color:${chosen==='low'?'var(--grn)':'var(--txt)'};
-          font-size:.72rem;line-height:1.6;font-family:var(--sans);font-weight:600;">
-          LOW<br><span style="font-family:var(--mono);font-size:.8rem;">€${low.cost}</span><br>
-          <span style="font-size:.65rem;opacity:.8;">${low.name}</span>
-        </button>
-        <button onclick="setBOM('${item.id}','high')"
-          style="padding:10px 8px;border-radius:10px;cursor:pointer;transition:all .18s;
-          border:2px solid ${chosen==='high'?'var(--cyan)':'var(--bd)'};
-          background:${chosen==='high'?'rgba(0,229,255,.1)':'var(--s2)'};
-          color:${chosen==='high'?'var(--cyan)':'var(--txt)'};
-          font-size:.72rem;line-height:1.6;font-family:var(--sans);font-weight:600;">
-          HIGH<br><span style="font-family:var(--mono);font-size:.8rem;">€${high.cost}</span><br>
-          <span style="font-size:.65rem;opacity:.8;">${high.name}</span>
-        </button>
+  document.getElementById('s4-bom').innerHTML=BOM_ITEMS.map(item=>{
+    const ch=bomChoices[item.id];
+    return `<div class="bom-item">
+      <div style="font-size:.75rem;font-weight:700;margin-bottom:6px;">${item.label}</div>
+      <div class="bom-grid">
+        <div class="bom-opt${ch==='low'?' picked':''}" onclick="setBOM('${item.id}','low')">
+          LOW · €${item.low.cost}<br><span style="font-size:.65rem;opacity:.7;">${item.low.name}</span></div>
+        <div class="bom-opt${ch==='high'?' picked':''}" onclick="setBOM('${item.id}','high')">
+          HIGH · €${item.high.cost}<br><span style="font-size:.65rem;opacity:.7;">${item.high.name}</span></div>
       </div>
     </div>`;
   }).join('');
-  // calc total
-  let total=BOM_BASE;
-  let weight=250;// base weight
-  BOM_ITEMS.forEach(item=>{
-    const ch=bomChoices[item.id]==='high'?item.high:item.low;
-    total+=ch.cost;
-    if(ch.weightAdd!==undefined) weight+=ch.weightAdd;
-  });
-  finalCost=total;finalWeight=weight;
-  const gap=total-cstar;
-  const totEl=document.getElementById('bom-total');
-  if(totEl){totEl.textContent='€'+total;totEl.style.color=gap>0?'var(--red)':gap>-10?'var(--gold)':'var(--grn)';}
-  const vsEl=document.getElementById('bom-vs-cstar');
-  if(vsEl) vsEl.textContent=gap>0?`⚠️ €${gap} over C* (€${cstar})`:gap===0?`= C* exactly (€${cstar})`:`✅ €${Math.abs(gap)} under C* (€${cstar})`;
-  // weight status
-  const wEl=document.getElementById('bom-weight-status');
-  if(wEl){
-    const wOk=weight<tgtMarg.wt;
-    wEl.style.background=wOk?'rgba(0,230,118,.07)':'rgba(255,61,90,.07)';
-    wEl.style.border='1px solid '+(wOk?'rgba(0,230,118,.25)':'rgba(255,61,90,.3)');
-    wEl.style.color=wOk?'#5eea9a':'#ff7a8a';
-    wEl.textContent=`${wOk?'✅':'⚠️'} Total weight: ${weight}g (marginal limit: ${tgtMarg.wt}g)`;
-  }
+  let cost=BOM_BASE,weight=250;
+  BOM_ITEMS.forEach(item=>{const c=bomChoices[item.id]==='high'?item.high:item.low;
+    cost+=c.cost;if(c.wDelta!==undefined)weight+=c.wDelta;});
+  finalCost=cost;finalWeight=weight;
+  const cstar=Math.round(tgtPrice*.70*.60);
+  const totEl=document.getElementById('s4-total');
+  totEl.textContent='€'+cost;totEl.style.color=cost>cstar?'var(--red)':cost>cstar-10?'var(--gold)':'var(--grn)';
+  document.getElementById('s4-weight').textContent=`Weight: ${weight}g · C* ≈ €${cstar}`;
 }
 function setBOM(id,level){sfxClick();bomChoices[id]=level;renderBOM();}
-function submitS4(){sfxClick();sfxOk();addPts(130);doneStep(4,{bomChoices,finalCost,finalWeight});}
+function submitS4(){sfxClick();sfxOk();addPts(120);
+  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
+  db.innerHTML=`<strong>UNKNOWN:</strong> The Bill of Materials is a cost model — it predicts manufacturing cost from design choices. Like the technical model predicts performance, the BOM predicts cost. Both are tools to avoid building expensive prototypes for every "what if."`;
+  document.getElementById('m4-content').appendChild(db);
+  setTimeout(()=>doneStep(4,{bomChoices,finalCost,finalWeight}),2400);
+}
 
-// ─── STEP 5: Target costing ───
+// ═══════════════════════════════════
+// STEP 5: Target Costing
+// ═══════════════════════════════════
 function initS5(){
-  const P=tgtPrice,Mr=0.30,Mm=0.40;
-  const retCut=Math.round(P*Mr);
-  const mfrPrice=Math.round(P*(1-Mr));
-  const mfrCut=Math.round(mfrPrice*Mm);
+  const el=document.getElementById('m5-content');
+  const P=tgtPrice,Mr=.30,Mm=.40;
+  const retCut=Math.round(P*Mr),mfrPrice=Math.round(P*(1-Mr)),mfrCut=Math.round(mfrPrice*Mm);
   finalCstar=Math.round(P*(1-Mr)*(1-Mm));
   const gap=finalCost-finalCstar;
-  document.getElementById('s5-chain').innerHTML=`
-    <div class="crow"><div><div>Retail price (P) — from Step 3</div></div>
-      <span class="camt">€${P}</span></div>
-    <div class="crow"><div>
-      <div>Retailer margin (Mᵣ = 30%)</div>
-      <div style="font-size:.65rem;color:var(--mut);">Electronics retail: ~30% (Exhibit 6-13)</div>
-    </div><span class="camt" style="color:var(--red);">−€${retCut}</span></div>
-    <div class="crow"><span>Price received by manufacturer</span>
-      <span class="camt">€${mfrPrice}</span></div>
-    <div class="crow"><div>
-      <div>Manufacturer margin (Mₘ = 40%)</div>
-      <div style="font-size:.65rem;color:var(--mut);">Electronics mfg: ~40% (Exhibit 6-13)</div>
-    </div><span class="camt" style="color:var(--red);">−€${mfrCut}</span></div>
-    <div class="crow ${gap>0?'cr':'cg'}">
-      <div><strong>C* = P × 0.70 × 0.60</strong>
-        <div style="font-size:.65rem;color:var(--mut);">Maximum allowable manufacturing cost</div></div>
-      <span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCstar}</span>
+  el.innerHTML=`
+    <div class="stag">STEP 5 · TARGET COSTING</div>
+    <div class="oq-box">
+      <span class="oq-label">UNKNOWN ASKS:</span>
+      <div class="oq-text">Who decides the price of your product — you, or the market?</div>
     </div>
-    <div class="crow ${gap>0?'cr':'cg'}">
-      <span>Your BOM total (Step 4)</span>
-      <span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCost}</span>
+    <div class="oq-opts">
+      <button class="oq-opt" onclick="ansOQ5(this,true)">The market. In target costing, price is fixed by competition. You work backwards to find your budget.</button>
+      <button class="oq-opt" onclick="ansOQ5(this,false)">The manufacturer. Calculate costs first, add margin, set price.</button>
+    </div>
+    <div id="s5-oq-fb" style="display:none;width:100%;"></div>
+    <div id="s5-task" style="display:none;width:100%;">
+      <div class="instr-box">
+        <span class="instr-label">C* = P × (1 − Mᵣ) × (1 − Mₘ)</span>
+        Start from retail price. Subtract retailer margin (30%), then manufacturer margin (40%). What remains = <strong>maximum manufacturing cost</strong>.
+      </div>
+      <div class="chain-row"><span>Retail Price (P)</span><span class="chain-amt">€${P}</span></div>
+      <div class="chain-row"><span>Retailer margin (30%)</span><span class="chain-amt" style="color:var(--red);">−€${retCut}</span></div>
+      <div class="chain-row"><span>Price to manufacturer</span><span class="chain-amt">€${mfrPrice}</span></div>
+      <div class="chain-row"><span>Manufacturer margin (40%)</span><span class="chain-amt" style="color:var(--red);">−€${mfrCut}</span></div>
+      <div class="chain-row ${gap>0?'danger':'highlight'}">
+        <span><strong>C* (max allowable cost)</strong></span>
+        <span class="chain-amt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCstar}</span>
+      </div>
+      <div class="chain-row ${gap>0?'danger':'highlight'}">
+        <span>Your BOM total</span>
+        <span class="chain-amt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCost}</span>
+      </div>
+      ${gap>0?`<div class="fb bad" style="text-align:center;margin-top:8px;font-size:.9rem;">
+        <strong>OVER BUDGET by €${gap}</strong><br><span style="font-size:.75rem;">You must make trade-offs in Step 6.</span></div>`
+        :`<div class="fb ok" style="text-align:center;margin-top:8px;">
+        <strong>PROFITABLE</strong> — €${Math.abs(gap)} under C*</div>`}
+      <button class="btn primary" style="width:100%;margin-top:12px;" onclick="submitS5()">CONTINUE →</button>
     </div>`;
-  const dis=document.getElementById('s5-disaster');
-  const verd=document.getElementById('s5-verdict');
-  verd.style.display='block';
-  if(gap>0){
-    dis.style.display='block';
-    document.getElementById('s5-dis-sub').textContent=
-      `Cost €${finalCost} exceeds C* €${finalCstar} by €${gap}. You must make trade-offs in Step 6.`;
-    verd.style.cssText='display:block;padding:13px;border-radius:12px;text-align:center;margin-bottom:12px;font-size:.84rem;line-height:1.6;width:100%;background:rgba(255,61,90,.07);border:2px solid var(--red);color:#ff7a8a;';
-    verd.innerHTML=`<strong>UNPROFITABLE</strong> — Gap: €${gap}<br><small>Proceed to Step 6.</small>`;
-    sfxBad();
-  } else {
-    dis.style.display='none';
-    verd.style.cssText='display:block;padding:13px;border-radius:12px;text-align:center;margin-bottom:12px;font-size:.84rem;line-height:1.6;width:100%;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.3);color:var(--grn);';
-    verd.innerHTML=`<strong>PROFITABLE</strong> — Safety margin: €${Math.abs(gap)}<br><small>You still make strategic trade-offs in Step 6.</small>`;
-  }
+  go('s-m5');
+}
+function ansOQ5(btn,correct){
+  document.querySelectorAll('#m5-content .oq-opt').forEach(b=>b.disabled=true);
+  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
+    showFb('s5-oq-fb','ok','Correct. Target costing is the reverse of cost-plus. The market sets the price; you subtract margins to find your budget. If your cost exceeds C*, you redesign — not reprice.');}
+  else{btn.classList.add('wrong');sfxBad();
+    showFb('s5-oq-fb','bad','That is cost-plus pricing — the opposite of target costing. In competitive markets, the price is set by competition. You must work backwards from it.');}
+  document.getElementById('s5-task').style.display='block';
 }
 function submitS5(){
-  const gap=finalCost-finalCstar;
-  addPts(gap<=0?200:100);if(gap<=0)sfxOk();
-  doneStep(5,{finalCost,finalCstar,gap});
+  sfxClick();const gap=finalCost-finalCstar;
+  addPts(gap<=0?180:80);if(gap<=0)sfxOk();
+  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
+  db.innerHTML=`<strong>UNKNOWN:</strong> In this mission, the price is set by the Ministry — not by us. Target costing is a subtraction: Price − Margins = Budget. If your manufacturing cost exceeds C*, the mission fails financially. You must redesign, not reprice.`;
+  document.getElementById('m5-content').appendChild(db);
+  setTimeout(()=>doneStep(5,{finalCost,finalCstar,gap}),2400);
 }
 
-// ─── STEP 6: Trade-offs — pick LOW/HIGH option ───
-const T6=[
-  {id:'A',label:'Option A — Cut ANC Quality',
-   a:'Switch ANC to LOW chip (saves €27, ANC drops to 25dB)',
-   b:'Keep current ANC chip',
-   consA:'ANC drops to ~25dB. Check if this is still above your Marginal value.',
-   consB:'ANC stays. Cost unchanged.',
-   fxA:{costDelta:-27,ancNote:'25dB'}},
-  {id:'B',label:'Option B — Cut Audio Driver',
-   a:'Switch Driver to LOW (saves €10)',
-   b:'Keep current driver',
-   consA:'Audio quality drops slightly. Saves €10.',
-   consB:'Driver stays. Cost unchanged.',
+// ═══════════════════════════════════
+// STEP 6: Trade-offs
+// ═══════════════════════════════════
+const TRADES=[
+  {id:'A',label:'Option A — Cut ANC',
+   a:'Downgrade ANC chip (saves €27, drops to ~25dB)',b:'Keep current ANC',
+   fxA:{costDelta:-27}},
+  {id:'B',label:'Option B — Cut Driver',
+   a:'Downgrade driver (saves €10)',b:'Keep premium driver',
    fxA:{costDelta:-10}},
-  {id:'C',label:'Option C — Raise Retail Price',
-   a:'Raise retail price +€50 (raises C*)',
-   b:'Hold retail price',
-   consA:'C* increases. More budget room. But price rises vs competitors.',
-   consB:'Price and C* stay unchanged.',
-   fxA:{priceDelta:+50}},
+  {id:'C',label:'Option C — Raise Price',
+   a:'Raise retail price +€50 (more C* room)',b:'Hold price',
+   fxA:{priceDelta:50}},
 ];
 let t6ch=[];
 function initS6(){
-  t6ch=Array(T6.length).fill(null);
-  document.getElementById('s6-fb').style.display='none';
-  document.getElementById('s6-warn').style.display='none';
+  t6ch=[null,null,null];
   const gap=finalCost-finalCstar;
-  const wOk=finalWeight<tgtMarg.wt;
-  let intro='';
-  if(gap>0) intro=`<strong style="color:var(--red)">€${gap} over C* (€${finalCstar})</strong>. Your BOM exceeds the target cost. Pick options below to close the gap.`;
-  else if(!wOk) intro=`Cost is fine, but weight <strong style="color:var(--gold)">${finalWeight}g</strong> exceeds your marginal ${tgtMarg.wt}g. Consider switching to Carbon Fiber in Option B if you chose it in Step 4.`;
-  else intro=`<strong style="color:var(--grn)">Cost is within C* and weight is OK.</strong> You can still apply options to improve your competitive position.`;
-  document.getElementById('s6-intro').innerHTML=intro;
-  document.getElementById('t6-cost').textContent='€'+finalCost;
-  document.getElementById('t6-cost').style.color=gap>0?'var(--red)':'var(--grn)';
-  document.getElementById('t6-cstar').textContent='€'+finalCstar;
-  document.getElementById('t6-gap').textContent=gap>0?'+€'+gap:'OK';
-  document.getElementById('t6-gap').style.color=gap>0?'var(--red)':'var(--grn)';
-  document.getElementById('s6-opts').innerHTML=T6.map((t,i)=>`
-    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;
-      padding:12px 14px;margin-bottom:8px;width:100%;">
-      <div style="font-size:.65rem;font-family:var(--mono);color:var(--cyan);
-        letter-spacing:.1em;margin-bottom:8px;">${t.label}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button onclick="pickT6(${i},'a')" id="t6a-${i}"
-          style="padding:11px 8px;border-radius:10px;border:2px solid var(--bd);
-          background:var(--s2);color:var(--txt);font-size:.74rem;cursor:pointer;
-          line-height:1.5;transition:all .18s;font-family:var(--sans);font-weight:600;">
-          ${t.a}
-        </button>
-        <button onclick="pickT6(${i},'b')" id="t6b-${i}"
-          style="padding:11px 8px;border-radius:10px;border:2px solid var(--bd);
-          background:var(--s2);color:var(--txt);font-size:.74rem;cursor:pointer;
-          line-height:1.5;transition:all .18s;font-family:var(--sans);font-weight:600;">
-          ${t.b}
-        </button>
+  const el=document.getElementById('m6-content');
+  el.innerHTML=`
+    <div class="stag">STEP 6 · TRADE-OFFS</div>
+    <div class="oq-box">
+      <span class="oq-label">UNKNOWN ASKS:</span>
+      <div class="oq-text">${gap>0?`You are €${gap} over budget.`:'Your cost is within C*.'} In product development, trade-offs are inevitable. What are you willing to sacrifice?</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px;">
+      <div class="card" style="text-align:center;padding:10px;">
+        <div style="font-size:.5rem;font-family:var(--mono);color:var(--dim);margin-bottom:2px;">COST</div>
+        <div id="t6-cost" style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCost}</div>
       </div>
-      <div id="tc6-${i}" style="display:none;font-size:.72rem;padding:7px 10px;
-        border-radius:8px;margin-top:6px;line-height:1.4;"></div>
-    </div>`).join('');
+      <div class="card" style="text-align:center;padding:10px;">
+        <div style="font-size:.5rem;font-family:var(--mono);color:var(--dim);margin-bottom:2px;">C*</div>
+        <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--cyan);">€${finalCstar}</div>
+      </div>
+      <div class="card" style="text-align:center;padding:10px;">
+        <div style="font-size:.5rem;font-family:var(--mono);color:var(--dim);margin-bottom:2px;">GAP</div>
+        <div id="t6-gap" style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:${gap>0?'var(--red)':'var(--grn)'};">${gap>0?'+€'+gap:'OK'}</div>
+      </div>
+    </div>
+    <div id="s6-trades">${TRADES.map((t,i)=>`
+      <div class="card" style="margin-bottom:8px;">
+        <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);margin-bottom:6px;">${t.label}</div>
+        <div class="trade-pair">
+          <div class="trade-opt" onclick="pickT6(${i},'a',this)">${t.a}</div>
+          <div class="trade-opt" onclick="pickT6(${i},'b',this)">${t.b}</div>
+        </div>
+      </div>`).join('')}</div>
+    <button class="btn primary" style="width:100%;margin-top:8px;" onclick="submitS6()">FINALIZE →</button>
+    <div id="s6-fb" style="display:none;width:100%;"></div>`;
+  go('s-m6');
 }
-function pickT6(i,side){
+function pickT6(i,side,el){
   sfxClick();t6ch[i]=side;
-  const ta=document.getElementById('t6a-'+i);
-  const tb=document.getElementById('t6b-'+i);
-  if(ta){ta.style.borderColor=side==='a'?'var(--grn)':'var(--bd)';
-    ta.style.background=side==='a'?'rgba(0,230,118,.08)':'var(--s2)';
-    ta.style.color=side==='a'?'var(--grn)':'var(--txt)';}
-  if(tb){tb.style.borderColor=side==='b'?'var(--cyan)':'var(--bd)';
-    tb.style.background=side==='b'?'rgba(0,229,255,.08)':'var(--s2)';
-    tb.style.color=side==='b'?'var(--cyan)':'var(--txt)';}
-  const t=T6[i];const msg=side==='a'?t.consA:t.consB;
-  const el=document.getElementById('tc6-'+i);
-  if(el){el.style.display='block';el.textContent=msg;
-    el.style.cssText+=';background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.2);color:#7ab8d4;';}
+  const card=el.closest('.card');
+  card.querySelectorAll('.trade-opt').forEach(b=>{b.className='trade-opt';});
+  el.classList.add(side==='a'?'picked-a':'picked-b');
   // live update
   let sc=finalCost,sp=tgtPrice;
-  t6ch.forEach((s,j)=>{if(s==='a'&&T6[j].fxA){
-    if(T6[j].fxA.costDelta) sc=Math.round(sc+T6[j].fxA.costDelta);
-    if(T6[j].fxA.priceDelta) sp+=T6[j].fxA.priceDelta;
-  }});
-  const sc2=Math.round(sp*.70*.60);const gap=sc-sc2;
+  t6ch.forEach((s,j)=>{if(s==='a'&&TRADES[j].fxA){
+    if(TRADES[j].fxA.costDelta)sc+=TRADES[j].fxA.costDelta;
+    if(TRADES[j].fxA.priceDelta)sp+=TRADES[j].fxA.priceDelta;}});
+  const nc=Math.round(sp*.70*.60),ng=sc-nc;
   document.getElementById('t6-cost').textContent='€'+sc;
-  document.getElementById('t6-cost').style.color=gap>0?'var(--red)':'var(--grn)';
-  document.getElementById('t6-gap').textContent=gap>0?'+€'+gap:'OK';
-  document.getElementById('t6-gap').style.color=gap>0?'var(--red)':'var(--grn)';
+  document.getElementById('t6-cost').style.color=ng>0?'var(--red)':'var(--grn)';
+  document.getElementById('t6-gap').textContent=ng>0?'+€'+ng:'OK';
+  document.getElementById('t6-gap').style.color=ng>0?'var(--red)':'var(--grn)';
 }
 function submitS6(){
-  if(t6ch.includes(null)){toast('Make all 3 choices first!');return;}
+  if(t6ch.includes(null)){toast('Make all 3 choices!');return;}
   sfxClick();
-  let fCost=finalCost,fPrice=tgtPrice;
-  t6ch.forEach((s,i)=>{if(s==='a'&&T6[i].fxA){
-    if(T6[i].fxA.costDelta) fCost=Math.round(fCost+T6[i].fxA.costDelta);
-    if(T6[i].fxA.priceDelta) fPrice+=T6[i].fxA.priceDelta;
-  }});
-  finalCstar=Math.round(fPrice*.70*.60);
-  finalCost=fCost;
-  const gap=fCost-finalCstar;
-  const wOk=finalWeight<tgtMarg.wt;
-  let pts=180;if(gap>0) pts-=50;
-  addPts(pts);if(gap<=0&&wOk)sfxOk();else sfxBad();
-  const sheet=`<div style="background:var(--s1);border:1px solid var(--bd);
-    border-radius:10px;padding:12px;margin-top:10px;">
-    <div style="font-family:var(--mono);font-size:.6rem;color:var(--cyan);
-      margin-bottom:8px;">FINAL SPEC SHEET:</div>
-    <div class="crow" style="margin-bottom:4px;"><span>Mfg Cost</span>
-      <span class="camt" style="color:${gap<=0?'var(--grn)':'var(--red)'};">€${fCost} ${gap<=0?'OK':'OVER'}</span></div>
-    <div class="crow" style="margin-bottom:4px;"><span>C* Target</span>
-      <span class="camt">€${finalCstar}</span></div>
-    <div class="crow" style="margin-bottom:4px;"><span>Weight</span>
-      <span class="camt" style="color:${wOk?'var(--grn)':'var(--gold)'};">${finalWeight}g ${wOk?'OK':'check'}</span></div>
-    <div class="crow"><span>Retail Price</span>
-      <span class="camt">€${fPrice}</span></div>
-  </div>`;
-  const fb=document.getElementById('s6-fb');
-  fb.style.display='block';fb.className='fb '+(gap<=0?'ok':'warn');
-  fb.innerHTML=(gap<=0?'MISSION READY — spec sheet approved!':'Compromised — OMEGA accepts the risk.')+sheet;
-  setTimeout(()=>doneStep(6,{finalCost:fCost,finalCstar,finalWeight,finalPrice:fPrice}),3000);
+  let fc=finalCost,fp=tgtPrice;
+  t6ch.forEach((s,i)=>{if(s==='a'&&TRADES[i].fxA){
+    if(TRADES[i].fxA.costDelta)fc+=TRADES[i].fxA.costDelta;
+    if(TRADES[i].fxA.priceDelta)fp+=TRADES[i].fxA.priceDelta;}});
+  finalCost=fc;finalCstar=Math.round(fp*.70*.60);
+  const gap=fc-finalCstar;
+  let pts=160;if(gap>0)pts-=50;
+  addPts(pts);if(gap<=0)sfxOk();else sfxBad();
+  showFb('s6-fb',gap<=0?'ok':'info',
+    `Spec sheet finalized. Cost: €${fc} · C*: €${finalCstar} · ${gap<=0?'PROFITABLE':'Over by €'+gap}`);
+  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
+  db.innerHTML=`<strong>UNKNOWN:</strong> Trade-offs are inevitable. They occur between performance metrics (ANC vs weight) and between performance and cost. The competitive map shows it clearly: every point of performance costs money. The final specification is not the ideal — it is the least dangerous compromise.`;
+  document.getElementById('m6-content').appendChild(db);
+  setTimeout(()=>doneStep(6,{finalCost:fc,finalCstar,finalWeight,finalANC:bomChoices.anc==='high'&&!t6ch.includes('a')?40:25}),3000);
 }
 
-
-// ─── STEP 7: Quiz (1 per step) ───
+// ═══════════════════════════════════
+// STEP 7: Master Quiz (3 questions)
+// ═══════════════════════════════════
 const QUIZ=[
-  {ref:'RE: STEP 1',
-   q:'You ranked customer needs by priority. Why does priority order matter?',
-   opts:['The most critical needs drive the most important metrics and target values.',
-     'Lower-priority needs can be ignored entirely.',
-     'Priority order is required by ISO standards.',
-     'Customers always agree on the same priorities.'],c:0,
-   why:'Ranking ensures that critical needs (like ANC for OMEGA) drive the most important specs. Less critical needs get looser targets. (Ch.6, p.95)'},
-  {ref:'RE: STEP 2',
-   q:'Why must a metric be a dependent variable, not an independent variable?',
-   opts:['Dependent variables are easier to measure.',
-     'It measures what the product delivers — not how it is designed — keeping specs technology-neutral.',
-     'Independent variables are reserved for concept generation.',
-     'The book requires it in Exhibit 6-4.'],c:1,
-   why:'"Mass (grams)" measures the outcome. "Material = Carbon Fiber" is a design decision — it constrains concept generation too early. Specs must say WHAT, not HOW. (Ch.6, p.96)'},
-  {ref:'RE: STEP 3',
-   q:'What is the difference between an Ideal value and a Marginal value?',
-   opts:['Ideal = what engineering can realistically achieve; Marginal = the wish.',
-     'Ideal = best outcome the team hopes for; Marginal = minimum acceptable to compete.',
-     'Ideal = BrandB performance; Marginal = BrandS performance.',
-     'They are the same — both are target values.'],c:1,
-   why:'Ideal = stretch goal (e.g. BrandS ANC 44dB). Marginal = the floor below which the product fails to compete (e.g. BrandB 18dB). (Ch.6, p.99)'},
-  {ref:'RE: STEP 4',
-   q:'In your Bill of Materials, the ANC chip cost increased with your target ANC level. What principle does this illustrate?',
-   opts:['Higher performance always requires premium pricing.',
-     'The cost model links specification values to manufacturing cost — this is the core trade-off.',
-     'Carbon Fiber is always cheaper than Plastic.',
-     'The BOM is fixed once Step 3 is complete.'],c:1,
-   why:'Each specification value drives a specific component cost. Changing the target directly changes the BOM — showing that specifications are not free. (Ch.6, p.107)'},
-  {ref:'RE: STEP 5',
-   q:'C* = P × (1 − Mᵣ) × (1 − Mₘ). What does P represent?',
-   opts:['The production cost estimated by engineering.',
-     'The profit margin required by the manufacturer.',
-     'The retail price paid by the end user.',
-     'The average competitor price.'],c:2,
-   why:'P = retail price paid by the customer. Target costing works backwards from the market price — the reverse of cost-plus. (Appendix, p.114)'},
-  {ref:'RE: STEP 6',
-   q:'You chose Option A: reduce ANC by 5dB to save cost. What is the key risk?',
-   opts:['The product becomes heavier.',
-     'The retail price must increase.',
-     'ANC may drop below the marginal value, failing the client requirement.',
-     'The BOM becomes more complex.'],c:2,
-   why:'Every trade-off cascades. Reducing ANC saves cost but may violate the marginal target — the minimum acceptable performance. Below that, the product fails to satisfy the customer need. (Ch.6, p.108)'},
-  {ref:'RE: ALL STEPS',
-   q:'In Ulrich & Eppinger, specifications are set TWICE. When?',
-   opts:['Once at the start, once at the end of the product lifecycle.',
-     'Once after customer interviews (target specs), once after concept selection (final specs).',
-     'Once by marketing, once by engineering.',
-     'Once before and once after competitive benchmarking.'],c:1,
-   why:'Target specs are set early — aspirational, before constraints are known. Final specs come after concept selection, when technical constraints are real. (Ch.6, p.94, Exhibit 6-3)'},
+  {q:'A specification must be a dependent variable. Why?',
+   opts:['It measures what the product delivers (output), not how it is built (input) — keeping engineering free to choose the best approach.',
+     'Dependent variables are easier to measure than independent ones.',
+     'The textbook requires it for grading purposes.',
+     'Independent variables cannot be written in specification sheets.'],c:0,
+   why:'Specs say WHAT, not HOW. "Mass < 300g" lets engineers choose any material. "Use carbon fiber" locks them into one solution. (Ch.6, p.96–97)'},
+  {q:'In the formula C* = P × (1−Mᵣ) × (1−Mₘ), what does P represent?',
+   opts:['The estimated production cost.',
+     'The profit margin target.',
+     'The retail price paid by the end customer.',
+     'The average competitor manufacturing cost.'],c:2,
+   why:'P = retail price. Target costing works backwards from the market price — the opposite of adding margins to costs. (Appendix, p.114)'},
+  {q:'Specifications are set TWICE in product development. When?',
+   opts:['Once by marketing, once by engineering.',
+     'Once after identifying customer needs (target specs), once after concept selection (final specs).',
+     'Once before and once after manufacturing.',
+     'Once in the proposal and once in the contract.'],c:1,
+   why:'Target specs are aspirational — set early with limited knowledge. Final specs come after concept selection, when real constraints are known. The gap between them is where trade-offs happen. (Ch.6, p.94, 103)'},
 ];
-let qIdx=0,qAnswered=false;
-function initS7(){qIdx=0;qAnswered=false;renderQ7();}
-function renderQ7(){
-  qAnswered=false;document.getElementById('s7-exp').style.display='none';
-  const q=QUIZ[qIdx];
-  document.getElementById('s7-ref').textContent=q.ref;
-  document.getElementById('s7-num').textContent='QUESTION '+(qIdx+1)+'/7';
-  document.getElementById('s7-q').textContent=q.q;
-  document.getElementById('s7-opts').innerHTML=q.opts.map((o,i)=>
-    `<button class="qopt" onclick="ansQ(${i})">${o}</button>`).join('');
+let qIdx=0,qDone=false;
+function initS7(){qIdx=0;qDone=false;renderQuiz();}
+function renderQuiz(){
+  qDone=false;const q=QUIZ[qIdx];
+  const el=document.getElementById('m7-content');
+  el.innerHTML=`
+    <div class="stag">QUESTION ${qIdx+1}/3</div>
+    <div style="font-size:.94rem;font-weight:700;line-height:1.45;margin-bottom:14px;
+      text-align:center;width:100%;color:var(--white);">${q.q}</div>
+    <div id="s7-opts">${q.opts.map((o,i)=>
+      `<button class="quiz-opt" onclick="ansQuiz(${i})">${o}</button>`).join('')}</div>
+    <div id="s7-exp" style="display:none;width:100%;"></div>`;
+  go('s-m7');
 }
-function ansQ(idx){
-  if(qAnswered)return;qAnswered=true;sfxClick();
+function ansQuiz(idx){
+  if(qDone)return;qDone=true;sfxClick();
   const q=QUIZ[qIdx];const ok=idx===q.c;
-  document.querySelectorAll('.qopt').forEach((b,i)=>{
-    b.disabled=true;if(i===q.c)b.classList.add('ok');
-    else if(i===idx&&!ok)b.classList.add('bad');
-  });
-  if(ok){sfxOk();addPts(80);}else sfxBad();
-  pub('quiz-ans',{nick:mNick,q:qIdx,ans:idx,correct:ok});
-  const exp=document.getElementById('s7-exp');
-  exp.style.display='block';exp.className='fb '+(ok?'ok':'bad');exp.textContent=q.why;
-  setTimeout(()=>{
-    qIdx++;
-    if(qIdx<QUIZ.length) renderQ7();
+  document.querySelectorAll('.quiz-opt').forEach((b,i)=>{
+    b.disabled=true;if(i===q.c)b.classList.add('correct');
+    else if(i===idx&&!ok)b.classList.add('wrong');});
+  if(ok){sfxOk();addPts(100);}else sfxBad();
+  pub('quiz-ans',{nick:mNick,q:qIdx,correct:ok});
+  showFb('s7-exp',ok?'ok':'bad',q.why);
+  setTimeout(()=>{qIdx++;
+    if(qIdx<QUIZ.length)renderQuiz();
     else{doneStep(7,{quizScore:myScore});showMobFinal();}
-  },2800);
+  },3000);
 }
 function showMobFinal(){
   sfxWin();confetti();go('s-mfinal');
   document.getElementById('mfinal-score').textContent=myScore;
-  document.getElementById('mfinal-title').textContent='Mission Complete, '+mNick+'!';
-  document.getElementById('mfinal-sub').textContent='Spec sheet approved. OMEGA is equipped.';
-  // generate stars
-  const sb=document.getElementById('stars-bg');
-  if(sb){sb.innerHTML='';for(let i=0;i<40;i++){const s=document.createElement('div');
-    s.style.cssText=`position:absolute;width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;
-      background:rgba(255,255,255,${Math.random()*.6+.2});border-radius:50%;
-      left:${Math.random()*100}%;top:${Math.random()*60}%;
-      animation:none;`;sb.appendChild(s);}}
-  // play spy jazz win
-  setTimeout(()=>{
-    [523,659,784,1047].forEach((f,i)=>note(f,'sine',.3,.09,i*.1));
-    setTimeout(()=>[659,784,1047,1319].forEach((f,i)=>note(f,'sine',.25,.07,i*.08)),600);
-  },300);
+  document.getElementById('mfinal-title').textContent='Mission Complete, '+mNick;
+  document.getElementById('mfinal-sub').textContent='Spec sheet delivered. OMEGA is equipped.';
 }
 
 // ═══════════════════════════════════
-// DOM READY
+// URL PARAMS
 // ═══════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
   const p=new URLSearchParams(location.search);
-  const room=p.get('room'),role=p.get('role');
-  if(room&&role==='player'){
-    document.getElementById('m-code').value=room.toUpperCase();
-    go('s-mjoin');
-  }
+  if(p.get('room')&&p.get('role')==='player'){
+    document.getElementById('m-code').value=p.get('room').toUpperCase();go('s-mjoin');}
 });
 </script>
-</body>
-</html><!-- S5: Target costing -->
-<div class="scr" id="s-m5">
-<div class="mob" style="padding-top:58px;">
-  <div class="stag">STEP 5 · TARGET COSTING</div>
-  <div class="instr">
-    <span class="itag">💰 C* = P × (1 − Mᵣ) × (1 − Mₘ)</span>
-    Start from your retail price. Subtract the retailer cut (30%), then the manufacturer cut (40%).
-    What remains = <strong>maximum you can spend building it</strong>.
-  </div>
-  <div id="s5-chain" style="width:100%;margin-bottom:10px;"></div>
-  <div id="s5-disaster" style="display:none;background:rgba(255,61,90,.1);
-    border:2px solid var(--red);border-radius:12px;padding:14px;text-align:center;
-    margin-bottom:12px;width:100%;animation:flashb .8s ease-in-out infinite alternate;">
-    <div style="font-family:var(--mono);font-size:.9rem;font-weight:700;
-      color:var(--red);margin-bottom:5px;">💸 FINANCIAL DISASTER!</div>
-    <div style="font-size:.78rem;color:#ff7a8a;" id="s5-dis-sub"></div>
-  </div>
-  <div id="s5-verdict" style="display:none;padding:13px;border-radius:12px;
-    text-align:center;margin-bottom:12px;font-size:.84rem;line-height:1.6;width:100%;"></div>
-  <button class="btn bp" style="width:100%;" onclick="submitS5()">CONTINUE →</button>
-</div>
-</div>
-
-<!-- S6: Trade-offs — pick ONE option if over budget -->
-<div class="scr" id="s-m6">
-<div class="mob" style="padding-top:58px;">
-  <div class="stag">STEP 6 · TRADE-OFFS</div>
-  <div class="instr">
-    <span class="itag">⚖️ YOUR SITUATION</span>
-    <span id="s6-intro"></span>
-  </div>
-  <div style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;
-    padding:12px 16px;width:100%;margin-bottom:14px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;">
-      <div>
-        <div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">YOUR COST</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;" id="t6-cost">—</div>
-      </div>
-      <div>
-        <div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">C*</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--cyan);" id="t6-cstar">—</div>
-      </div>
-      <div>
-        <div style="font-size:.55rem;color:var(--mut);font-family:var(--mono);margin-bottom:3px;">GAP</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;" id="t6-gap">—</div>
-      </div>
-    </div>
-  </div>
-  <div id="s6-opts" style="width:100%;margin-bottom:12px;"></div>
-  <div id="s6-warn" style="display:none;width:100%;margin-bottom:10px;"></div>
-  <button class="btn bp" style="width:100%;" onclick="submitS6()">FINALIZE →</button>
-  <div id="s6-fb" style="display:none;width:100%;"></div>
-</div>
-</div>
-<!-- S7: Quiz -->
-<div class="scr" id="s-m7">
-<div class="mob" style="padding-top:58px;">
-  <div style="font-family:var(--mono);font-size:.62rem;color:var(--cyan);
-    letter-spacing:.12em;margin-bottom:4px;text-align:center;" id="s7-ref"></div>
-  <div class="stag" id="s7-num">QUESTION 1/7</div>
-  <div style="font-size:.96rem;font-weight:700;line-height:1.45;margin-bottom:16px;
-    text-align:center;width:100%;" id="s7-q"></div>
-  <div id="s7-opts" style="width:100%;"></div>
-  <div id="s7-exp" style="display:none;width:100%;"></div>
-</div>
-</div>
-
-<!-- MOBILE FINAL -->
-<div class="scr" id="s-mfinal">
-<div class="mob" style="padding-top:40px;align-items:center;justify-content:center;min-height:100vh;">
-  <!-- OMEGA animation -->
-  <div id="omega-scene" style="width:100%;max-width:340px;text-align:center;margin-bottom:20px;">
-    <!-- city silhouette -->
-    <div style="position:relative;height:180px;overflow:hidden;border-radius:16px;
-      background:linear-gradient(180deg,#020810 0%,#07111e 60%,#0c1a2e 100%);
-      border:1px solid var(--bd);margin-bottom:0;">
-      <!-- stars -->
-      <div id="stars-bg" style="position:absolute;inset:0;"></div>
-      <!-- city -->
-      <svg width="100%" height="80" viewBox="0 0 340 80" style="position:absolute;bottom:0;">
-        <rect x="10" y="30" width="20" height="50" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="14" y="25" width="12" height="10" fill="#0c1a2e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="40" y="15" width="30" height="65" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="44" y="10" width="22" height="12" fill="#0c1a2e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="80" y="35" width="18" height="45" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="110" y="20" width="25" height="60" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="145" y="40" width="15" height="40" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="170" y="10" width="35" height="70" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="175" y="5" width="25" height="12" fill="#0c1a2e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="215" y="30" width="20" height="50" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="245" y="18" width="28" height="62" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="283" y="35" width="22" height="45" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <rect x="315" y="25" width="18" height="55" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
-        <!-- windows glow -->
-        <rect x="44" y="20" width="4" height="4" fill="rgba(0,229,255,.4)" rx="1"/>
-        <rect x="50" y="20" width="4" height="4" fill="rgba(255,196,0,.3)" rx="1"/>
-        <rect x="175" y="15" width="4" height="4" fill="rgba(0,229,255,.5)" rx="1"/>
-        <rect x="181" y="15" width="4" height="4" fill="rgba(0,229,255,.3)" rx="1"/>
-        <rect x="250" y="28" width="4" height="4" fill="rgba(255,196,0,.4)" rx="1"/>
-      </svg>
-      <!-- OMEGA figure — spy silhouette walking -->
-      <div id="omega-figure" style="position:absolute;bottom:12px;
-        animation:omegawalk 2s ease forwards;opacity:0;">
-        <svg width="32" height="60" viewBox="0 0 32 60" fill="none">
-          <!-- body silhouette -->
-          <ellipse cx="16" cy="8" rx="6" ry="7" fill="white"/>
-          <path d="M8 16 Q16 14 24 16 L26 38 Q22 36 16 37 Q10 36 6 38 Z" fill="white"/>
-          <!-- coat -->
-          <path d="M6 38 L4 58 L9 58 L12 44 L20 44 L23 58 L28 58 L26 38 Z" fill="white"/>
-          <!-- arm with headphones -->
-          <path d="M24 20 L30 32 L27 33 L22 22 Z" fill="white"/>
-          <!-- headphones in hand -->
-          <rect x="26" y="29" width="8" height="5" rx="2" fill="rgba(0,229,255,.9)"/>
-          <rect x="24" y="27" width="3" height="7" rx="1" fill="rgba(0,229,255,.9)"/>
-          <!-- glowing eyes -->
-          <ellipse cx="13" cy="7" rx="1.5" ry="1.5" fill="rgba(0,229,255,.9)"/>
-          <ellipse cx="19" cy="7" rx="1.5" ry="1.5" fill="rgba(0,229,255,.9)"/>
-        </svg>
-      </div>
-      <!-- signal waves -->
-      <div id="signal-waves" style="position:absolute;top:10px;right:15px;opacity:0;
-        animation:wavefade 1s ease .8s forwards;">
-        <svg width="40" height="30" viewBox="0 0 40 30">
-          <path d="M5 15 Q10 5 15 15 Q20 25 25 15 Q30 5 35 15" stroke="rgba(0,229,255,.6)"
-            stroke-width="2" fill="none" stroke-linecap="round"/>
-          <path d="M0 15 Q7 2 14 15 Q21 28 28 15 Q35 2 40 15" stroke="rgba(0,229,255,.3)"
-            stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <!-- mission success flash -->
-      <div id="success-flash" style="position:absolute;inset:0;background:rgba(0,230,118,.15);
-        border-radius:16px;opacity:0;animation:flashsuccess 1s ease .5s forwards;"></div>
-      <!-- mission complete text -->
-      <div style="position:absolute;top:12px;left:0;right:0;text-align:center;
-        font-family:var(--mono);font-size:.58rem;color:rgba(0,230,118,.8);
-        letter-spacing:.2em;animation:textin 1s ease .6s both;">
-        MISSION: SUCCESS
-      </div>
-    </div>
-    <!-- transmission text -->
-    <div id="omega-msg" style="background:rgba(7,17,30,.95);border:1px solid rgba(0,230,118,.3);
-      border-radius:0 0 16px 16px;padding:12px 16px;font-family:var(--mono);
-      font-size:.72rem;color:var(--grn);line-height:1.7;text-align:left;
-      animation:textin .8s ease .4s both;">
-      <span style="font-size:.58rem;color:var(--mut);display:block;margin-bottom:4px;">
-        TRANSMISSION — OMEGA TO BASE:
-      </span>
-      "Equipment received. Headphones are operational.<br>
-      Noise cancellation: confirmed.<br>
-      Communications: restored.<br>
-      Proceeding with the mission."
-    </div>
-  </div>
-
-  <!-- Score and leaderboard -->
-  <div style="text-align:center;margin-bottom:14px;width:100%;">
-    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;
-      color:var(--grn);margin-bottom:4px;" id="mfinal-title">Mission Complete</div>
-    <div style="font-size:.82rem;color:var(--mut);line-height:1.5;" id="mfinal-sub"></div>
-    <div style="font-size:1rem;font-weight:700;margin-top:10px;">
-      Your score: <span style="font-family:var(--mono);color:var(--gold);
-        font-size:1.3rem;" id="mfinal-score">0</span> pts
-    </div>
-  </div>
-  <!-- Leaderboard (filled dynamically) -->
-  <div id="mfinal-lb" style="width:100%;max-width:340px;"></div>
-</div>
-</div>
-
-
 </body>
 </html>
