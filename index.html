@@ -5,1494 +5,852 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>SPECMASTER · Operation Silent Ear</title>
 <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-/* ══════════════════════════════════
-   DESIGN SYSTEM
-   Dark intelligence aesthetic.
-   Syne for impact, Space Mono for data, DM Sans for body.
-══════════════════════════════════ */
 :root{
-  --bg:#06090f;--s1:#0d1117;--s2:#161b22;--s3:#1c2333;
-  --bd:#21262d;--bd2:#30363d;
-  --cyan:#58a6ff;--gold:#d29922;--grn:#3fb950;--red:#f85149;--pur:#bc8cff;
-  --txt:#c9d1d9;--dim:#484f58;--white:#e6edf3;
-  --r:10px;
-  --mono:'Space Mono',monospace;--head:'Syne',sans-serif;--body:'DM Sans',sans-serif;
+  --bg:#020810;--s1:#07111e;--s2:#0c1a2e;--s3:#101d30;
+  --bd:#1a2e48;--bd2:#253a54;
+  --cyan:#00e5ff;--gold:#ffc400;--grn:#00e676;--red:#ff3d5a;--pur:#b366ff;
+  --txt:#d4eaf8;--dim:#2e4a62;--white:#eaf4ff;
+  --r:12px;
+  --mono:'Share Tech Mono',monospace;--head:'Orbitron',monospace;--body:'Inter',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
 body{font-family:var(--body);color:var(--txt);}
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 
-/* ── SCREENS ── */
 .scr{position:absolute;inset:0;z-index:10;opacity:0;pointer-events:none;
-  transition:opacity .4s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  transition:opacity .35s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .scr::-webkit-scrollbar{display:none;}
 .scr.on{opacity:1;pointer-events:all;}
 
-/* ── TOAST ── */
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);
-  background:var(--s2);border:1px solid var(--bd2);border-radius:8px;
-  padding:10px 20px;font-size:.8rem;z-index:999;pointer-events:none;
-  font-family:var(--mono);color:var(--cyan);white-space:nowrap;
-  transition:transform .35s cubic-bezier(.34,1.56,.64,1);
-  box-shadow:0 8px 32px rgba(0,0,0,.5);}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(65px);
+  background:var(--s1);border:1px solid var(--cyan);border-radius:28px;
+  padding:9px 22px;font-size:.78rem;z-index:999;pointer-events:none;font-family:var(--mono);
+  color:var(--cyan);white-space:nowrap;transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 4px 24px rgba(0,229,255,.15);}
 #toast.on{transform:translateX(-50%) translateY(0);}
 
-/* ── GLITCH OVERLAY ── */
-#glitch-overlay{position:fixed;inset:0;z-index:800;pointer-events:none;}
+#glitch-ov{position:fixed;inset:0;z-index:800;pointer-events:none;opacity:0;}
+#glitch-txt{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:820;
+  font-family:var(--mono);font-size:clamp(.85rem,2.5vw,1.2rem);color:var(--red);
+  text-align:center;opacity:0;line-height:2.2;letter-spacing:.08em;}
 
-/* ── BUTTONS ── */
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:14px;border-radius:8px;border:1px solid var(--bd);
-  cursor:pointer;font-family:var(--mono);font-size:.72rem;font-weight:700;
-  letter-spacing:.06em;transition:all .15s;position:relative;
-  background:var(--s2);color:var(--txt);}
+/* ═══ SILHOUETTE OVERLAY ═══ */
+#sil-overlay{position:fixed;inset:0;z-index:700;pointer-events:none;opacity:0;
+  transition:opacity .5s ease;display:flex;align-items:flex-end;justify-content:center;
+  background:linear-gradient(transparent 30%,rgba(2,8,16,.92) 70%);}
+#sil-overlay.on{opacity:1;}
+#sil-overlay svg{max-height:55vh;width:auto;filter:drop-shadow(0 0 40px rgba(0,229,255,.25));
+  animation:silUp .7s cubic-bezier(.22,1,.36,1) both;}
+@keyframes silUp{from{opacity:0;transform:translateY(60px);}to{opacity:1;transform:none;}}
+
+/* ═══ BUTTONS ═══ */
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;padding:15px;border-radius:var(--r);border:none;cursor:pointer;
+  font-family:var(--head);font-size:.7rem;font-weight:700;letter-spacing:.1em;
+  transition:all .18s;position:relative;overflow:hidden;}
 .btn:active{transform:scale(.97);}
-.btn.primary{background:var(--cyan);color:#000;border-color:var(--cyan);
-  box-shadow:0 0 20px rgba(88,166,255,.15);}
-.btn.primary:hover{box-shadow:0 0 30px rgba(88,166,255,.3);}
-.btn.danger{background:rgba(248,81,73,.12);border-color:var(--red);color:var(--red);}
-.btn.success{background:rgba(63,185,80,.12);border-color:var(--grn);color:var(--grn);}
-.btn.gold{background:rgba(210,153,34,.12);border-color:var(--gold);color:var(--gold);}
-.btn-sm{padding:10px 14px;font-size:.65rem;width:auto;}
+.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.06);opacity:0;transition:.15s;}
+.btn:hover::after,.btn:active::after{opacity:1;}
+.bp{background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;box-shadow:0 0 22px rgba(0,229,255,.25);}
+.bs{background:var(--s2);border:1px solid var(--bd);color:var(--txt);}
+.bg{background:linear-gradient(135deg,var(--grn),#007a3d);color:#000;}
+.by{background:linear-gradient(135deg,var(--gold),#cc7000);color:#000;}
+.btn-sm{padding:10px 14px;font-size:.6rem;width:auto;}
 
-/* ── CARD ── */
-.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;}
+/* ═══ SVG AVATARS ═══ */
+.av{width:32px;height:32px;border-radius:50%;flex-shrink:0;overflow:hidden;
+  border:1.5px solid var(--bd);background:var(--s2);}
+.av svg{width:100%;height:100%;}
+.av-unknown{border-color:rgba(0,229,255,.4);}
+.av-you{border-color:rgba(255,196,0,.4);}
+.av-omega{border-color:rgba(0,230,118,.4);}
 
-/* ── MOBILE HUD ── */
-#mob-hud{position:fixed;top:0;left:0;right:0;height:44px;z-index:200;
-  display:flex;align-items:center;padding:0 14px;gap:10px;
-  background:rgba(6,9,15,.96);border-bottom:1px solid var(--bd);
-  backdrop-filter:blur(12px);opacity:0;transition:opacity .3s;pointer-events:none;}
-#mob-hud.on{opacity:1;pointer-events:auto;}
-#mhl{font-family:var(--mono);font-size:.55rem;color:var(--cyan);letter-spacing:.1em;white-space:nowrap;}
-#mhbar{flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden;}
-#mhfill{height:100%;background:var(--cyan);border-radius:2px;transition:width .6s ease;width:0%;}
-#mhpts{font-family:var(--mono);font-size:.65rem;color:var(--gold);}
-
-/* ── ANIMATIONS ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-@keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
-@keyframes scanline{0%{top:-4px;}100%{top:100%;}}
-@keyframes typeChar{from{width:0;}to{width:100%;}}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
-@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
-@keyframes glitchH{
-  0%{clip-path:inset(40% 0 61% 0);}20%{clip-path:inset(92% 0 1% 0);}
-  40%{clip-path:inset(43% 0 1% 0);}60%{clip-path:inset(25% 0 58% 0);}
-  80%{clip-path:inset(54% 0 7% 0);}100%{clip-path:inset(58% 0 43% 0);}
-}
-
-/* ── KAHOOT FAKE ── */
+/* ═══ KAHOOT FAKE ═══ */
 #s-kahoot{display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:32px 20px;background:#f2f2f2;font-family:'Nunito',sans-serif;}
-.kh-banner{width:100%;max-width:460px;background:#46178f;border-radius:12px;
-  padding:24px;text-align:center;margin-bottom:20px;position:relative;overflow:hidden;}
-.kh-banner h1{color:#fff;font-size:clamp(1.4rem,5vw,2rem);font-weight:900;margin-bottom:2px;}
-.kh-banner p{color:rgba(255,255,255,.65);font-size:.82rem;}
-.kh-body{width:100%;max-width:460px;background:#fff;border-radius:10px;
-  padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);}
-.kh-body h2{color:#333;font-size:.95rem;font-weight:800;margin-bottom:6px;}
-.kh-body p{color:#666;font-size:.82rem;line-height:1.55;}
-.kh-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
-.kh-chip{background:#f5f5f5;border:1.5px solid #e0e0e0;border-radius:6px;
-  padding:4px 10px;font-size:.7rem;font-weight:700;color:#555;}
-.kh-go{width:100%;max-width:460px;padding:16px;border-radius:10px;border:none;
-  background:#e21b3c;color:#fff;font-family:'Nunito',sans-serif;
-  font-size:1.05rem;font-weight:900;cursor:pointer;
-  box-shadow:0 4px 16px rgba(226,27,60,.35);transition:all .15s;}
-.kh-go:active{transform:scale(.98);}
-.kh-foot{font-size:.68rem;color:#aaa;text-align:center;margin-top:12px;}
+  justify-content:center;padding:32px 20px;background:#fff;font-family:'Nunito',sans-serif;}
+.kh-head{width:100%;max-width:480px;background:#46178f;border-radius:14px;
+  padding:20px 24px;text-align:center;margin-bottom:24px;}
+.kh-head h1{color:#fff;font-size:clamp(1.5rem,5vw,2.2rem);font-weight:900;margin-bottom:4px;}
+.kh-head p{color:rgba(255,255,255,.7);font-size:.84rem;}
+.kh-card{width:100%;max-width:480px;background:#f0f0f0;border-radius:12px;padding:22px;margin-bottom:20px;}
+.kh-card h2{color:#333;font-size:1rem;font-weight:800;margin-bottom:8px;}
+.kh-card p{color:#555;font-size:.86rem;line-height:1.6;}
+.kh-pins{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.kh-pin{background:#fff;border:2px solid #e0e0e0;border-radius:8px;padding:5px 12px;font-size:.76rem;font-weight:700;color:#333;}
+.kh-btn{width:100%;max-width:480px;padding:16px;border-radius:12px;border:none;
+  background:#ff3355;color:#fff;font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:900;
+  cursor:pointer;box-shadow:0 4px 16px rgba(255,51,85,.4);transition:transform .1s;margin-bottom:12px;}
+.kh-btn:active{transform:scale(.98);}
+.kh-foot{font-size:.7rem;color:#999;text-align:center;}
 
-/* ── CHAT ── */
+/* ═══ CHAT ═══ */
 #s-hchat{display:flex;flex-direction:column;background:var(--bg);}
-#chat-wrap{flex:1;display:flex;flex-direction:column;max-width:640px;
-  width:100%;margin:0 auto;overflow:hidden;}
-#chat-hdr{padding:12px 18px;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;}
-.ch-sig{display:flex;align-items:center;gap:6px;font-family:var(--mono);
-  font-size:.52rem;letter-spacing:.12em;color:var(--dim);margin-bottom:3px;}
-.ch-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite;}
-.ch-dot.live{background:var(--grn);}
-.ch-from{font-family:var(--head);font-size:.78rem;font-weight:800;
-  color:var(--cyan);letter-spacing:.04em;}
-#chat-msgs{flex:1;overflow-y:auto;padding:14px 12px 8px;
-  display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth;}
+#chat-wrap{flex:1;display:flex;flex-direction:column;max-width:680px;width:100%;margin:0 auto;overflow:hidden;}
+#chat-hdr{padding:14px 20px;background:rgba(7,17,30,.98);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.ch-sig{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.55rem;letter-spacing:.14em;color:var(--dim);margin-bottom:4px;}
+#sig-dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:sigp 1s ease-in-out infinite;}
+#sig-dot.live{background:var(--grn);}
+@keyframes sigp{0%,100%{opacity:1;}50%{opacity:.25;}}
+.ch-from{font-family:var(--head);font-size:.72rem;font-weight:700;color:var(--cyan);text-shadow:0 0 12px rgba(0,229,255,.4);}
+#chat-msgs{flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
 #chat-msgs::-webkit-scrollbar{display:none;}
-.cmsg{max-width:82%;}
-.cmsg.them{align-self:flex-start;animation:fadeUp .3s ease both;}
-.cmsg.me{align-self:flex-end;animation:fadeUp .3s ease both;}
-.cname{font-family:var(--mono);font-size:.5rem;letter-spacing:.08em;
-  color:var(--dim);margin-bottom:2px;padding:0 4px;}
-.cmsg.me .cname{text-align:right;color:rgba(88,166,255,.5);}
-.cbub{padding:10px 14px;border-radius:14px;font-size:.84rem;line-height:1.55;}
-.cmsg.them .cbub{background:var(--s2);border:1px solid var(--bd);
-  color:var(--txt);border-bottom-left-radius:4px;}
-.cmsg.me .cbub{background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.2);
-  color:var(--cyan);border-bottom-right-radius:4px;}
-.cbub.warn{border-color:rgba(248,81,73,.4)!important;background:rgba(248,81,73,.06)!important;}
-.cbub.classified{border-color:rgba(210,153,34,.35)!important;
-  background:rgba(210,153,34,.05)!important;font-family:var(--mono);font-size:.76rem;color:var(--gold)!important;}
-.cpend{align-self:flex-end;max-width:82%;animation:fadeUp .3s ease both;}
-.cpend-lbl{font-family:var(--mono);font-size:.48rem;letter-spacing:.08em;
-  color:rgba(88,166,255,.4);margin-bottom:2px;text-align:right;padding:0 4px;}
-.cpend-bub{padding:10px 14px;border-radius:14px;border-bottom-right-radius:4px;
-  font-size:.84rem;line-height:1.55;background:rgba(88,166,255,.05);
-  border:1.5px dashed rgba(88,166,255,.35);color:rgba(88,166,255,.55);
-  cursor:pointer;transition:all .2s;}
-.cpend-bub:hover,.cpend-bub:active{background:rgba(88,166,255,.12);
-  border-color:var(--cyan);color:var(--cyan);}
-#chat-typing{padding:0 12px;flex-shrink:0;display:none;}
-.typing-dots{display:inline-flex;gap:4px;align-items:center;background:var(--s2);
-  border:1px solid var(--bd);padding:8px 12px;border-radius:14px;border-bottom-left-radius:4px;}
-.typing-dots span{width:5px;height:5px;background:var(--dim);border-radius:50%;animation:pulse 1.2s infinite;}
-.typing-dots span:nth-child(2){animation-delay:.2s;}
-.typing-dots span:nth-child(3){animation-delay:.4s;}
-#chat-foot{padding:8px 14px;border-top:1px solid var(--bd);background:var(--s1);
-  flex-shrink:0;max-width:640px;width:100%;margin:0 auto;}
-#chat-cta{font-size:.65rem;color:var(--dim);font-family:var(--mono);
-  text-align:center;letter-spacing:.08em;min-height:16px;}
 
-/* ── HOST LOBBY ── */
-#s-hlobby .lobby-inner{display:flex;flex-direction:column;align-items:center;
-  padding:28px 20px 40px;width:100%;min-height:100vh;justify-content:center;}
-.room-code{font-family:var(--head);font-size:clamp(2.2rem,8vw,3.4rem);color:var(--white);
-  font-weight:800;letter-spacing:.18em;
-  text-shadow:0 0 40px rgba(88,166,255,.3);}
-.ppill{display:inline-flex;align-items:center;gap:5px;background:var(--s2);
-  border:1px solid var(--bd);border-radius:6px;padding:5px 12px;margin:3px;
-  font-size:.75rem;font-family:var(--mono);animation:fadeUp .3s ease both;}
+.cmsg{max-width:82%;display:flex;gap:8px;align-items:flex-end;}
+.cmsg.them{align-self:flex-start;animation:msgL .32s cubic-bezier(.34,1.4,.64,1) both;}
+.cmsg.me{align-self:flex-end;flex-direction:row-reverse;animation:msgR .32s cubic-bezier(.34,1.4,.64,1) both;}
+@keyframes msgL{from{opacity:0;transform:translateX(-14px) scale(.95);}to{opacity:1;transform:none;}}
+@keyframes msgR{from{opacity:0;transform:translateX(14px) scale(.95);}to{opacity:1;transform:none;}}
+.cmsg-inner{display:flex;flex-direction:column;}
+.cname{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;color:var(--dim);margin-bottom:3px;padding:0 4px;}
+.cmsg.me .cname{text-align:right;color:rgba(255,196,0,.5);}
+.cbub{padding:11px 15px;border-radius:18px;font-size:.86rem;line-height:1.6;}
+.cmsg.them .cbub{background:var(--s1);border:1px solid var(--bd);color:var(--txt);border-bottom-left-radius:4px;}
+.cmsg.me .cbub{background:rgba(255,196,0,.08);border:1px solid rgba(255,196,0,.2);color:#e8d090;border-bottom-right-radius:4px;}
+.cbub.urg{border-color:rgba(255,61,90,.5)!important;background:rgba(255,61,90,.07)!important;}
+.cbub.cls{border-color:rgba(0,229,255,.3)!important;background:rgba(0,229,255,.05)!important;font-family:var(--mono);font-size:.76rem;color:var(--cyan)!important;}
+.cpend{align-self:flex-end;max-width:82%;display:flex;gap:8px;flex-direction:row-reverse;align-items:flex-end;animation:msgR .32s cubic-bezier(.34,1.4,.64,1) both;}
+.cpend-inner{display:flex;flex-direction:column;}
+.cpend-lbl{font-family:var(--mono);font-size:.48rem;letter-spacing:.1em;color:rgba(255,196,0,.4);margin-bottom:3px;text-align:right;padding:0 4px;}
+.cpend-bub{padding:11px 15px;border-radius:18px;border-bottom-right-radius:4px;font-size:.86rem;line-height:1.6;
+  background:rgba(255,196,0,.04);border:2px dashed rgba(255,196,0,.35);color:rgba(232,208,144,.55);cursor:pointer;transition:all .2s;}
+.cpend-bub:hover,.cpend-bub:active{background:rgba(255,196,0,.12);border-color:var(--gold);color:#e8d090;}
 
-/* ── HOST GAME ── */
+#chat-typing{padding:0 14px;flex-shrink:0;display:none;}
+.tbub{display:inline-flex;gap:4px;align-items:center;background:var(--s1);border:1px solid var(--bd);padding:9px 14px;border-radius:18px;border-bottom-left-radius:4px;}
+.tbub span{width:6px;height:6px;background:var(--dim);border-radius:50%;animation:td 1.2s infinite;}
+.tbub span:nth-child(2){animation-delay:.2s;}.tbub span:nth-child(3){animation-delay:.4s;}
+@keyframes td{0%,80%,100%{transform:scale(1);opacity:.4;}40%{transform:scale(1.3);opacity:1;}}
+#chat-foot{padding:10px 14px;border-top:1px solid var(--bd);background:rgba(7,17,30,.95);flex-shrink:0;max-width:680px;width:100%;margin:0 auto;}
+#chat-cta{font-size:.68rem;color:var(--dim);font-family:var(--mono);text-align:center;letter-spacing:.1em;min-height:18px;}
+
+/* ═══ HOST LOBBY ═══ */
+#s-hlobby{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:28px 20px 40px;}
+.room-code{font-family:var(--head);font-size:2.8rem;color:var(--cyan);letter-spacing:.22em;text-shadow:0 0 28px rgba(0,229,255,.5);}
+.ppill{display:inline-flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:5px 12px;margin:3px;font-size:.78rem;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
+.wdots span{animation:wd 1.3s infinite;display:inline-block;}
+.wdots span:nth-child(2){animation-delay:.22s;}.wdots span:nth-child(3){animation-delay:.44s;}
+@keyframes wd{0%,80%,100%{opacity:.15;}40%{opacity:1;}}
+
+/* ═══ HOST GAME ═══ */
 #s-hgame{display:flex;flex-direction:column;}
-#mini-term{width:100%;background:var(--s1);border-bottom:1px solid var(--bd);
-  padding:8px 18px;flex-shrink:0;font-family:var(--mono);font-size:.68rem;
-  color:var(--dim);line-height:1.7;min-height:48px;max-height:68px;overflow:hidden;}
-#mini-term .tc{color:var(--cyan);}#mini-term .tg{color:var(--grn);}
-#mini-term .ty{color:var(--gold);}#mini-term .tr{color:var(--red);}
-#step-panel{width:100%;max-width:900px;margin:0 auto;padding:24px 28px;overflow-y:auto;flex:1;}
+#mini-term{width:100%;background:rgba(2,8,16,.97);border-bottom:1px solid var(--bd);padding:8px 20px;flex-shrink:0;
+  font-family:var(--mono);font-size:.72rem;color:#4a7a9b;line-height:1.7;min-height:52px;max-height:72px;overflow:hidden;}
+#mini-term .tc{color:var(--cyan);}#mini-term .ty{color:var(--gold);}#mini-term .tr{color:var(--red);}#mini-term .tg{color:var(--grn);}
+#step-panel{width:100%;max-width:860px;margin:0 auto;padding:28px 32px;overflow-y:auto;flex:1;}
 #step-panel::-webkit-scrollbar{display:none;}
-.sp-badge{display:inline-block;font-family:var(--mono);font-size:.58rem;
-  letter-spacing:.14em;color:var(--cyan);background:rgba(88,166,255,.08);
-  border:1px solid rgba(88,166,255,.2);padding:4px 14px;border-radius:4px;margin-bottom:12px;}
-.sp-title{font-family:var(--head);font-size:clamp(1.3rem,3vw,1.8rem);
-  font-weight:800;color:var(--white);margin-bottom:16px;line-height:1.2;}
-.sp-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
-@media(max-width:640px){.sp-cols{grid-template-columns:1fr;}}
-.sp-box{border:1px solid var(--bd);border-radius:var(--r);padding:16px;}
-.sp-box.theory{background:rgba(88,166,255,.03);border-top:2px solid var(--cyan);}
-.sp-box.task{background:rgba(210,153,34,.03);border-top:2px solid var(--gold);}
-.sp-box-label{font-family:var(--mono);font-size:.55rem;letter-spacing:.14em;
-  margin-bottom:8px;font-weight:700;}
-.sp-box.theory .sp-box-label{color:var(--cyan);}
-.sp-box.task .sp-box-label{color:var(--gold);}
-.sp-box-text{font-size:.85rem;line-height:1.7;color:var(--txt);}
-.sp-box-text strong{color:var(--white);}
-.sp-progress{display:flex;align-items:center;gap:12px;
-  background:var(--s1);border:1px solid var(--bd);border-radius:8px;
-  padding:12px 16px;margin-bottom:14px;}
-.sp-prog-label{font-family:var(--mono);font-size:.6rem;color:var(--dim);white-space:nowrap;}
-.sp-prog-bar{flex:1;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;}
-.sp-prog-fill{height:100%;background:var(--grn);border-radius:3px;transition:width .5s ease;width:0%;}
-.sp-prog-count{font-family:var(--mono);font-size:.78rem;color:var(--grn);font-weight:700;white-space:nowrap;}
-.sp-btns{display:flex;gap:10px;flex-wrap:wrap;}
-.sp-btns .btn{flex:1;min-width:140px;}
+.sp-badge{display:inline-block;font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;color:var(--cyan);background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.25);padding:5px 16px;border-radius:20px;margin-bottom:14px;}
+.sp-title{font-family:var(--head);font-size:clamp(1.3rem,3.5vw,1.9rem);font-weight:900;color:#fff;margin-bottom:16px;line-height:1.2;}
+.sp-task-box{background:rgba(255,196,0,.04);border:1px solid rgba(255,196,0,.2);border-top:3px solid var(--gold);border-radius:0 0 12px 12px;padding:18px 20px;margin-bottom:20px;}
+.sp-task-label{font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;color:var(--gold);margin-bottom:10px;font-weight:700;}
+.sp-task-text{font-size:.92rem;line-height:1.85;color:#e8c060;}
+.sp-task-text li{margin-left:16px;margin-bottom:3px;}
+.sp-progress{display:flex;align-items:center;gap:14px;background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 18px;margin-bottom:16px;}
+.sp-prog-label{font-family:var(--mono);font-size:.65rem;color:var(--dim);white-space:nowrap;}
+.sp-prog-bar{flex:1;height:8px;background:var(--bd);border-radius:4px;overflow:hidden;}
+.sp-prog-fill{height:100%;background:var(--grn);border-radius:4px;transition:width .5s ease;}
+.sp-prog-count{font-family:var(--mono);font-size:.85rem;color:var(--grn);font-weight:700;white-space:nowrap;min-width:60px;text-align:right;}
+.sp-btns{display:flex;gap:12px;flex-wrap:wrap;}
+.sp-btns .btn{flex:1;min-width:160px;font-size:.72rem;padding:16px;}
 
-/* ── MOBILE COMPONENTS ── */
-.mob{display:flex;flex-direction:column;align-items:center;padding:14px 16px 40px;}
-.stag{font-family:var(--mono);font-size:.52rem;letter-spacing:.14em;color:var(--cyan);
-  background:rgba(88,166,255,.07);border:1px solid rgba(88,166,255,.18);
-  padding:3px 12px;border-radius:4px;margin-bottom:10px;}
-
-/* Opening question box */
-.oq-box{width:100%;background:var(--s1);border:1px solid var(--bd);
-  border-left:3px solid var(--pur);border-radius:0 var(--r) var(--r) 0;
-  padding:14px 16px;margin-bottom:14px;}
-.oq-label{font-family:var(--mono);font-size:.52rem;letter-spacing:.12em;
-  color:var(--pur);margin-bottom:6px;display:block;}
+/* ═══ MOBILE ═══ */
+.mob{display:flex;flex-direction:column;align-items:center;padding:12px 14px 40px;}
+.stag{font-family:var(--mono);font-size:.55rem;letter-spacing:.15em;color:var(--cyan);background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);padding:4px 12px;border-radius:20px;margin-bottom:10px;}
+.oq-box{width:100%;background:var(--s1);border:1px solid var(--bd);border-left:3px solid var(--pur);border-radius:0 var(--r) var(--r) 0;padding:14px 16px;margin-bottom:12px;}
+.oq-label{font-family:var(--mono);font-size:.52rem;letter-spacing:.12em;color:var(--pur);margin-bottom:6px;display:block;}
 .oq-text{font-size:.88rem;font-weight:600;line-height:1.5;color:var(--white);}
-.oq-opts{width:100%;margin-bottom:14px;}
-.oq-opt{width:100%;padding:12px 14px;background:var(--s2);border:1.5px solid var(--bd);
-  border-radius:8px;margin-bottom:6px;font-size:.84rem;font-weight:600;
-  cursor:pointer;text-align:left;color:var(--txt);transition:all .15s;font-family:var(--body);}
-.oq-opt.correct{border-color:var(--grn);background:rgba(63,185,80,.08);color:var(--grn);}
-.oq-opt.wrong{border-color:var(--red);background:rgba(248,81,73,.06);color:var(--red);}
+.oq-opts{width:100%;margin-bottom:12px;}
+.oq-opt{width:100%;padding:13px 14px;background:var(--s2);border:2px solid var(--bd);border-radius:var(--r);margin-bottom:7px;font-size:.84rem;font-weight:600;cursor:pointer;text-align:left;color:var(--txt);transition:all .18s;font-family:var(--body);}
+.oq-opt.correct{border-color:var(--grn);background:rgba(0,230,118,.08);color:var(--grn);}
+.oq-opt.wrong{border-color:var(--red);background:rgba(255,61,90,.06);color:var(--red);}
 .oq-opt:disabled{cursor:default;opacity:.8;}
-
-/* Instruction box */
-.instr-box{width:100%;background:rgba(88,166,255,.04);border:1px solid rgba(88,166,255,.15);
-  border-left:3px solid var(--cyan);border-radius:0 var(--r) var(--r) 0;
-  padding:12px 14px;margin-bottom:12px;font-size:.82rem;line-height:1.6;color:var(--txt);}
-.instr-box strong{color:var(--cyan);}
-.instr-label{font-family:var(--mono);font-size:.52rem;letter-spacing:.1em;
-  color:var(--gold);display:block;margin-bottom:4px;}
-
-/* Debrief box */
-.debrief-box{width:100%;background:rgba(210,153,34,.04);border:1px solid rgba(210,153,34,.2);
-  border-left:3px solid var(--gold);border-radius:0 var(--r) var(--r) 0;
-  padding:12px 14px;margin-bottom:12px;font-size:.8rem;line-height:1.65;color:var(--gold);}
-.debrief-box strong{color:var(--white);}
-
-/* Feedback */
-.fb{padding:10px 12px;border-radius:8px;font-size:.78rem;line-height:1.5;
-  margin-top:8px;width:100%;}
-.fb.ok{background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);color:var(--grn);}
-.fb.bad{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.2);color:var(--red);}
-.fb.info{background:rgba(210,153,34,.06);border:1px solid rgba(210,153,34,.2);color:var(--gold);}
-
-/* Select */
-.gsel{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);
-  padding:10px 12px;border-radius:8px;font-size:.82rem;outline:none;
-  font-family:var(--body);appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 5 5-5' stroke='%23484f58' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;}
+.instr{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-left:3px solid var(--cyan);border-radius:0 var(--r) var(--r) 0;padding:12px 14px;margin-bottom:12px;font-size:.82rem;line-height:1.65;color:#7ab8d4;width:100%;}
+.instr strong{color:var(--cyan);}
+.itag{font-family:var(--mono);font-size:.56rem;color:var(--gold);letter-spacing:.1em;display:block;margin-bottom:5px;}
+.debrief{background:rgba(255,196,0,.06);border:1px solid rgba(255,196,0,.2);border-left:3px solid var(--gold);border-radius:0 var(--r) var(--r) 0;padding:12px 14px;margin-top:12px;font-size:.8rem;line-height:1.65;color:var(--gold);width:100%;}
+.debrief strong{color:var(--white);}
+.mc{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px;width:100%;margin-bottom:10px;}
+.gsel{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);padding:11px 13px;border-radius:10px;font-size:.84rem;outline:none;font-family:var(--body);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232e4a62' stroke-width='1.8' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
 .gsel:focus{border-color:var(--cyan);}
-
-/* Number input */
-.num-input{width:100%;background:var(--s2);border:1.5px solid var(--bd);
-  color:var(--txt);padding:10px;border-radius:8px;font-family:var(--mono);
-  font-size:1.1rem;text-align:center;outline:none;-webkit-appearance:none;}
-.num-input:focus{border-color:var(--cyan);}
-.num-input.cyan{border-color:rgba(88,166,255,.3);color:var(--cyan);}
-.num-input.gold{border-color:rgba(210,153,34,.3);color:var(--gold);}
-
-/* BOM item */
-.bom-item{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);
-  padding:12px;margin-bottom:8px;}
+.fb{padding:11px 13px;border-radius:10px;font-size:.78rem;line-height:1.5;margin-top:8px;width:100%;}
+.fb.ok{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.25);color:#5eea9a;}
+.fb.bad{background:rgba(255,61,90,.07);border:1px solid rgba(255,61,90,.25);color:#ff7a8a;}
+.fb.info{background:rgba(255,196,0,.07);border:1px solid rgba(255,196,0,.25);color:#e8c060;}
+.qopt{width:100%;padding:14px 15px;background:var(--s2);border:2px solid var(--bd);border-radius:12px;margin-bottom:8px;font-size:.86rem;font-weight:600;cursor:pointer;text-align:left;color:var(--txt);transition:all .18s;}
+.qopt.ok{border-color:var(--grn);background:rgba(0,230,118,.1);color:var(--grn);}
+.qopt.bad{border-color:var(--red);background:rgba(255,61,90,.1);color:var(--red);}
+.qopt:disabled{cursor:default;}
+.bom-item{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
 .bom-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.bom-opt{padding:10px 8px;border-radius:8px;cursor:pointer;transition:all .15s;
-  border:1.5px solid var(--bd);background:var(--s2);color:var(--txt);
-  font-size:.72rem;line-height:1.5;font-family:var(--body);font-weight:600;text-align:center;}
-.bom-opt.picked{border-color:var(--cyan);background:rgba(88,166,255,.08);color:var(--cyan);}
-
-/* Cost chain row */
-.chain-row{display:flex;justify-content:space-between;align-items:center;
-  background:var(--s2);border:1px solid var(--bd);border-radius:8px;
-  padding:10px 14px;margin-bottom:5px;font-size:.8rem;gap:10px;}
-.chain-row.highlight{border-color:var(--grn);background:rgba(63,185,80,.04);}
-.chain-row.danger{border-color:var(--red);background:rgba(248,81,73,.04);}
-.chain-amt{font-family:var(--mono);font-size:.85rem;font-weight:700;white-space:nowrap;}
-
-/* Trade-off option */
+.bom-opt{padding:10px 8px;border-radius:10px;cursor:pointer;transition:all .18s;border:2px solid var(--bd);background:var(--s2);color:var(--txt);font-size:.72rem;line-height:1.6;font-family:var(--body);font-weight:600;text-align:center;}
+.bom-opt.pick{border-color:var(--cyan);background:rgba(0,229,255,.08);color:var(--cyan);}
+.crow{display:flex;justify-content:space-between;align-items:center;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;margin-bottom:5px;font-size:.8rem;gap:10px;}
+.crow.cg{border-color:rgba(0,230,118,.4);background:rgba(0,230,118,.04);}
+.crow.cr{border-color:rgba(255,61,90,.4);background:rgba(255,61,90,.04);}
+.camt{font-family:var(--mono);font-size:.84rem;font-weight:700;white-space:nowrap;flex-shrink:0;}
 .trade-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-.trade-opt{padding:10px;border-radius:8px;border:1.5px solid var(--bd);
-  background:var(--s2);color:var(--txt);font-size:.74rem;cursor:pointer;
-  transition:all .15s;font-family:var(--body);font-weight:600;line-height:1.5;text-align:center;}
-.trade-opt.picked-a{border-color:var(--gold);background:rgba(210,153,34,.08);color:var(--gold);}
-.trade-opt.picked-b{border-color:var(--cyan);background:rgba(88,166,255,.08);color:var(--cyan);}
+.trade-opt{padding:10px;border-radius:10px;border:2px solid var(--bd);background:var(--s2);color:var(--txt);font-size:.74rem;cursor:pointer;transition:all .18s;font-weight:600;line-height:1.5;text-align:center;}
+.trade-opt.pa{border-color:var(--gold);background:rgba(255,196,0,.08);color:var(--gold);}
+.trade-opt.pb{border-color:var(--cyan);background:rgba(0,229,255,.08);color:var(--cyan);}
 
-/* Wait screen */
-.mob-wait{display:flex;flex-direction:column;align-items:center;
-  justify-content:center;min-height:80vh;text-align:center;gap:10px;}
-.wait-ring{width:48px;height:48px;border-radius:50%;border:2px solid var(--cyan);
-  animation:pulse 2s ease-in-out infinite;}
+.num-in{width:100%;background:var(--s2);border:2px solid var(--bd);color:var(--txt);padding:12px;border-radius:10px;font-family:var(--mono);font-size:1.3rem;text-align:center;outline:none;-webkit-appearance:none;}
+.num-in:focus{border-color:var(--cyan);}
+.num-in.cy{border-color:rgba(0,229,255,.3);color:var(--cyan);}
+.num-in.go{border-color:rgba(255,196,0,.3);color:var(--gold);}
+input[type=range]{width:100%;height:6px;-webkit-appearance:none;appearance:none;background:var(--bd);border-radius:3px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;background:var(--cyan);border-radius:50%;border:3px solid var(--bg);box-shadow:0 0 8px rgba(0,229,255,.6);cursor:pointer;}
 
-/* Quiz option */
-.quiz-opt{width:100%;padding:13px 14px;background:var(--s2);border:1.5px solid var(--bd);
-  border-radius:8px;margin-bottom:6px;font-size:.86rem;font-weight:600;
-  cursor:pointer;text-align:left;color:var(--txt);transition:all .15s;font-family:var(--body);}
-.quiz-opt.correct{border-color:var(--grn);background:rgba(63,185,80,.08);color:var(--grn);}
-.quiz-opt.wrong{border-color:var(--red);background:rgba(248,81,73,.06);color:var(--red);}
-.quiz-opt:disabled{cursor:default;}
+.mob-wait{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72vh;text-align:center;gap:10px;}
+.pring{width:60px;height:60px;border-radius:50%;border:2px solid var(--cyan);animation:pr 2s ease-in-out infinite;}
+@keyframes pr{0%,100%{transform:scale(1);opacity:.3;}50%{transform:scale(1.2);opacity:.9;}}
+.lb-row{display:flex;align-items:center;gap:12px;background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:13px 16px;margin-bottom:7px;animation:sup .4s ease both;}
+@keyframes sup{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.cf{position:fixed;width:8px;height:8px;z-index:500;pointer-events:none;animation:cffall 2.5s ease-in forwards;}
+@keyframes cffall{0%{opacity:1;transform:translateY(-10px) rotate(0);}100%{opacity:0;transform:translateY(100vh) rotate(600deg);}}
 
-/* Confetti */
-.cf{position:fixed;width:7px;height:7px;z-index:500;pointer-events:none;
-  animation:cffall 2.5s ease-in forwards;}
-@keyframes cffall{0%{opacity:1;transform:translateY(-10px) rotate(0);}
-  100%{opacity:0;transform:translateY(100vh) rotate(600deg);}}
-
-/* ── FINAL SCREENS ── */
-.lb-row{display:flex;align-items:center;gap:10px;background:var(--s1);
-  border:1px solid var(--bd);border-radius:8px;padding:11px 14px;
-  margin-bottom:6px;animation:fadeUp .4s ease both;}
-
-/* Slider */
-input[type=range]{width:100%;height:5px;-webkit-appearance:none;appearance:none;
-  background:var(--bd);border-radius:3px;outline:none;cursor:pointer;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;
-  background:var(--cyan);border-radius:50%;border:2px solid var(--bg);
-  box-shadow:0 0 8px rgba(88,166,255,.4);cursor:pointer;}
+/* ═══ OMEGA FINAL SCENE ═══ */
+@keyframes omegawalk{0%{left:-40px;opacity:0;}20%{opacity:1;}100%{left:calc(50% - 16px);opacity:1;}}
+@keyframes wavefade{0%{opacity:0;}100%{opacity:1;}}
+@keyframes flashsuccess{0%,100%{opacity:0;}50%{opacity:1;}}
+@keyframes textin{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@keyframes gsh{0%,100%{transform:translate(-50%,-50%);}25%{transform:translate(-52%,-49%);}75%{transform:translate(-48%,-51%);}}
+@media(max-width:600px){.sp-title{font-size:1.2rem;}}
 </style>
 </head>
 <body>
-
-<div id="glitch-overlay"></div>
+<canvas id="bg"></canvas>
+<div id="glitch-ov"></div><div id="glitch-txt"></div>
+<div id="sil-overlay"></div>
 <div id="toast"></div>
-<div id="mob-hud">
-  <div id="mhl">—</div>
-  <div id="mhbar"><div id="mhfill"></div></div>
-  <div id="mhpts">0 pts</div>
+<div id="mob-hud" style="position:fixed;top:0;left:0;right:0;height:46px;z-index:200;display:flex;align-items:center;padding:0 13px;gap:9px;background:rgba(2,8,16,.95);border-bottom:1px solid var(--bd);backdrop-filter:blur(14px);opacity:0;transition:opacity .3s;pointer-events:none;">
+  <div id="mhl" style="font-family:var(--mono);font-size:.56rem;color:var(--cyan);letter-spacing:.12em;">—</div>
+  <div id="mhbar" style="flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden;"><div id="mhfill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--pur));border-radius:2px;transition:width .6s ease;"></div></div>
+  <div id="mhpts" style="font-family:var(--mono);font-size:.63rem;color:var(--gold);">0 pts</div>
 </div>
 
-<!-- ═══════════════════════════════
-     FAKE KAHOOT SCREEN
-═══════════════════════════════ -->
+<!-- ═══ SCREENS ═══ -->
 <div class="scr on" id="s-kahoot">
-  <div class="kh-banner">
-    <h1 id="kh-title">Product Specifications</h1>
-    <p>Chapter 6 · Ulrich & Eppinger · Interactive Quiz</p>
-  </div>
-  <div class="kh-body">
-    <h2 id="kh-h2">Welcome, class!</h2>
-    <p id="kh-p">Test your knowledge on Product Specifications, Target Costing, and Trade-Off analysis. Work as a team!</p>
-    <div class="kh-chips">
-      <span class="kh-chip">7 Steps</span>
-      <span class="kh-chip">Chapter 6</span>
-      <span class="kh-chip">Multiplayer</span>
-    </div>
-  </div>
-  <button class="kh-go" id="kh-go" onclick="initBreach()">▶ START SESSION</button>
-  <div class="kh-foot">Hosted by Prof. · Digital Innovation & Management · UniBg</div>
+  <div class="kh-head"><h1 id="kh-t1">📚 Product Specifications</h1><p>Chapter 6 · Ulrich &amp; Eppinger · Interactive Session</p></div>
+  <div class="kh-card"><h2 id="kh-h2">Welcome to today's quiz!</h2><p id="kh-p">Test your knowledge on Product Specifications and Target Costing. Work as a team!</p><div class="kh-pins"><span class="kh-pin">⏱ 7 Steps</span><span class="kh-pin">🎯 Chapter 6</span><span class="kh-pin">👥 Multiplayer</span></div></div>
+  <button class="kh-btn" id="kh-btn" onclick="startBreach()">▶ START SESSION</button>
+  <div class="kh-foot">Hosted by Prof. · Digital Innovation &amp; Management · UniBg</div>
 </div>
 
-<!-- ═══════════════════════════════
-     LANDING
-═══════════════════════════════ -->
 <div class="scr" id="s-land">
-  <div style="display:flex;flex-direction:column;align-items:center;
-    justify-content:center;min-height:100vh;padding:24px;gap:14px;">
-    <div style="font-family:var(--head);font-weight:800;
-      font-size:clamp(1.8rem,7vw,2.8rem);text-align:center;color:var(--white);
-      letter-spacing:.04em;">SPECMASTER</div>
-    <div style="font-family:var(--mono);font-size:.55rem;letter-spacing:.18em;
-      color:var(--dim);margin-bottom:16px;">OPERATION SILENT EAR</div>
-    <div class="card" style="width:100%;max-width:340px;margin-bottom:6px;">
-      <div style="font-size:.7rem;color:var(--dim);margin-bottom:6px;">Your codename:</div>
-      <input class="num-input" id="nick" placeholder="e.g. SHADOW" maxlength="16"
-        autocomplete="off" style="text-align:left;font-size:.9rem;">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;gap:12px;">
+    <div style="font-family:var(--head);font-weight:900;font-size:clamp(2rem,8vw,3rem);text-align:center;background:linear-gradient(135deg,#fff,var(--cyan) 45%,var(--pur));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 24px rgba(0,229,255,.4));">SPECMASTER</div>
+    <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;color:var(--dim);margin-bottom:12px;">OPERATION SILENT EAR</div>
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;width:100%;max-width:360px;margin-bottom:4px;">
+      <div style="font-size:.72rem;color:var(--dim);margin-bottom:7px;">Your codename:</div>
+      <input style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);padding:12px 14px;border-radius:10px;font-size:1rem;outline:none;font-family:var(--body);" id="nick" placeholder="e.g. SHADOW, ACE…" maxlength="16" autocomplete="off">
     </div>
-    <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px;">
-      <button class="btn primary" onclick="startHost()">HOST — present to class</button>
-      <button class="btn" onclick="startJoin()">JOIN — I'm a student</button>
+    <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:9px;">
+      <button class="btn bp" onclick="startHost()">🖥️ HOST — present to class</button>
+      <button class="btn bs" onclick="startJoin()">📱 JOIN — I'm a student</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════
-     JOIN
-═══════════════════════════════ -->
 <div class="scr" id="s-mjoin">
-  <div style="display:flex;flex-direction:column;align-items:center;
-    justify-content:center;min-height:100vh;padding:24px;gap:10px;">
-    <div style="font-family:var(--head);font-size:1.2rem;font-weight:800;margin-bottom:8px;color:var(--white);">JOIN MISSION</div>
-    <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px;">
-      <div>
-        <div style="font-size:.7rem;color:var(--dim);margin-bottom:5px;">Codename:</div>
-        <input class="num-input" id="m-nick" placeholder="e.g. SHADOW" maxlength="16"
-          autocomplete="off" style="text-align:left;font-size:.9rem;">
-      </div>
-      <div>
-        <div style="font-size:.7rem;color:var(--dim);margin-bottom:5px;">Room code:</div>
-        <input class="num-input" id="m-code" placeholder="ECHO77" maxlength="8"
-          style="text-transform:uppercase;letter-spacing:.18em;">
-      </div>
-      <button class="btn primary" onclick="mobileJoin()">JOIN →</button>
-      <button class="btn" onclick="go('s-land')">← Back</button>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;gap:10px;">
+    <div style="font-family:var(--head);font-size:1.3rem;font-weight:700;margin-bottom:6px;">JOIN MISSION</div>
+    <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;">
+      <div><div style="font-size:.72rem;color:var(--dim);margin-bottom:6px;">Your codename:</div><input style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);padding:12px;border-radius:10px;font-size:1rem;outline:none;" id="m-nick" placeholder="e.g. SHADOW" maxlength="16" autocomplete="off"></div>
+      <div><div style="font-size:.72rem;color:var(--dim);margin-bottom:6px;">Room code:</div><input style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--txt);padding:12px;border-radius:10px;font-family:var(--mono);font-size:1.2rem;letter-spacing:.2em;text-transform:uppercase;text-align:center;outline:none;" id="m-code" placeholder="ECHO77" maxlength="8"></div>
+      <button class="btn bp" onclick="mobileJoin()">JOIN →</button>
+      <button class="btn bs" onclick="go('s-land')">← Back</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════
-     HOST LOBBY
-═══════════════════════════════ -->
 <div class="scr" id="s-hlobby">
-  <div class="lobby-inner">
-    <div style="font-family:var(--mono);font-size:.55rem;color:var(--dim);
-      letter-spacing:.16em;margin-bottom:6px;">ROOM CODE</div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:28px 20px 40px;">
+    <div style="font-family:var(--mono);font-size:.6rem;color:var(--dim);letter-spacing:.18em;margin-bottom:8px;">ROOM CODE</div>
     <div class="room-code" id="room-disp">———</div>
-    <div style="font-size:.65rem;color:var(--dim);margin-top:4px;margin-bottom:14px;">
-      Share this code or scan QR</div>
+    <div style="font-size:.68rem;color:var(--dim);margin-top:4px;margin-bottom:14px;">Share this code · or scan QR</div>
     <div id="qr-wrap" style="margin-bottom:16px;text-align:center;"></div>
-    <div class="card" style="width:100%;max-width:420px;margin-bottom:16px;">
-      <div style="font-size:.58rem;color:var(--dim);font-family:var(--mono);
-        margin-bottom:6px;letter-spacing:.1em;">AGENTS CONNECTED:</div>
-      <div id="plist" style="min-height:24px;"></div>
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px 18px;width:100%;max-width:480px;margin-bottom:16px;">
+      <div style="font-size:.62rem;color:var(--dim);font-family:var(--mono);margin-bottom:8px;letter-spacing:.1em;">AGENTS CONNECTED:</div>
+      <div id="plist" style="min-height:28px;"></div>
+      <div class="wdots" style="color:var(--dim);font-size:.75rem;margin-top:8px;">Waiting<span>.</span><span>.</span><span>.</span></div>
     </div>
-    <button class="btn gold" onclick="hostLaunch()" style="max-width:420px;width:100%;">
-      ▶ LAUNCH MISSION
-    </button>
+    <button class="btn by" onclick="hostLaunch()" style="max-width:480px;width:100%;">▶ LAUNCH MISSION</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════
-     HOST CHAT
-═══════════════════════════════ -->
 <div class="scr" id="s-hchat">
   <div id="chat-wrap">
-    <div id="chat-hdr">
-      <div class="ch-sig"><span class="ch-dot" id="sig-dot"></span><span id="sig-txt">CONNECTING…</span></div>
-      <div class="ch-from" id="chat-from">UNKNOWN</div>
-    </div>
+    <div id="chat-hdr"><div class="ch-sig"><span id="sig-dot"></span><span id="sig-txt">CONNECTING…</span></div><div class="ch-from" id="chat-from">UNKNOWN</div></div>
     <div id="chat-msgs"></div>
-    <div id="chat-typing"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+    <div id="chat-typing"><div class="tbub"><span></span><span></span><span></span></div></div>
   </div>
   <div id="chat-foot"><div id="chat-cta"></div></div>
 </div>
 
-<!-- ═══════════════════════════════
-     HOST GAME (step panel)
-═══════════════════════════════ -->
-<div class="scr" id="s-hgame">
-  <div id="mini-term"></div>
-  <div id="step-panel"></div>
-</div>
+<div class="scr" id="s-hgame"><div id="mini-term"></div><div id="step-panel"></div></div>
 
-<!-- ═══════════════════════════════
-     HOST FINAL DASHBOARD
-═══════════════════════════════ -->
 <div class="scr" id="s-hdash">
-  <div style="width:100%;max-width:700px;padding:24px 20px 40px;margin:0 auto;">
+  <div style="width:100%;max-width:720px;padding:24px 20px 40px;margin:0 auto;">
     <div style="text-align:center;margin-bottom:18px;">
-      <div style="font-family:var(--head);font-size:1.2rem;font-weight:800;
-        color:var(--white);margin-bottom:6px;">MISSION DEBRIEF</div>
-      <div id="hdash-winner" style="font-family:var(--mono);font-size:.78rem;
-        color:var(--cyan);line-height:1.8;"></div>
+      <div style="font-family:var(--head);font-size:1.3rem;font-weight:700;margin-bottom:6px;">MISSION DEBRIEF</div>
+      <div id="hdash-winner" style="font-family:var(--mono);font-size:.82rem;color:var(--cyan);line-height:1.8;"></div>
     </div>
     <div id="hdash-lb" style="margin-bottom:18px;"></div>
     <div id="hdash-cards"></div>
     <div style="height:20px;"></div>
-    <button class="btn" onclick="location.reload()" style="max-width:420px;width:100%;margin:0 auto;">
-      NEW MISSION
-    </button>
+    <button class="btn bs" onclick="location.reload()" style="max-width:480px;width:100%;">NEW MISSION ↺</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════
-     MOBILE WAIT
-═══════════════════════════════ -->
-<div class="scr" id="s-mwait">
-  <div class="mob mob-wait">
-    <div class="wait-ring"></div>
-    <div style="font-family:var(--mono);font-size:.58rem;color:var(--cyan);
-      letter-spacing:.12em;" id="mw-step">CONNECTED</div>
-    <div style="font-size:.95rem;font-weight:700;color:var(--white);" id="mw-title">Waiting for host…</div>
-    <div style="font-size:.75rem;color:var(--dim);max-width:240px;line-height:1.5;"
-      id="mw-sub">Stand by</div>
-    <div style="height:16px;"></div>
-    <div style="font-size:.7rem;color:var(--dim);">
-      Score: <span style="font-family:var(--mono);color:var(--gold);" id="mw-score">0</span> pts
-    </div>
-  </div>
-</div>
+<div class="scr" id="s-mwait"><div class="mob mob-wait"><div class="pring"></div><div style="font-family:var(--mono);font-size:.62rem;color:var(--cyan);letter-spacing:.15em;" id="mw-step">CONNECTED</div><div style="font-size:1rem;font-weight:700;" id="mw-title">Waiting for host…</div><div style="font-size:.78rem;color:var(--dim);max-width:250px;line-height:1.5;" id="mw-sub">Stand by</div><div style="height:16px;"></div><div style="font-size:.7rem;color:var(--dim);">Score: <span style="font-family:var(--mono);color:var(--gold);" id="mw-score">0</span> pts</div></div></div>
 
-<!-- ═══════════════════════════════
-     MOBILE STEPS 1-7 (dynamic content)
-═══════════════════════════════ -->
-<div class="scr" id="s-m1"><div class="mob" style="padding-top:56px;" id="m1-content"></div></div>
-<div class="scr" id="s-m2"><div class="mob" style="padding-top:56px;" id="m2-content"></div></div>
-<div class="scr" id="s-m3"><div class="mob" style="padding-top:56px;" id="m3-content"></div></div>
-<div class="scr" id="s-m4"><div class="mob" style="padding-top:56px;" id="m4-content"></div></div>
-<div class="scr" id="s-m5"><div class="mob" style="padding-top:56px;" id="m5-content"></div></div>
-<div class="scr" id="s-m6"><div class="mob" style="padding-top:56px;" id="m6-content"></div></div>
-<div class="scr" id="s-m7"><div class="mob" style="padding-top:56px;" id="m7-content"></div></div>
+<div class="scr" id="s-m1"><div class="mob" style="padding-top:58px;" id="m1-c"></div></div>
+<div class="scr" id="s-m2"><div class="mob" style="padding-top:58px;" id="m2-c"></div></div>
+<div class="scr" id="s-m3"><div class="mob" style="padding-top:58px;" id="m3-c"></div></div>
+<div class="scr" id="s-m4"><div class="mob" style="padding-top:58px;" id="m4-c"></div></div>
+<div class="scr" id="s-m5"><div class="mob" style="padding-top:58px;" id="m5-c"></div></div>
+<div class="scr" id="s-m6"><div class="mob" style="padding-top:58px;" id="m6-c"></div></div>
+<div class="scr" id="s-m7"><div class="mob" style="padding-top:58px;" id="m7-c"></div></div>
 
-<!-- ═══════════════════════════════
-     MOBILE FINAL
-═══════════════════════════════ -->
-<div class="scr" id="s-mfinal">
-  <div class="mob" style="padding-top:40px;align-items:center;justify-content:center;min-height:100vh;">
-    <div style="text-align:center;margin-bottom:14px;width:100%;">
-      <div style="font-family:var(--head);font-size:1.1rem;font-weight:800;
-        color:var(--grn);margin-bottom:4px;" id="mfinal-title">Mission Complete</div>
-      <div style="font-size:.8rem;color:var(--dim);line-height:1.5;" id="mfinal-sub"></div>
-      <div style="font-size:1rem;font-weight:700;margin-top:10px;color:var(--white);">
-        Your score: <span style="font-family:var(--mono);color:var(--gold);
-          font-size:1.2rem;" id="mfinal-score">0</span> pts
-      </div>
-    </div>
-    <div id="mfinal-lb" style="width:100%;max-width:340px;"></div>
-  </div>
-</div>
+<div class="scr" id="s-mfinal"><div class="mob" style="padding-top:40px;align-items:center;justify-content:center;min-height:100vh;" id="mfinal-c"></div></div>
 
 <script>
 'use strict';
 
-// ═══════════════════════════════════
-// AUDIO
-// ═══════════════════════════════════
+/* ═══════════════════════════════════
+   BG CANVAS
+═══════════════════════════════════ */
+(function(){const c=document.getElementById('bg');if(!c)return;const x=c.getContext('2d');let t=0;const r=()=>{c.width=innerWidth;c.height=innerHeight;};r();window.addEventListener('resize',r);(function loop(){c.width=c.width;for(let i=0;i<3;i++){x.strokeStyle=`rgba(0,${155+i*22},${215+i*12},${.022+i*.007})`;x.lineWidth=1;x.beginPath();for(let px=0;px<=c.width;px+=6){const py=c.height*.5+Math.sin(px*.006+t+i*1.1)*26*(i*.45+.7)+Math.sin(px*.016+t*.75)*9;px===0?x.moveTo(px,py):x.lineTo(px,py);}x.stroke();}t+=.005;requestAnimationFrame(loop);})();})();
+
+/* ═══════════════════════════════════
+   SVG AVATAR BUILDERS
+═══════════════════════════════════ */
+function svgUnknown(){return `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="20" fill="#0c1a2e"/><ellipse cx="20" cy="15" rx="8" ry="9" fill="#1a2e48"/><rect x="10" y="24" width="20" height="16" rx="4" fill="#1a2e48"/><circle cx="16" cy="14" r="1.8" fill="#00e5ff" opacity=".9"/><circle cx="24" cy="14" r="1.8" fill="#00e5ff" opacity=".9"/><rect x="14" y="10" width="12" height="3" rx="1.5" fill="#0c1a2e"/></svg>`;}
+function svgYou(){return `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="20" fill="#1a1800"/><ellipse cx="20" cy="15" rx="7" ry="8" fill="#2e2a10"/><rect x="11" y="23" width="18" height="14" rx="3" fill="#2e2a10"/><circle cx="16" cy="14" r="1.5" fill="#ffc400" opacity=".9"/><circle cx="24" cy="14" r="1.5" fill="#ffc400" opacity=".9"/><path d="M14 8 Q20 4 26 8" stroke="#ffc400" stroke-width="1.5" fill="none" opacity=".5"/></svg>`;}
+function svgOmega(){return `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="20" fill="#001a0d"/><ellipse cx="20" cy="15" rx="7" ry="8" fill="#0d2e1a"/><rect x="11" y="23" width="18" height="14" rx="3" fill="#0d2e1a"/><circle cx="16" cy="14" r="1.5" fill="#00e676" opacity=".9"/><circle cx="24" cy="14" r="1.5" fill="#00e676" opacity=".9"/><rect x="26" y="11" width="6" height="4" rx="2" fill="#00e676" opacity=".6"/><rect x="24" y="10" width="3" height="6" rx="1" fill="#00e676" opacity=".6"/></svg>`;}
+
+/* Full silhouettes for big reveal */
+function silUnknown(){return `<svg viewBox="0 0 200 400" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="100" cy="55" rx="35" ry="40" fill="#0c1a2e" stroke="#1a2e48" stroke-width="2"/><rect x="14" y="52" width="172" height="8" rx="4" fill="#0c1a2e" stroke="#1a2e48"/><circle cx="85" cy="50" r="6" fill="#00e5ff" opacity=".85"/><circle cx="115" cy="50" r="6" fill="#00e5ff" opacity=".85"/><path d="M55 95 Q100 80 145 95 L155 260 Q130 250 100 252 Q70 250 45 260 Z" fill="#0c1a2e" stroke="#1a2e48" stroke-width="2"/><path d="M45 260 L35 390 L60 390 L75 310 L125 310 L140 390 L165 390 L155 260 Z" fill="#0c1a2e" stroke="#1a2e48" stroke-width="2"/><line x1="100" y1="120" x2="100" y2="250" stroke="#1a2e48" stroke-width="1" opacity=".5"/><circle cx="100" cy="130" r="3" fill="#1a2e48"/><circle cx="100" cy="150" r="3" fill="#1a2e48"/><circle cx="100" cy="170" r="3" fill="#1a2e48"/></svg>`;}
+
+/* ═══════════════════════════════════
+   AUDIO ENGINE
+═══════════════════════════════════ */
 let AC=null;
 function ac(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
-function note(f,t,d,v=.07,del=0){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=t;o.frequency.value=f;const s=a.currentTime+del;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.start(s);o.stop(s+d+.05);}catch(e){}}
-function sfxOk(){note(523,'sine',.06);note(659,'sine',.06,.08,.08);note(784,'sine',.1,.08,.16);}
-function sfxBad(){note(220,'sawtooth',.2,.07);note(185,'sawtooth',.16,.05,.07);}
-function sfxClick(){note(880,'sine',.03,.045);}
-function sfxBig(){[262,330,392,523].forEach((f,i)=>note(f,'triangle',.1,.07,i*.05));}
-function sfxWin(){[523,659,784,1047,1319].forEach((f,i)=>note(f,'sine',.18,.07,i*.07));}
+function note(f,t,d,v=.08,del=0){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=t;o.frequency.value=f;const s=a.currentTime+del;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v,s+.025);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.start(s);o.stop(s+d+.05);}catch(e){}}
+function sfxOk(){note(523,'sine',.07);note(659,'sine',.07,.09,.09);note(784,'sine',.12,.09,.18);}
+function sfxBad(){note(220,'sawtooth',.22,.08);note(185,'sawtooth',.18,.06,.08);}
+function sfxClick(){note(880,'sine',.035,.055);}
+function sfxBig(){[262,330,392,523,659].forEach((f,i)=>note(f,'triangle',.12,.08,i*.06));}
+function sfxWin(){[523,659,784,1047,1319].forEach((f,i)=>note(f,'sine',.2,.08,i*.08));}
+function sfxGlitch(){for(let i=0;i<6;i++)note(40+Math.random()*120,'sawtooth',.25,.12,i*.03);}
+function sfxDark(){note(55,'sawtooth',.8,.16);note(65,'square',.6,.1,.1);}
 
-// ═══════════════════════════════════
-// UI HELPERS
-// ═══════════════════════════════════
-function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
-  const el=document.getElementById(id);if(el)el.classList.add('on');}
-function toast(msg,dur=2500){const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),dur);}
+/* Spy Jazz */
+let jazzOn=false,jazzTimer=null,jazzBeat=0,bassIdx=0;
+const BASS=[55,62,65,73,55,49,52,58];
+function startJazz(){if(jazzOn)return;jazzOn=true;jazzLoop();}
+function stopJazz(){jazzOn=false;if(jazzTimer)clearTimeout(jazzTimer);}
+function jazzLoop(){if(!jazzOn)return;const bpm=112,beat=60/bpm*1000;
+  note(BASS[bassIdx%BASS.length],'triangle',.18,.11);bassIdx++;
+  const hv=jazzBeat%2===0?.045:.028;note(4400,'sawtooth',.04,hv);
+  if(jazzBeat%4===1||jazzBeat%4===3){note(220,'sawtooth',.06,.06);note(280,'sawtooth',.05,.04,.02);}
+  if(jazzBeat%8===0&&Math.random()>.4){const tf=[440,494,523,587,659,698,784][Math.floor(Math.random()*7)]*2;note(tf,'sawtooth',.15,.05,.05);note(tf*1.25,'sawtooth',.12,.03,.08);}
+  if(jazzBeat%2===0){const ch=[262,330,392];const root=Math.floor(jazzBeat/8)%4;ch.forEach((f,i)=>note(f*(1+root*.05)*2,.85,.22,.02,i*.01));}
+  jazzBeat++;jazzTimer=setTimeout(jazzLoop,beat);}
+
+/* ═══════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════ */
+function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));const el=document.getElementById(id);if(el)el.classList.add('on');}
+function toast(msg,dur=2600){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),dur);}
 let myScore=0;
-function addPts(n){myScore+=n;document.getElementById('mhpts').textContent=myScore+' pts';
-  document.getElementById('mw-score').textContent=myScore;
-  if(n>0)toast('+'+n+' pts');else if(n<0)toast(n+' pts');}
-function setHUD(lbl,pct){document.getElementById('mob-hud').classList.add('on');
-  document.getElementById('mhl').textContent=lbl;
-  document.getElementById('mhfill').style.width=pct+'%';}
-function setWait(s,t,sub){document.getElementById('mw-step').textContent=s;
-  document.getElementById('mw-title').textContent=t;
-  document.getElementById('mw-sub').textContent=sub;}
-function showFb(el,cls,html){if(typeof el==='string')el=document.getElementById(el);
-  if(!el)return;el.style.display='block';el.className='fb '+cls;el.innerHTML=html;}
-function confetti(){const cols=['#58a6ff','#d29922','#3fb950','#f85149','#bc8cff','#fff'];
-  for(let i=0;i<45;i++){const c=document.createElement('div');c.className='cf';
-    c.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]};
-      animation-delay:${Math.random()*1.4}s;animation-duration:${2+Math.random()*1.5}s;
-      border-radius:${Math.random()>.5?'50%':'2px'}`;
-    document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}}
+function addPts(n){myScore+=n;document.getElementById('mhpts').textContent=myScore+' pts';document.getElementById('mw-score').textContent=myScore;if(n>0)toast('+'+n+' pts 🎯');else if(n<0)toast(n+' pts');}
+function setHUD(lbl,pct){const h=document.getElementById('mob-hud');h.style.opacity='1';h.style.pointerEvents='auto';document.getElementById('mhl').textContent=lbl;document.getElementById('mhfill').style.width=pct+'%';}
+function setWait(s,t,sub){document.getElementById('mw-step').textContent=s;document.getElementById('mw-title').textContent=t;document.getElementById('mw-sub').textContent=sub;}
+function showFb(id,cls,html){const el=typeof id==='string'?document.getElementById(id):id;if(!el)return;el.style.display='block';el.className='fb '+cls;el.innerHTML=html;}
+function confetti(){const c=['#00e5ff','#ffc400','#00e676','#ff3d5a','#b366ff','#fff'];for(let i=0;i<52;i++){const d=document.createElement('div');d.className='cf';d.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${c[i%c.length]};animation-delay:${Math.random()*1.5}s;animation-duration:${2+Math.random()*1.5}s;border-radius:${Math.random()>.5?'50%':'2px'}`;document.body.appendChild(d);setTimeout(()=>d.remove(),4500);}}
 const medals=['🥇','🥈','🥉'];
 
-// ═══════════════════════════════════
-// BREACH — completely new
-// ═══════════════════════════════════
+function showSilhouette(svgHtml,dur=3000){
+  const ov=document.getElementById('sil-overlay');
+  ov.innerHTML=svgHtml;ov.classList.add('on');
+  setTimeout(()=>ov.classList.remove('on'),dur);
+}
+
+/* ═══════════════════════════════════
+   BREACH — LONG, AGGRESSIVE, CINEMATIC
+═══════════════════════════════════ */
 let breachDone=false;
-function initBreach(){
+function startBreach(){
   if(breachDone)return;breachDone=true;
-  const btn=document.getElementById('kh-go');
-  const title=document.getElementById('kh-title');
+  const btn=document.getElementById('kh-btn');
+  const t1=document.getElementById('kh-t1');
   const h2=document.getElementById('kh-h2');
-  const p=document.getElementById('kh-p');
-  btn.textContent='Loading quiz…';btn.style.background='#999';
+  const hp=document.getElementById('kh-p');
+  btn.textContent='Loading…';btn.style.background='#888';
 
-  // Phase 1: subtle corruption (2s)
+  // Phase 0: normal 2.5s
   setTimeout(()=>{
-    title.style.fontFamily='monospace';
-    title.textContent='Pr0duct Sp3cif1cat10ns';
-    note(300,'sawtooth',.1,.06);
-  },2000);
+    document.getElementById('s-kahoot').style.animation='';
+    t1.style.fontFamily='monospace';t1.textContent="Pr0duct Sp3c1f1cat10ns";
+    note(440,'sawtooth',.08,.06);
+  },2500);
 
-  // Phase 2: screen noise (3.5s)
+  // Phase 1: corruption 4s
   setTimeout(()=>{
-    h2.textContent='ERR: session_auth_null';
-    h2.style.color='#c00';
-    p.textContent='> socket.override(0xFFFF) … injecting payload';
-    p.style.fontFamily='monospace';p.style.color='#c00';p.style.fontSize='.75rem';
-    btn.textContent='█████████';btn.style.background='#000';btn.style.color='#c00';
-    const ov=document.getElementById('glitch-overlay');
-    ov.style.cssText='position:fixed;inset:0;z-index:800;pointer-events:none;background:rgba(0,0,0,.15);';
-    // Scanlines
-    for(let i=0;i<8;i++){
-      const line=document.createElement('div');
-      line.style.cssText=`position:absolute;left:0;right:0;height:${1+Math.random()*3}px;
-        top:${Math.random()*100}%;background:rgba(${i%2?'248,81,73':'88,166,255'},.${2+Math.floor(Math.random()*5)});
-        animation:scanline ${.8+Math.random()}s linear infinite;`;
-      ov.appendChild(line);
-    }
-    for(let i=0;i<5;i++) note(60+i*40,'sawtooth',.25,.1,i*.03);
-  },3500);
+    h2.textContent='W3LC0M3 T0 THE █████';h2.style.color='#c00';
+    hp.textContent='ERROR: NULL_REFERENCE at quiz_engine.js:247';hp.style.fontFamily='monospace';hp.style.color='#c00';
+    btn.textContent='MEMORY FAULT 0x4F2A';btn.style.background='#c00';btn.style.color='#fff';
+    sfxGlitch();
+  },3800);
 
-  // Phase 3: blackout (5.5s)
+  // Phase 2: full visual assault 5.5s
   setTimeout(()=>{
-    const ov=document.getElementById('glitch-overlay');
-    ov.innerHTML='';
-    ov.style.cssText='position:fixed;inset:0;z-index:800;pointer-events:none;background:#000;opacity:0;transition:opacity .6s;';
-    requestAnimationFrame(()=>ov.style.opacity='1');
+    const ov=document.getElementById('glitch-ov');
+    ov.style.opacity='1';ov.style.background='#fff';
+    // Scanlines, blocks, color bars
+    for(let i=0;i<25;i++){const l=document.createElement('div');
+      l.style.cssText=`position:absolute;left:0;right:0;height:${Math.random()*6+1}px;top:${Math.random()*100}%;opacity:${Math.random()*.8+.3};background:${['rgba(255,61,90,.9)','rgba(0,229,255,.8)','rgba(255,196,0,.7)','rgba(179,102,255,.6)'][i%4]}`;ov.appendChild(l);}
+    for(let i=0;i<16;i++){const b=document.createElement('div');
+      b.style.cssText=`position:absolute;left:${Math.random()*80}%;top:${Math.random()*80}%;width:${Math.random()*300+60}px;height:${Math.random()*60+8}px;background:${i%2?'rgba(255,61,90,.2)':'rgba(0,229,255,.15)'}`;ov.appendChild(b);}
+    sfxGlitch();sfxGlitch();
+    const junkTexts=['▓▓▓▓▓▓▓','01001000 01000001','SEGFAULT','NULL PTR','0xDEADBEEF','STACK OVERFLOW','KERNEL PANIC','ACCESS DENIED'];
+    let ji=0;const jInt=setInterval(()=>{h2.textContent=junkTexts[ji%junkTexts.length];ji++;},60);
 
-    // Terminal text appears on black
+    // Phase 3: go dark after 5s of glitch
     setTimeout(()=>{
-      ov.innerHTML=`
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-          font-family:var(--mono);text-align:center;color:var(--red);
-          font-size:clamp(.7rem,2vw,1rem);line-height:2.4;letter-spacing:.06em;">
-          <div style="animation:fadeIn .4s ease;">⚠ SYSTEM BREACH DETECTED</div>
-          <div style="animation:fadeIn .4s ease .5s both;color:var(--cyan);">FIREWALL BYPASSED · CHANNEL OPEN</div>
-          <div style="animation:fadeIn .4s ease 1s both;color:var(--dim);font-size:.7em;">
-            Establishing encrypted connection…</div>
-        </div>`;
-      note(55,'sawtooth',.7,.15);
-    },700);
+      clearInterval(jInt);
+      document.getElementById('s-kahoot').style.display='none';
+      ov.style.transition='background .8s';ov.style.background='var(--bg)';
+      const gt=document.getElementById('glitch-txt');
+      gt.style.opacity='1';gt.style.animation='gsh .12s ease-in-out infinite';
+      gt.innerHTML=`⚠ SYSTEM BREACH DETECTED ⚠<br><span style="color:var(--cyan)">FIREWALL BYPASSED</span><br><span style="color:var(--gold);font-size:.85em;">REMOTE CHANNEL ESTABLISHED</span>`;
+      sfxDark();
 
-    // Phase 4: fade to game (8s)
-    setTimeout(()=>{
-      ov.style.opacity='0';
+      // Phase 4: silhouette reveal + transition 7s
       setTimeout(()=>{
-        ov.innerHTML='';ov.style.cssText='';
-        myRoom=genRoom();
-        go('s-hchat');
-        runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostSetup();});
-      },600);
-    },3200);
+        gt.style.opacity='0';gt.style.transition='opacity .4s';
+        showSilhouette(silUnknown(),3500);
+        setTimeout(()=>{
+          ov.style.opacity='0';ov.style.transition='opacity .5s';
+          setTimeout(()=>{ov.innerHTML='';ov.style.cssText='position:fixed;inset:0;z-index:800;pointer-events:none;opacity:0;';
+            gt.innerHTML='';gt.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:820;font-family:var(--mono);font-size:clamp(.85rem,2.5vw,1.2rem);color:var(--red);text-align:center;opacity:0;line-height:2.2;letter-spacing:.08em;';
+            startJazz();myRoom=genRoom();
+            go('s-hchat');runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostSetup();});
+          },600);
+        },2000);
+      },2200);
+    },5000);
   },5500);
 }
 
-// ═══════════════════════════════════
-// TERMINAL (mini, 3 lines)
-// ═══════════════════════════════════
+/* ═══════════════════════════════════
+   TERMINAL (mini 3 lines)
+═══════════════════════════════════ */
 let termLines=[];
-function termAdd(text,cls=''){
-  termLines.push({text,cls});if(termLines.length>3)termLines.shift();
-  const el=document.getElementById('mini-term');if(!el)return;
-  el.innerHTML=termLines.map(l=>`<div ${l.cls?`class="${l.cls}"`:''}>▸ ${l.text}</div>`).join('');
-}
+function termAdd(text,cls=''){termLines.push({text,cls});if(termLines.length>3)termLines.shift();const el=document.getElementById('mini-term');if(!el)return;el.innerHTML=termLines.map(l=>`<div ${l.cls?`class="${l.cls}"`:''}>▸ ${l.text}</div>`).join('');}
 
-// ═══════════════════════════════════
-// CHAT ENGINE
-// ═══════════════════════════════════
+/* ═══════════════════════════════════
+   CHAT ENGINE — with avatars
+═══════════════════════════════════ */
 const CHAT_INTRO=[
   {side:'them',name:'UNKNOWN',text:'...',typing:1200},
-  {side:'them',name:'UNKNOWN',text:'Connection secured. Level 5 encryption.',delay:400,cls:'classified'},
-  {side:'me',name:'YOU',text:'Who is this?',delay:700,pending:true},
-  {side:'them',name:'UNKNOWN',text:'Irrelevant. What matters is what you know.',delay:700,typing:1000},
-  {side:'them',name:'UNKNOWN',text:'Digital Innovation and Management. University of Bergamo. You study how products are designed — from customer need to engineering specification.',delay:700},
-  {side:'me',name:'YOU',text:'How do you know that?',delay:700,pending:true},
-  {side:'them',name:'UNKNOWN',text:'We have an operative in the field. Codename: OMEGA.',delay:600,cls:'classified'},
-  {side:'them',name:'UNKNOWN',text:'Her communication equipment has failed. She needs custom noise-cancelling headphones — specified from scratch, manufactured to budget.',delay:800,cls:'warn'},
-  {side:'them',name:'UNKNOWN',text:'Your team will build the specification sheet. Not a wishlist. A precise, measurable contract between what the customer needs and what engineering can deliver.',delay:700},
-  {side:'me',name:'YOU',text:'What do we need to do?',delay:700,pending:true},
-  {side:'them',name:'UNKNOWN',text:'Seven steps. Each one teaches a concept, then tests it. Every choice has consequences — cost, weight, performance. There is no perfect answer. Only the least dangerous compromise.',delay:800},
-  {side:'them',name:'UNKNOWN',text:'Get the specs wrong, she cannot hear her team. Get the cost wrong, the mission is cancelled.',delay:500,cls:'warn'},
-  {side:'me',name:'YOU',text:'Understood. We are ready.',delay:600,pending:true,last:true},
+  {side:'them',name:'UNKNOWN',text:'Connection established. Encrypted. Level 5.',delay:300,cls:'cls'},
+  {side:'me',name:'YOU',text:'Who is this?',delay:600,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Someone who has been watching your class for three weeks.',delay:800,typing:1100},
+  {side:'them',name:'UNKNOWN',text:'Digital Innovation and Management. University of Bergamo. You study how products are built — from customer need to specification.',delay:700},
+  {side:'me',name:'YOU',text:'…how do you know that?',delay:800,pending:true},
+  {side:'them',name:'UNKNOWN',text:'We have an operative in the field. Codename: OMEGA.',delay:700,cls:'cls'},
+  {side:'them',name:'UNKNOWN',text:'She has lost communication. Her standard headphones cannot handle the noise environment.',delay:800,cls:'urg'},
+  {side:'them',name:'UNKNOWN',text:'She needs custom noise-cancelling headphones. Spec\'d from scratch. Manufactured to budget.',delay:700},
+  {side:'me',name:'YOU',text:'What does this have to do with us?',delay:800,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Your team will build the specification sheet. Not a wishlist — a precise, measurable contract between what the customer needs and what engineering can deliver.',delay:700},
+  {side:'them',name:'UNKNOWN',text:'Specifications are not wishes. They are precise, measurable targets. Get them wrong — she does not come home.',delay:600,cls:'urg'},
+  {side:'me',name:'YOU',text:'Understood. What do we do?',delay:800,pending:true},
+  {side:'them',name:'UNKNOWN',text:'Seven steps. Each one teaches a concept, then tests it. Every choice has cost, weight, and performance consequences.',delay:700,typing:1100},
+  {side:'them',name:'UNKNOWN',text:'There is no perfect answer. Only the least dangerous compromise.',delay:500,cls:'urg'},
+  {side:'me',name:'YOU',text:"Let's begin.",delay:600,pending:true,last:true},
 ];
 
 const CHAT_BETWEEN={
-  1:[{side:'them',name:'UNKNOWN',text:'Step 1 complete. Priorities locked.',delay:300,cls:'classified'},
-     {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'Customer needs are subjective. They must be translated into something engineers can measure. That is Step 2.',delay:600},
-     {side:'me',name:'YOU',text:'Moving to metrics.',delay:500,pending:true,last:true}],
-  2:[{side:'them',name:'UNKNOWN',text:'Metrics mapped.',delay:300,cls:'classified'},
-     {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'Now set the boundaries. How good must the product be to survive? How good could it be if everything goes right?',delay:700},
-     {side:'me',name:'YOU',text:'Setting target values.',delay:500,pending:true,last:true}],
-  3:[{side:'them',name:'UNKNOWN',text:'Target specifications confirmed.',delay:300,cls:'classified'},
-     {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'Targets are aspirations. Now build the product and discover what aspirations actually cost.',delay:600,cls:'warn'},
-     {side:'me',name:'YOU',text:'Configuring the BOM.',delay:500,pending:true,last:true}],
-  4:[{side:'them',name:'UNKNOWN',text:'Bill of Materials finalized.',delay:300,cls:'classified'},
-     {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'You know what it costs to build. Now the critical question: can the market afford it?',delay:600,cls:'warn'},
-     {side:'me',name:'YOU',text:'Running target costing.',delay:500,pending:true,last:true}],
-  5:[{side:'them',name:'UNKNOWN',text:'C* calculated.',delay:300,cls:'classified'},
-     {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'Some of you are over budget. Hard choices ahead. What you sacrifice defines the product.',delay:500,cls:'warn'},
-     {side:'me',name:'YOU',text:'Making trade-offs.',delay:500,pending:true,last:true}],
-  6:[{side:'them',name:'UNKNOWN',text:'Trade-offs finalized. Spec sheets locked.',delay:300,cls:'classified'},
-     {side:'them',name:'UNKNOWN',text:'__LB__',delay:400},
-     {side:'them',name:'UNKNOWN',text:'One final test. Prove you understood the theory — not just the buttons.',delay:600},
-     {side:'me',name:'YOU',text:'Ready.',delay:500,pending:true,last:true}],
+  1:[{side:'them',name:'UNKNOWN',text:'Step 1 done. Priorities established.',delay:300,cls:'cls'},{side:'them',name:'UNKNOWN',text:'__LB__',delay:400},{side:'them',name:'UNKNOWN',text:'Customer needs are subjective. They must be translated into something engineers can measure. That is Step 2.',delay:600},{side:'me',name:'YOU',text:'Moving to metrics.',delay:500,pending:true,last:true}],
+  2:[{side:'them',name:'UNKNOWN',text:'Metrics mapped.',delay:300,cls:'cls'},{side:'them',name:'UNKNOWN',text:'__LB__',delay:400},{side:'them',name:'UNKNOWN',text:'Now set the boundaries. How good must it be to survive? How good could it be if everything goes right?',delay:700},{side:'me',name:'YOU',text:'Setting target values.',delay:500,pending:true,last:true}],
+  3:[{side:'them',name:'UNKNOWN',text:'Target specs confirmed.',delay:300,cls:'cls'},{side:'them',name:'UNKNOWN',text:'__LB__',delay:400},{side:'them',name:'UNKNOWN',text:'Targets are aspirations. Now build the product and discover what aspirations actually cost.',delay:600,cls:'urg'},{side:'me',name:'YOU',text:'Configuring the BOM.',delay:500,pending:true,last:true}],
+  4:[{side:'them',name:'UNKNOWN',text:'BOM finalized.',delay:300,cls:'cls'},{side:'them',name:'UNKNOWN',text:'__LB__',delay:400},{side:'them',name:'UNKNOWN',text:'You know the cost to build. Now the critical question: can the market afford it?',delay:600,cls:'urg'},{side:'me',name:'YOU',text:'Running target costing.',delay:500,pending:true,last:true}],
+  5:[{side:'them',name:'UNKNOWN',text:'C* calculated.',delay:300,cls:'cls'},{side:'them',name:'UNKNOWN',text:'__LB__',delay:400},{side:'them',name:'UNKNOWN',text:'Some of you have a problem. Hard choices ahead.',delay:500,cls:'urg'},{side:'me',name:'YOU',text:'Making trade-offs.',delay:500,pending:true,last:true}],
+  6:[{side:'them',name:'UNKNOWN',text:'Trade-offs finalized. Spec sheets locked.',delay:300,cls:'cls'},{side:'them',name:'UNKNOWN',text:'__LB__',delay:400},{side:'them',name:'UNKNOWN',text:'One last test. Prove you understood the theory.',delay:600},{side:'me',name:'YOU',text:'Ready.',delay:500,pending:true,last:true}],
 };
 
 let chatQ=[],chatI=0,chatCB=null;
-function runChat(lines,cb){
-  chatCB=cb;chatQ=lines;chatI=0;
-  document.getElementById('chat-msgs').innerHTML='';
-  document.getElementById('chat-typing').style.display='none';
-  document.getElementById('chat-cta').textContent='';
-  go('s-hchat');
-  document.getElementById('sig-dot').classList.add('live');
-  document.getElementById('sig-txt').textContent='ENCRYPTED · ACTIVE';
-  nextMsg();
-}
-function nextMsg(){
-  if(chatI>=chatQ.length){if(chatCB){const f=chatCB;chatCB=null;f();}return;}
-  const msg=chatQ[chatI];
-  document.getElementById('chat-cta').textContent='';
-  if(msg.text==='__LB__'){renderLBChat();chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));return;}
-  if(msg.side==='me'&&msg.pending){
-    const wrap=document.getElementById('chat-msgs');
+function runChat(lines,cb){chatCB=cb;chatQ=lines;chatI=0;document.getElementById('chat-msgs').innerHTML='';document.getElementById('chat-typing').style.display='none';document.getElementById('chat-cta').textContent='';go('s-hchat');document.getElementById('sig-dot').classList.add('live');document.getElementById('sig-txt').textContent='ENCRYPTED CHANNEL · ACTIVE';nextMsg();}
+function nextMsg(){if(chatI>=chatQ.length){if(chatCB){const f=chatCB;chatCB=null;f();}return;}
+  const msg=chatQ[chatI];document.getElementById('chat-cta').textContent='';
+  if(msg.text==='__LB__'){renderLBMsg();chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));return;}
+  if(msg.side==='me'&&msg.pending){const wrap=document.getElementById('chat-msgs');
     const pd=document.createElement('div');pd.className='cpend';
-    pd.innerHTML=`<div class="cpend-lbl">TAP TO SEND</div>
-      <div class="cpend-bub" onclick="sendPend(this,'${esc(msg.text)}','${msg.name}',${!!msg.last})">${msg.text}</div>`;
-    wrap.appendChild(pd);scrollChat();
-    document.getElementById('chat-cta').textContent='↑ tap the message above';
-    return;
-  }
-  if(msg.side==='them'){
-    document.getElementById('chat-typing').style.display='block';scrollChat();
-    const dur=msg.typing||(msg.text.length*28+400);
-    setTimeout(()=>{
-      document.getElementById('chat-typing').style.display='none';
-      renderMsg(msg);chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));
-    },dur);
-  }else{
-    setTimeout(()=>{renderMsg(msg);chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));},80);
-  }
+    pd.innerHTML=`<div class="av av-you">${svgYou()}</div><div class="cpend-inner"><div class="cpend-lbl">TAP TO SEND ↓</div><div class="cpend-bub" onclick="sendPend(this,'${esc(msg.text)}','${msg.name}',${msg.last||false})">${msg.text}</div></div>`;
+    wrap.appendChild(pd);scrollChat();document.getElementById('chat-cta').textContent='👆 tap the message to send';return;}
+  if(msg.side==='them'){document.getElementById('chat-typing').style.display='block';scrollChat();
+    const dur=msg.typing||(msg.text.length*30+400);
+    setTimeout(()=>{document.getElementById('chat-typing').style.display='none';renderChatMsg(msg);chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));},dur);
+  }else{setTimeout(()=>{renderChatMsg(msg);chatI++;setTimeout(nextMsg,(chatQ[chatI]?.delay||400));},80);}
 }
 function esc(s){return s.replace(/'/g,"\\'");}
-function sendPend(el,text,name,isLast){
-  sfxClick();
-  const pd=el.closest('.cpend');
-  if(pd){const d=document.createElement('div');d.className='cmsg me';
-    d.innerHTML=`<div class="cname">${name}</div><div class="cbub">${text}</div>`;
-    pd.replaceWith(d);scrollChat();}
-  chatI++;
-  if(isLast){document.getElementById('chat-cta').textContent='';
-    setTimeout(()=>{if(chatCB){const f=chatCB;chatCB=null;f();}},500);return;}
-  setTimeout(nextMsg,(chatQ[chatI]?.delay||400));
-}
-function renderMsg(msg){
-  const wrap=document.getElementById('chat-msgs');
-  const d=document.createElement('div');d.className='cmsg '+msg.side;
-  d.innerHTML=`<div class="cname">${msg.name}</div>
-    <div class="cbub${msg.cls?' '+msg.cls:''}">${msg.text}</div>`;
-  wrap.appendChild(d);scrollChat();
-}
-function renderLBChat(){
-  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
-  if(!sorted.length)return;
-  const lines=sorted.map(([n,d],i)=>`${medals[i]||'·'} ${n}: ${d.score||0} pts`).join('<br>');
-  const wrap=document.getElementById('chat-msgs');
-  const d=document.createElement('div');d.className='cmsg them';
-  d.innerHTML=`<div class="cname">UNKNOWN</div>
-    <div class="cbub classified" style="font-size:.74rem;line-height:1.8;">${lines}</div>`;
-  wrap.appendChild(d);scrollChat();
-}
+function sendPend(el,text,name,isLast){sfxClick();const pd=el.closest('.cpend');if(pd){const d=document.createElement('div');d.className='cmsg me';d.innerHTML=`<div class="av av-you">${svgYou()}</div><div class="cmsg-inner"><div class="cname">${name}</div><div class="cbub">${text}</div></div>`;pd.replaceWith(d);scrollChat();}note(600,'sine',.05,.035);chatI++;if(isLast){document.getElementById('chat-cta').textContent='';setTimeout(()=>{if(chatCB){const f=chatCB;chatCB=null;f();}},500);return;}setTimeout(nextMsg,(chatQ[chatI]?.delay||400));}
+function renderChatMsg(msg){const wrap=document.getElementById('chat-msgs');const d=document.createElement('div');d.className='cmsg '+msg.side;
+  const avHtml=msg.side==='them'?`<div class="av av-unknown">${svgUnknown()}</div>`:`<div class="av av-you">${svgYou()}</div>`;
+  d.innerHTML=`${avHtml}<div class="cmsg-inner"><div class="cname">${msg.name}</div><div class="cbub${msg.cls?' '+msg.cls:''}">${msg.text}</div></div>`;
+  wrap.appendChild(d);scrollChat();if(msg.side==='them')note(440+Math.random()*60,'sine',.055,.035);}
+function renderLBMsg(){const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));if(!sorted.length)return;const lines=sorted.map(([n,d],i)=>`${medals[i]||'·'} ${n}: ${d.score||0} pts`).join('<br>');const wrap=document.getElementById('chat-msgs');const d=document.createElement('div');d.className='cmsg them';d.innerHTML=`<div class="av av-unknown">${svgUnknown()}</div><div class="cmsg-inner"><div class="cname">UNKNOWN</div><div class="cbub cls" style="font-size:.74rem;line-height:1.9;">${lines}</div></div>`;wrap.appendChild(d);scrollChat();}
 function scrollChat(){setTimeout(()=>{const w=document.getElementById('chat-msgs');if(w)w.scrollTop=w.scrollHeight;},50);}
 
-// ═══════════════════════════════════
-// ABLY
-// ═══════════════════════════════════
+/* ═══════════════════════════════════
+   ABLY
+═══════════════════════════════════ */
 const ABLY_KEY='xC3oQQ.lm_9hg:boqSp-TCWIv_mIHQzAxWLI7KZcsMUjE7U7tAd6cZDbM';
-let ably=null,ch=null,myNick='',myRoom='';
-let players={};
+let ably=null,ch=null,myNick='',myRoom='',players={};
 function genRoom(){return Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-async function connectAbly(room){
-  for(let i=0;i<25;i++){if(typeof Ably!=='undefined')break;await sleep(300);}
-  if(typeof Ably==='undefined')return false;
-  try{
-    if(ably)try{ably.close();}catch(e){}
-    ably=new Ably.Realtime({key:ABLY_KEY,clientId:(myNick||'u')+'_'+Date.now()});
-    ch=ably.channels.get('sm7-'+room);
-    await new Promise((res,rej)=>{
-      ably.connection.on('connected',res);
-      ably.connection.on('failed',()=>rej(new Error('failed')));
-      setTimeout(()=>rej(new Error('timeout')),15000);
-    });
-    return true;
-  }catch(e){console.error('Ably:',e.message);return false;}
-}
+async function connectAbly(room){for(let i=0;i<25;i++){if(typeof Ably!=='undefined')break;await sleep(300);}if(typeof Ably==='undefined')return false;try{if(ably)try{ably.close();}catch(e){}ably=new Ably.Realtime({key:ABLY_KEY,clientId:(myNick||'u')+'_'+Date.now()});ch=ably.channels.get('sm8-'+room);await new Promise((res,rej)=>{ably.connection.on('connected',res);ably.connection.on('failed',()=>rej(new Error('failed')));setTimeout(()=>rej(new Error('timeout')),15000);});return true;}catch(e){console.error('Ably:',e.message);return false;}}
 function pub(ev,d){if(ch)ch.publish(ev,d).catch(()=>{});}
 function sub(ev,fn){if(ch)ch.subscribe(ev,m=>fn(m.data));}
 
-// ═══════════════════════════════════
-// HOST FLOW
-// ═══════════════════════════════════
+/* ═══════════════════════════════════
+   HOST FLOW
+═══════════════════════════════════ */
 let currentStep=0;
-function startHost(){
-  sfxClick();myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);
-  myRoom=genRoom();
-  go('s-hchat');runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostSetup();});
-}
-function startJoin(){sfxClick();
-  const p=new URLSearchParams(location.search);
-  const r=p.get('room');if(r)document.getElementById('m-code').value=r.toUpperCase();
-  go('s-mjoin');
-}
+function startHost(){sfxClick();myNick=(document.getElementById('nick').value.trim()||'HOST').substring(0,16);myRoom=genRoom();startJazz();go('s-hchat');runChat(CHAT_INTRO,()=>{go('s-hlobby');launchHostSetup();});}
+function startJoin(){sfxClick();const p=new URLSearchParams(location.search);const r=p.get('room');if(r)document.getElementById('m-code').value=r.toUpperCase();go('s-mjoin');}
 async function launchHostSetup(){
   document.getElementById('room-disp').textContent=myRoom;
-  const base=location.href.split('?')[0];
-  const url=encodeURIComponent(base+'?room='+myRoom+'&role=player');
-  document.getElementById('qr-wrap').innerHTML=
-    `<img style="border-radius:8px;border:1px solid var(--bd);width:140px;height:140px;"
-      src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${url}&bgcolor=06090f&color=58a6ff&margin=6" alt="QR">
-    <div style="font-family:var(--mono);font-size:.48rem;color:var(--dim);margin-top:4px;">${myRoom}</div>`;
-  const ok=await connectAbly(myRoom);
-  if(!ok){toast('⚠ Offline mode');}
-  else{
-    sub('join',d=>{players[d.nick]={score:0,step:0};renderPList();toast(d.nick+' joined');termAdd(d.nick+' connected','tc');});
-    sub('step-result',d=>{
-      if(!players[d.nick])players[d.nick]={score:0,step:0};
-      Object.assign(players[d.nick],d.data,{step:d.step,score:d.score||0});
-      updateProgress();
-    });
-    sub('quiz-ans',d=>{
-      if(players[d.nick]&&d.correct) players[d.nick].score=(players[d.nick].score||0)+100;
-      updateProgress();
-    });
-  }
+  // QR code — use raw URL, no double-encoding
+  const joinUrl=location.origin+location.pathname+'?room='+myRoom+'&role=player';
+  document.getElementById('qr-wrap').innerHTML=`<img style="border-radius:12px;border:2px solid var(--cyan);width:155px;height:155px;" src="https://api.qrserver.com/v1/create-qr-code/?size=155x155&data=${encodeURIComponent(joinUrl)}&bgcolor=020810&color=00e5ff&margin=8" alt="QR"><div style="font-family:var(--mono);font-size:.5rem;color:var(--dim);text-align:center;margin-top:5px;">${myRoom}</div>`;
+  const ok=await connectAbly(myRoom);if(!ok){toast('⚠️ Offline mode');}
+  else{sub('join',d=>{players[d.nick]={score:0,step:0};renderPList();toast('🕵️ '+d.nick+' joined!');termAdd(d.nick+' connected','tc');});
+    sub('step-result',d=>{if(!players[d.nick])players[d.nick]={score:0,step:0};Object.assign(players[d.nick],d.data,{step:d.step,score:d.score||0});updateProgress();});
+    sub('quiz-ans',d=>{if(players[d.nick]&&d.correct)players[d.nick].score=(players[d.nick].score||0)+100;updateProgress();});}
 }
-function renderPList(){document.getElementById('plist').innerHTML=
-  Object.keys(players).map(n=>`<span class="ppill">${n}</span>`).join('');}
-function updateProgress(){
-  const total=Object.keys(players).length;
-  const done=Object.values(players).filter(p=>p.step>=currentStep).length;
-  const fill=document.getElementById('sp-prog-fill');
-  const count=document.getElementById('sp-prog-count');
-  if(fill)fill.style.width=(total?Math.round(done/total*100):0)+'%';
-  if(count)count.textContent=done+'/'+total;
-}
+function renderPList(){document.getElementById('plist').innerHTML=Object.keys(players).map(n=>`<span class="ppill">🕵️ ${n}</span>`).join('');}
+function updateProgress(){const total=Object.keys(players).length;const done=Object.values(players).filter(p=>p.step>=currentStep).length;const fill=document.getElementById('sp-prog-fill');const count=document.getElementById('sp-prog-count');if(fill)fill.style.width=(total?Math.round(done/total*100):0)+'%';if(count)count.textContent=done+'/'+total+' done';}
 
-// HOST STEP CONFIG
+/* HOST STEP CONFIG — TASK ONLY, no theory on host screen */
 const HSTEPS={
-  1:{title:'Customer Needs',badge:'STEP 1 OF 7',
-    theory:'Customer needs are expressed in the <strong>"language of the customer"</strong> — subjective, vague, emotional. Before any engineering work, the team must understand what the customer actually wants and separate feelings from facts. (Ulrich & Eppinger, p.92)',
-    task:'Students receive a question: can you give a vague customer wish to an engineer? Then they classify 5 statements as subjective needs or objective metrics.',
+  1:{title:'Identify Customer Needs',badge:'STEP 1 OF 7',
+    instructions:['Students receive an opening question from UNKNOWN','They classify 5 statements as SUBJECTIVE (customer language) or OBJECTIVE (already a metric)','Correct classification = points','Debrief explains why needs must be translated'],
     term:'STEP 1: CUSTOMER NEEDS — SUBJECTIVE vs OBJECTIVE'},
-  2:{title:'Needs → Metrics',badge:'STEP 2 OF 7',
-    theory:'A <strong>metric</strong> is a measurable quantity that reflects how well a customer need is satisfied. Metrics must be <strong>dependent variables</strong> — they measure WHAT the product delivers, not HOW it is built. "Mass (g)" is a metric. "Carbon fiber" is a design decision. (p.95–97)',
-    task:'Opening question: can you order engineers to use a specific material? Then students match each customer need to the correct engineering metric.',
-    term:'STEP 2: NEEDS → METRICS — DEPENDENT VARIABLES'},
-  3:{title:'Target Values',badge:'STEP 3 OF 7',
-    theory:'For each metric, the team sets two values: the <strong>Ideal</strong> (best the team could hope for) and the <strong>Marginal</strong> (minimum to be commercially viable). These are target specifications — aspirational, set before concept selection. (p.99–103)',
-    task:'Students study a competitor benchmarking table, then manually enter Ideal and Marginal values for 3 key metrics. They also set a retail price.',
+  2:{title:'Translate Needs → Metrics',badge:'STEP 2 OF 7',
+    instructions:['Opening question: can you specify "carbon fiber" to an engineer?','Students match each customer need to the correct engineering metric','Metrics = dependent variables: WHAT, not HOW','Wrong answers show why design decisions ≠ specifications'],
+    term:'STEP 2: NEEDS → METRICS (DEPENDENT VARIABLES)'},
+  3:{title:'Set Target Values',badge:'STEP 3 OF 7',
+    instructions:['Opening question: should your target always be the best competitor?','Students study competitor benchmarking table','They manually type Ideal and Marginal values for ANC, Battery, Weight','They also set a retail price → drives C* in Step 5'],
     term:'STEP 3: TARGET VALUES — IDEAL & MARGINAL'},
-  4:{title:'Bill of Materials',badge:'STEP 4 OF 7',
-    theory:'The <strong>cost model</strong> predicts manufacturing cost from design decisions. The BOM lists components with high/low cost estimates. Each improvement in one metric increases cost in another — specs are interdependent. (p.105–107, Exhibit 6-10)',
-    task:'Students choose LOW or HIGH for each component (ANC chip, battery, housing, driver). Total cost and weight update live. They see the trade-off in real time.',
+  4:{title:'Build the Bill of Materials',badge:'STEP 4 OF 7',
+    instructions:['Opening question: is any specification improvement free?','Students pick LOW or HIGH for each component','Total cost and weight update live','They see the cost-spec trade-off in real time'],
     term:'STEP 4: BILL OF MATERIALS — COST MODEL'},
-  5:{title:'Target Costing',badge:'STEP 5 OF 7',
-    theory:'<strong>C* = P × Π(1 − Mᵢ)</strong>. Target costing works backwards from market price. Subtract retailer margin (~30%), then manufacturer margin (~40%). What remains is the maximum allowable manufacturing cost. The reverse of cost-plus. (Appendix, p.114)',
-    task:'Students see the full cost chain applied to their price. Green = profitable. Red = financial disaster. If cost > C*, they must make trade-offs in Step 6.',
+  5:{title:'Calculate Target Cost',badge:'STEP 5 OF 7',
+    instructions:['Opening question: who decides the price — you or the market?','Full cost chain visualization: P → −Retailer → −Manufacturer → C*','Green = within budget · Red = financial disaster','If over C*, trade-offs required in Step 6'],
     term:'STEP 5: TARGET COSTING — C* = P × 0.70 × 0.60'},
-  6:{title:'Trade-Offs',badge:'STEP 6 OF 7',
-    theory:'Final specifications require <strong>hard trade-offs</strong>. Trade-offs occur between performance metrics AND between performance and cost. The competitive map (Exhibit 6-11) visualizes this: high performance = high cost. The team must find the sweet spot. (p.108)',
-    task:'Three binary choices: cut ANC, cut driver quality, or raise price. Each has consequences displayed in real time. Final spec sheet auto-generated.',
+  6:{title:'Make Trade-Offs',badge:'STEP 6 OF 7',
+    instructions:['Live cost/C*/gap tracker at top','Three binary choices: cut ANC, cut driver, or raise price','Each choice updates the numbers in real time','Final spec sheet auto-generated'],
     term:'STEP 6: TRADE-OFF DECISIONS'},
   7:{title:'Master Quiz',badge:'STEP 7 OF 7',
-    theory:'Three final questions test whether students understood the core concepts: the nature of specs as dependent variables, the logic of target costing, and the inevitability of trade-offs.',
-    task:'3 multiple-choice questions. Each correct answer = +100 pts. Explanations shown after each answer.',
-    term:'STEP 7: MASTER QUIZ'},
+    instructions:['3 multiple-choice questions covering core concepts','Each correct answer = +100 pts','Explanations shown after each answer','Tests: dependent variables, target costing formula, specs set twice'],
+    term:'STEP 7: FINAL QUIZ'},
 };
 
-function hostLaunch(){sfxBig();pub('game-start',{});
-  termAdd('MISSION LAUNCHED — '+Object.keys(players).length+' agents','tr');
-  showHostStep(1);}
-function showHostStep(step){
-  currentStep=step;const cfg=HSTEPS[step];if(!cfg)return;go('s-hgame');
-  termAdd(cfg.term,'ty');
+function hostLaunch(){sfxBig();pub('game-start',{});termAdd('BREACH ACTIVE — OMEGA UNIT ONLINE','tr');termAdd('Mission launched: '+Object.keys(players).length+' agents','tc');showHostStep(1);}
+function showHostStep(step){currentStep=step;const cfg=HSTEPS[step];if(!cfg)return;go('s-hgame');termAdd(cfg.term,'ty');
   const isLast=step===7,hasPrev=step>1;
   document.getElementById('step-panel').innerHTML=`
     <div class="sp-badge">${cfg.badge}</div>
     <div class="sp-title">${step}. ${cfg.title}</div>
-    <div class="sp-cols">
-      <div class="sp-box theory">
-        <div class="sp-box-label">THE CONCEPT</div>
-        <div class="sp-box-text">${cfg.theory}</div>
-      </div>
-      <div class="sp-box task">
-        <div class="sp-box-label">STUDENT TASK</div>
-        <div class="sp-box-text">${cfg.task}</div>
-      </div>
+    <div class="sp-task-box">
+      <div class="sp-task-label">📱 WHAT STUDENTS SEE</div>
+      <ol class="sp-task-text" style="padding-left:0;list-style:none;">${cfg.instructions.map((l,i)=>`<li><strong style="color:var(--gold)">${i+1}.</strong> ${l}</li>`).join('')}</ol>
     </div>
-    <div class="sp-progress">
-      <div class="sp-prog-label">PROGRESS</div>
-      <div class="sp-prog-bar"><div class="sp-prog-fill" id="sp-prog-fill"></div></div>
-      <div class="sp-prog-count" id="sp-prog-count">0/0</div>
-    </div>
+    <div class="sp-progress"><div class="sp-prog-label">PROGRESS</div><div class="sp-prog-bar"><div class="sp-prog-fill" id="sp-prog-fill" style="width:0%"></div></div><div class="sp-prog-count" id="sp-prog-count">0/0 done</div></div>
     <div class="sp-btns">
-      ${hasPrev?`<button class="btn btn-sm" onclick="showHostStep(${step-1})">← Prev</button>`:''}
-      <button class="btn gold" onclick="hostFireStep(${step})" style="flex:2;">▶ LAUNCH TO PHONES</button>
-      ${!isLast?`<button class="btn primary btn-sm" onclick="goNextStep(${step})">Chat + Next →</button>`:''}
-      ${isLast?`<button class="btn success btn-sm" onclick="showFinal()">RESULTS</button>`:''}
+      ${hasPrev?`<button class="btn bs btn-sm" onclick="showHostStep(${step-1})">← Prev</button>`:''}
+      <button class="btn by" onclick="hostFireStep(${step})" style="flex:2;">▶ LAUNCH TO PHONES</button>
+      ${!isLast?`<button class="btn bp btn-sm" onclick="goNextStep(${step})">Chat + Next →</button>`:''}
+      ${isLast?`<button class="btn bg btn-sm" onclick="showFinal()">🏆 Results</button>`:''}
     </div>`;
-  updateProgress();
-}
-function hostFireStep(step){sfxBig();pub('launch',{step});toast('Step '+step+' sent!');}
-function goNextStep(step){sfxClick();
-  const next=step+1;const script=CHAT_BETWEEN[step];
-  if(!script){showHostStep(next);return;}
-  runChat(script.map(l=>({...l})),()=>showHostStep(next));
-}
+  updateProgress();}
+function hostFireStep(step){sfxBig();pub('launch',{step});toast('Step '+step+' launched!');}
+function goNextStep(step){sfxClick();const next=step+1;const script=CHAT_BETWEEN[step];if(!script){showHostStep(next);return;}runChat(script.map(l=>({...l})),()=>showHostStep(next));}
+
 function showFinal(){
   sfxWin();confetti();
   const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
   const winner=sorted[0];const wName=winner?winner[0]:'your team';
   const closingChat=[
-    {side:'them',name:'UNKNOWN',text:'All spec sheets received. Analyzing.',delay:300,cls:'classified'},
-    {side:'them',name:'UNKNOWN',text:wName.toUpperCase()+' — your specification sheet has been selected for production.',delay:700,cls:'classified'},
-    {side:'them',name:'UNKNOWN',text:'OMEGA reports: "Equipment operational. Communications restored. Proceeding."',delay:600,cls:'warn'},
-    {side:'them',name:'UNKNOWN',text:'This channel is now closed. — OMEGA HANDLER',delay:400,cls:'classified'},
-    {side:'me',name:'YOU',text:'Mission accomplished.',delay:500,pending:true,last:true},
+    {side:'them',name:'UNKNOWN',text:'All spec sheets received.',delay:300,cls:'cls'},
+    {side:'them',name:'UNKNOWN',text:wName.toUpperCase()+' — your specification sheet has been selected for production.',delay:700,cls:'cls'},
+    {side:'them',name:'UNKNOWN',text:'"Equipment operational. Communications restored. Proceeding with mission."',delay:600,cls:'urg'},
+    {side:'them',name:'UNKNOWN',text:'Good work, DIM unit. This channel is now closed. — OMEGA HANDLER',delay:400,cls:'cls'},
+    {side:'me',name:'YOU',text:'Mission accomplished.',delay:600,pending:true,last:true},
   ];
-  runChat(closingChat,()=>{
-    go('s-hdash');pub('final-lb',{sorted:sorted.map(([n,d])=>[n,d.score||0])});
-    if(winner) document.getElementById('hdash-winner').innerHTML=
-      `Agent <span style="color:var(--gold)">${winner[0]}</span> — spec sheet approved for production.`;
-    document.getElementById('hdash-lb').innerHTML=sorted.map(([n,d],i)=>
-      `<div class="lb-row" style="animation-delay:${i*.08}s;">
-        <div style="font-size:1rem;width:24px;">${medals[i]||i+1}</div>
-        <div style="flex:1;font-weight:700;">${n}</div>
-        <div style="font-family:var(--mono);color:var(--gold);">${d.score||0} pts</div>
-      </div>`).join('');
-    document.getElementById('hdash-cards').innerHTML=sorted.map(([n,d])=>
-      `<div class="card" style="margin-bottom:8px;">
-        <div style="font-family:var(--mono);font-size:.68rem;color:var(--cyan);margin-bottom:4px;">${n} · ${d.score||0} pts</div>
-        <div style="font-size:.7rem;color:var(--dim);">ANC: ${d.finalANC||'—'}dB · Weight: ${d.finalWeight||'—'}g · Cost: €${d.finalCost||'—'} · C*: €${d.finalCstar||'—'}</div>
-      </div>`).join('');
+  runChat(closingChat,()=>{go('s-hdash');pub('final-lb',{sorted:sorted.map(([n,d])=>[n,d.score||0])});
+    if(winner)document.getElementById('hdash-winner').innerHTML=`Agent <span style="color:var(--gold)">${winner[0]}</span> — spec sheet approved for production.`;
+    document.getElementById('hdash-lb').innerHTML=sorted.map(([n,d],i)=>`<div class="lb-row" style="animation-delay:${i*.1}s;"><div style="font-size:1.1rem;width:26px;">${medals[i]||i+1}</div><div style="flex:1;font-weight:700;">${n}</div><div style="font-family:var(--mono);color:var(--gold);">${d.score||0} pts</div></div>`).join('');
+    document.getElementById('hdash-cards').innerHTML=sorted.map(([n,d])=>`<div style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:13px 16px;margin-bottom:8px;"><div style="font-family:var(--mono);font-size:.7rem;color:var(--cyan);margin-bottom:4px;">🕵️ ${n} · ${d.score||0} pts</div><div style="font-size:.7rem;color:var(--dim);">ANC: ${d.finalANC||'—'}dB · Weight: ${d.finalWeight||'—'}g · Cost: €${d.finalCost||'—'} · C*: €${d.finalCstar||'—'}</div></div>`).join('');
   });
 }
 
-// ═══════════════════════════════════
-// MOBILE FLOW
-// ═══════════════════════════════════
+/* ═══════════════════════════════════
+   MOBILE FLOW
+═══════════════════════════════════ */
 let mNick='',mRoom='';
 let tgtIdeal={anc:0,bat:0,wt:0},tgtMarg={anc:0,bat:0,wt:0},tgtPrice=200;
 let bomChoices={anc:'low',bat:'low',mat:'low',drv:'low'};
 let finalCost=0,finalWeight=0,finalCstar=0;
 const BOM_BASE=50;
-
-async function mobileJoin(){
-  sfxClick();
-  mNick=(document.getElementById('m-nick').value.trim()||'AGENT'+Math.floor(Math.random()*99)).substring(0,16);
-  mRoom=(document.getElementById('m-code').value||'').trim().toUpperCase();
-  if(!mRoom){toast('Enter room code!');return;}
-  myNick=mNick;myRoom=mRoom;toast('Connecting…');
-  let ok=await connectAbly(mRoom);
-  if(!ok){await sleep(2000);ok=await connectAbly(mRoom);}
-  if(!ok){toast('Cannot connect. Check WiFi.');return;}
-  pub('join',{nick:mNick});
-  document.getElementById('mob-hud').classList.add('on');
-  sub('game-start',()=>{go('s-mwait');setWait('STANDBY','Mission starting…','Stand by');});
-  sub('launch',d=>{setHUD('STEP '+d.step,Math.round(d.step/7*100));launchMobStep(d.step);});
-  sub('spy-msg',d=>toast(d.msg));
-  sub('final-lb',d=>{
-    const el=document.getElementById('mfinal-lb');if(!el)return;
-    el.innerHTML=d.sorted.map(([n,s],i)=>
-      `<div class="lb-row" style="animation-delay:${i*.08}s;${n===mNick?'border-color:var(--cyan);':''}"">
-        <div style="font-size:1rem;width:24px;">${medals[i]||i+1}</div>
-        <div style="flex:1;font-weight:700;${n===mNick?'color:var(--cyan)':''}">${n}${n===mNick?' (you)':''}</div>
-        <div style="font-family:var(--mono);color:var(--gold);">${s} pts</div>
-      </div>`).join('');
-  });
-  go('s-mwait');setWait('CONNECTED','Waiting for host…','Stand by');toast('Joined as '+mNick);
-}
-
-function launchMobStep(s){
-  if(s===1)initS1();else if(s===2)initS2();else if(s===3)initS3();
-  else if(s===4)initS4();else if(s===5)initS5();else if(s===6)initS6();
-  else if(s===7)initS7();
-  else{go('s-mwait');setWait('STEP '+s,'Coming soon…','Wait for host');}
-}
-function doneStep(step,data){pub('step-result',{nick:mNick,step,score:myScore,data});
-  go('s-mwait');setWait('STEP '+step+' ✓','Stand by…','Waiting for host');}
-
-// ═══════════════════════════════════
-// STEP 1: Customer Needs — classify subjective vs objective
-// ═══════════════════════════════════
-const S1_ITEMS=[
-  {text:'"I need headphones that block all noise."',type:'subj',why:'Subjective — "all noise" is vague. How much? At what frequency?'},
-  {text:'"Battery life ≥ 8 hours."',type:'obj',why:'Objective — measurable, with a unit and threshold.'},
-  {text:'"They should feel light on my head."',type:'subj',why:'Subjective — "feel light" varies by person. Needs a metric (grams).'},
-  {text:'"Bluetooth pairing time < 3 seconds."',type:'obj',why:'Objective — precise, testable, with units.'},
-  {text:'"They should look like normal headphones."',type:'subj',why:'Subjective — "look normal" is a perception, not a measurement.'},
-];
-let s1Answers={},s1Done=false;
-function initS1(){
-  s1Done=false;s1Answers={};
-  const el=document.getElementById('m1-content');
-  el.innerHTML=`
-    <div class="stag">STEP 1 · CUSTOMER NEEDS</div>
-    <div class="oq-box">
-      <span class="oq-label">UNKNOWN ASKS:</span>
-      <div class="oq-text">OMEGA says: "I need headphones that block noise completely." Can you hand this sentence to an engineer and expect a product?</div>
-    </div>
-    <div class="oq-opts">
-      <button class="oq-opt" onclick="ansOQ1(this,true)">No — it's too vague. Engineers need precise, measurable targets.</button>
-      <button class="oq-opt" onclick="ansOQ1(this,false)">Yes — the engineer will figure out the details.</button>
-    </div>
-    <div id="s1-oq-fb" style="display:none;width:100%;"></div>
-    <div id="s1-task" style="display:none;width:100%;">
-      <div class="instr-box">
-        <span class="instr-label">YOUR TASK</span>
-        For each statement below, classify it as <strong>SUBJECTIVE</strong> (customer language, vague) or <strong>OBJECTIVE</strong> (already a measurable metric).
-      </div>
-      <div id="s1-items"></div>
-      <button class="btn primary" style="width:100%;margin-top:10px;" id="s1-submit" onclick="submitS1()">LOCK ANSWERS →</button>
-      <div id="s1-fb" style="display:none;width:100%;"></div>
-    </div>`;
-  go('s-m1');
-}
-function ansOQ1(btn,correct){
-  document.querySelectorAll('#m1-content .oq-opt').forEach(b=>{b.disabled=true;});
-  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
-    showFb('s1-oq-fb','ok','Correct. Customer needs are subjective — they must be translated into engineering metrics.');}
-  else{btn.classList.add('wrong');sfxBad();
-    showFb('s1-oq-fb','bad','Not quite. "Block noise completely" is vague. How many dB? At what frequency? Engineers need numbers.');}
-  document.getElementById('s1-task').style.display='block';
-  renderS1Items();
-}
-function renderS1Items(){
-  document.getElementById('s1-items').innerHTML=S1_ITEMS.map((item,i)=>`
-    <div class="card" style="margin-bottom:8px;">
-      <div style="font-size:.84rem;font-weight:600;margin-bottom:8px;">${item.text}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-        <button class="oq-opt" style="margin:0;font-size:.76rem;padding:10px;" onclick="pickS1(${i},'subj',this)">SUBJECTIVE</button>
-        <button class="oq-opt" style="margin:0;font-size:.76rem;padding:10px;" onclick="pickS1(${i},'obj',this)">OBJECTIVE</button>
-      </div>
-    </div>`).join('');
-}
-function pickS1(idx,type,btn){
-  sfxClick();s1Answers[idx]=type;
-  const card=btn.closest('.card');
-  card.querySelectorAll('.oq-opt').forEach(b=>{b.style.borderColor='var(--bd)';b.style.background='var(--s2)';b.style.color='var(--txt)';});
-  btn.style.borderColor=type==='subj'?'var(--pur)':'var(--cyan)';
-  btn.style.background=type==='subj'?'rgba(188,140,255,.08)':'rgba(88,166,255,.08)';
-  btn.style.color=type==='subj'?'var(--pur)':'var(--cyan)';
-}
-function submitS1(){
-  if(Object.keys(s1Answers).length<S1_ITEMS.length){toast('Classify all statements!');return;}
-  if(s1Done)return;s1Done=true;sfxClick();
-  let correct=0;
-  S1_ITEMS.forEach((item,i)=>{if(s1Answers[i]===item.type)correct++;});
-  const pts=correct*30;addPts(pts);
-  if(correct>=4)sfxOk();else sfxBad();
-  showFb('s1-fb',correct>=4?'ok':'info',
-    `${correct}/${S1_ITEMS.length} correct · +${pts} pts`);
-  // Show debrief
-  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
-  db.innerHTML=`<strong>UNKNOWN:</strong> Customer needs are expressed in vague, emotional language. Before any engineering work begins, they must be translated into precise, measurable specifications. That translation — from wish to metric — is the foundation of product development.`;
-  document.getElementById('m1-content').appendChild(db);
-  setTimeout(()=>doneStep(1,{correct}),2800);
-}
-
-// ═══════════════════════════════════
-// STEP 2: Needs → Metrics
-// ═══════════════════════════════════
-const S2_MATCHES=[
-  {need:'"Block all background noise"',
-   opts:['ANC attenuation (dB)','Ear pad foam density (kg/m³)','Speaker impedance (Ω)','Headband spring force (N)'],c:0},
-  {need:'"Last at least 8 hours"',
-   opts:['Bluetooth codec version','Battery playback time (hours)','Charging cable length (cm)','Total mass (g)'],c:1},
-  {need:'"Light on the head"',
-   opts:['Number of color options','Total assembled mass (grams)','Driver diameter (mm)','Cable thickness (mm)'],c:1},
-  {need:'"Pair instantly with any device"',
-   opts:['App download size (MB)','Headband width (mm)','Bluetooth initial pairing time (s)','Box material'],c:2},
-];
-let s2Done=false;
-function initS2(){
-  s2Done=false;
-  const el=document.getElementById('m2-content');
-  el.innerHTML=`
-    <div class="stag">STEP 2 · NEEDS → METRICS</div>
-    <div class="oq-box">
-      <span class="oq-label">UNKNOWN ASKS:</span>
-      <div class="oq-text">Can you order your engineers to use "carbon fiber housing"?</div>
-    </div>
-    <div class="oq-opts">
-      <button class="oq-opt" onclick="ansOQ2(this,false)">Yes — it solves the weight problem directly.</button>
-      <button class="oq-opt" onclick="ansOQ2(this,true)">No — that's a design decision, not a specification. Specs say WHAT, not HOW.</button>
-    </div>
-    <div id="s2-oq-fb" style="display:none;width:100%;"></div>
-    <div id="s2-task" style="display:none;width:100%;">
-      <div class="instr-box">
-        <span class="instr-label">YOUR TASK</span>
-        Match each customer need to the correct <strong>engineering metric</strong>. A metric is a dependent variable — it measures output, not input.
-      </div>
-      <div id="s2-rows"></div>
-      <button class="btn primary" style="width:100%;margin-top:10px;" onclick="submitS2()">LOCK METRICS →</button>
-      <div id="s2-fb" style="display:none;width:100%;"></div>
-    </div>`;
-  go('s-m2');
-}
-function ansOQ2(btn,correct){
-  document.querySelectorAll('#m2-content .oq-opt').forEach(b=>b.disabled=true);
-  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
-    showFb('s2-oq-fb','ok','Correct. "Carbon fiber" is an independent variable — a design choice. Specs must be dependent variables: mass (g), not material.');}
-  else{btn.classList.add('wrong');sfxBad();
-    showFb('s2-oq-fb','bad','Wrong. Specifying "carbon fiber" constrains the design too early. The metric should be "total mass (grams)" — then engineers choose the best material to hit that target.');}
-  document.getElementById('s2-task').style.display='block';
-  document.getElementById('s2-rows').innerHTML=S2_MATCHES.map((m,i)=>`
-    <div class="card" style="margin-bottom:8px;">
-      <div style="font-size:.65rem;font-family:var(--mono);color:var(--dim);margin-bottom:4px;">NEED:</div>
-      <div style="font-weight:700;font-size:.84rem;margin-bottom:8px;">${m.need}</div>
-      <select id="s2-sel-${i}" class="gsel" onchange="sfxClick()">
-        <option value="">— choose metric —</option>
-        ${[...m.opts].sort(()=>Math.random()-.5).map(o=>`<option value="${o}">${o}</option>`).join('')}
-      </select>
-    </div>`).join('');
-}
-function submitS2(){
-  if(s2Done)return;s2Done=true;sfxClick();
-  let ok=0;
-  S2_MATCHES.forEach((m,i)=>{
-    const sel=document.getElementById('s2-sel-'+i);if(!sel)return;
-    const good=sel.value===m.opts[m.c];if(good)ok++;
-    sel.style.borderColor=good?'var(--grn)':'var(--red)';sel.style.color=good?'var(--grn)':'var(--red)';
-  });
-  const pts=ok*40;addPts(pts);if(ok>=3)sfxOk();else sfxBad();
-  showFb('s2-fb',ok>=3?'ok':'bad',`${ok}/${S2_MATCHES.length} correct · +${pts} pts`);
-  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
-  db.innerHTML=`<strong>UNKNOWN:</strong> Metrics are dependent variables. They measure what the product delivers — not how it's built. "Mass in grams" leaves engineers free to choose steel, aluminum, or carbon fiber. "Use carbon fiber" locks them into one solution before exploring alternatives.`;
-  document.getElementById('m2-content').appendChild(db);
-  setTimeout(()=>doneStep(2,{correct:ok}),2800);
-}
-
-// ═══════════════════════════════════
-// STEP 3: Target Values
-// ═══════════════════════════════════
-function initS3(){
-  const el=document.getElementById('m3-content');
-  el.innerHTML=`
-    <div class="stag">STEP 3 · TARGET VALUES</div>
-    <div class="oq-box">
-      <span class="oq-label">UNKNOWN ASKS:</span>
-      <div class="oq-text">The worst competitor has ANC 18dB. The best has 44dB. Should your target be 44dB?</div>
-    </div>
-    <div class="oq-opts">
-      <button class="oq-opt" onclick="ansOQ3(this,false)">Yes — always aim for the best.</button>
-      <button class="oq-opt" onclick="ansOQ3(this,true)">Not necessarily — you need an Ideal (aspiration) AND a Marginal (minimum to compete). The gap between them is your design space.</button>
-    </div>
-    <div id="s3-oq-fb" style="display:none;width:100%;"></div>
-    <div id="s3-task" style="display:none;width:100%;">
-      <div class="instr-box">
-        <span class="instr-label">COMPETITOR DATA</span>
-        <strong>BrandB</strong> (budget): ANC 18dB · Battery 12h · Weight 380g<br>
-        <strong>BrandX</strong> (mid): ANC 28dB · Battery 20h · Weight 330g<br>
-        <strong>BrandZ</strong> (upper): ANC 35dB · Battery 30h · Weight 295g<br>
-        <strong>BrandS</strong> (premium): ANC 44dB · Battery 40h · Weight 240g
-      </div>
-      <div class="instr-box" style="border-left-color:var(--gold);">
-        <span class="instr-label">YOUR TASK</span>
-        Set <strong style="color:var(--cyan)">Ideal</strong> (best you aim for) and <strong style="color:var(--gold)">Marginal</strong> (minimum to survive). Fields are empty — think before typing.
-      </div>
-      ${renderTargetInput('ANC Attenuation','dB','anc','Higher = better')}
-      ${renderTargetInput('Battery Life','hours','bat','Higher = better')}
-      ${renderTargetInput('Total Mass','grams','wt','Lower = better (Ideal < Marginal)')}
-      <div class="card" style="margin-bottom:12px;border-color:rgba(210,153,34,.3);">
-        <div style="font-size:.68rem;font-family:var(--mono);color:var(--gold);margin-bottom:6px;">RETAIL PRICE TARGET</div>
-        <div style="font-size:.75rem;color:var(--dim);margin-bottom:8px;">Sets your C* in Step 5. BrandB=€89 · BrandS=€380</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <input type="range" id="price-slider" min="80" max="450" value="200" step="10" oninput="updPrice()">
-          <span id="price-val" style="font-family:var(--mono);color:var(--gold);font-weight:700;min-width:50px;">€200</span>
-        </div>
-        <div style="font-size:.65rem;color:var(--dim);margin-top:4px;">C* ≈ €<span id="cstar-prev">84</span></div>
-      </div>
-      <button class="btn primary" style="width:100%;" onclick="submitS3()">LOCK TARGET SPECS →</button>
-      <div id="s3-fb" style="display:none;width:100%;"></div>
-    </div>`;
-  go('s-m3');
-}
-function renderTargetInput(label,unit,key,hint){
-  return `<div class="card" style="margin-bottom:10px;">
-    <div style="font-size:.78rem;font-weight:700;margin-bottom:2px;">${label} (${unit})</div>
-    <div style="font-size:.65rem;color:var(--dim);margin-bottom:8px;">${hint}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div><div style="font-size:.55rem;font-family:var(--mono);color:var(--cyan);margin-bottom:4px;">IDEAL</div>
-        <input type="number" id="s3-${key}-i" class="num-input cyan" placeholder="?"></div>
-      <div><div style="font-size:.55rem;font-family:var(--mono);color:var(--gold);margin-bottom:4px;">MARGINAL</div>
-        <input type="number" id="s3-${key}-m" class="num-input gold" placeholder="?"></div>
-    </div>
-  </div>`;
-}
-function ansOQ3(btn,correct){
-  document.querySelectorAll('#m3-content .oq-opt').forEach(b=>b.disabled=true);
-  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
-    showFb('s3-oq-fb','ok','Correct. Ideal is the aspiration. Marginal is the survival threshold. The space between them is where engineering happens.');}
-  else{btn.classList.add('wrong');sfxBad();
-    showFb('s3-oq-fb','bad','Aiming for the best sounds good, but it may be unaffordable. You need TWO targets: Ideal (dream) and Marginal (minimum to compete).');}
-  document.getElementById('s3-task').style.display='block';updPrice();
-}
-function updPrice(){tgtPrice=+document.getElementById('price-slider').value||200;
-  document.getElementById('price-val').textContent='€'+tgtPrice;
-  document.getElementById('cstar-prev').textContent=Math.round(tgtPrice*.70*.60);}
-function submitS3(){
-  sfxClick();
-  tgtIdeal.anc=+document.getElementById('s3-anc-i').value;tgtMarg.anc=+document.getElementById('s3-anc-m').value;
-  tgtIdeal.bat=+document.getElementById('s3-bat-i').value;tgtMarg.bat=+document.getElementById('s3-bat-m').value;
-  tgtIdeal.wt=+document.getElementById('s3-wt-i').value;tgtMarg.wt=+document.getElementById('s3-wt-m').value;
-  tgtPrice=+document.getElementById('price-slider').value||200;
-  if(!tgtIdeal.anc||!tgtMarg.anc||!tgtIdeal.bat||!tgtMarg.bat||!tgtIdeal.wt||!tgtMarg.wt){toast('Fill all fields!');return;}
-  if(tgtIdeal.anc<tgtMarg.anc){showFb('s3-fb','bad','Ideal ANC must be ≥ Marginal (higher = better)');return;}
-  if(tgtIdeal.bat<tgtMarg.bat){showFb('s3-fb','bad','Ideal Battery must be ≥ Marginal');return;}
-  if(tgtIdeal.wt>tgtMarg.wt){showFb('s3-fb','bad','Ideal Weight must be ≤ Marginal (lighter = better)');return;}
-  let pts=100;
-  if(tgtIdeal.anc>=40)pts+=20;if(tgtIdeal.bat>=30)pts+=20;if(tgtIdeal.wt<=260)pts+=20;
-  addPts(pts);sfxOk();
-  showFb('s3-fb','ok',`Targets locked! +${pts} pts`);
-  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
-  db.innerHTML=`<strong>UNKNOWN:</strong> The Ideal value is the best result the team could hope for. The Marginal value is the bare minimum to make the product commercially viable. Both are set BEFORE concept selection — they represent hopes, not guarantees.`;
-  document.getElementById('m3-content').appendChild(db);
-  setTimeout(()=>doneStep(3,{ideal:tgtIdeal,marg:tgtMarg,price:tgtPrice}),2800);
-}
-
-// ═══════════════════════════════════
-// STEP 4: BOM
-// ═══════════════════════════════════
 const BOM_ITEMS=[
   {id:'anc',label:'ANC Chip',low:{name:'Standard (~25dB)',cost:18},high:{name:'Premium (~40dB)',cost:45}},
   {id:'bat',label:'Battery Pack',low:{name:'Standard (16h)',cost:12},high:{name:'Large (32h)',cost:28}},
-  {id:'mat',label:'Housing',low:{name:'Plastic (+50g)',cost:0,wDelta:50},high:{name:'Carbon Fiber (−80g)',cost:60,wDelta:-80}},
+  {id:'mat',label:'Housing Material',low:{name:'Plastic (+50g)',cost:0,wD:50},high:{name:'Carbon Fiber (−80g)',cost:60,wD:-80}},
   {id:'drv',label:'Audio Driver',low:{name:'Standard 40mm',cost:8},high:{name:'Premium 45mm',cost:18}},
 ];
-function initS4(){
-  bomChoices={anc:'low',bat:'low',mat:'low',drv:'low'};
-  const el=document.getElementById('m4-content');
-  el.innerHTML=`
-    <div class="stag">STEP 4 · BILL OF MATERIALS</div>
-    <div class="oq-box">
-      <span class="oq-label">UNKNOWN ASKS:</span>
-      <div class="oq-text">Every improvement you make to one metric costs something in another dimension. Is any spec free?</div>
-    </div>
-    <div class="oq-opts">
-      <button class="oq-opt" onclick="ansOQ4(this,true)">No — better ANC costs more, lighter housing costs more, longer battery costs more. Specs are interdependent.</button>
-      <button class="oq-opt" onclick="ansOQ4(this,false)">Yes — good engineering can improve specs without trade-offs.</button>
-    </div>
-    <div id="s4-oq-fb" style="display:none;width:100%;"></div>
-    <div id="s4-task" style="display:none;width:100%;">
-      <div class="instr-box">
-        <span class="instr-label">YOUR TASK</span>
-        Choose <strong>LOW</strong> (cheaper, lower performance) or <strong>HIGH</strong> (expensive, better) for each component. Watch cost and weight change.
-      </div>
-      <div style="font-size:.7rem;color:var(--dim);margin-bottom:8px;font-family:var(--mono);">
-        Your targets: ANC ${tgtMarg.anc}–${tgtIdeal.anc}dB · Battery ${tgtMarg.bat}–${tgtIdeal.bat}h · Weight &lt;${tgtMarg.wt}g · Price €${tgtPrice}
-      </div>
-      <div id="s4-bom"></div>
-      <div class="card" style="text-align:center;margin-bottom:12px;">
-        <div style="font-size:.55rem;font-family:var(--mono);color:var(--dim);margin-bottom:4px;">TOTAL MFG COST</div>
-        <div id="s4-total" style="font-family:var(--mono);font-size:1.6rem;font-weight:700;">€0</div>
-        <div id="s4-weight" style="font-size:.7rem;color:var(--dim);margin-top:4px;"></div>
-      </div>
-      <button class="btn primary" style="width:100%;" onclick="submitS4()">LOCK BOM →</button>
-    </div>`;
-  go('s-m4');
-}
-function ansOQ4(btn,correct){
-  document.querySelectorAll('#m4-content .oq-opt').forEach(b=>b.disabled=true);
-  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
-    showFb('s4-oq-fb','ok','Correct. The cost model shows that every specification improvement has a cost consequence. This is the core tension of product development.');}
-  else{btn.classList.add('wrong');sfxBad();
-    showFb('s4-oq-fb','bad','In reality, improving one spec almost always costs something — money, weight, complexity. The BOM will show you exactly how.');}
-  document.getElementById('s4-task').style.display='block';renderBOM();
-}
-function renderBOM(){
-  document.getElementById('s4-bom').innerHTML=BOM_ITEMS.map(item=>{
-    const ch=bomChoices[item.id];
-    return `<div class="bom-item">
-      <div style="font-size:.75rem;font-weight:700;margin-bottom:6px;">${item.label}</div>
-      <div class="bom-grid">
-        <div class="bom-opt${ch==='low'?' picked':''}" onclick="setBOM('${item.id}','low')">
-          LOW · €${item.low.cost}<br><span style="font-size:.65rem;opacity:.7;">${item.low.name}</span></div>
-        <div class="bom-opt${ch==='high'?' picked':''}" onclick="setBOM('${item.id}','high')">
-          HIGH · €${item.high.cost}<br><span style="font-size:.65rem;opacity:.7;">${item.high.name}</span></div>
-      </div>
-    </div>`;
-  }).join('');
-  let cost=BOM_BASE,weight=250;
-  BOM_ITEMS.forEach(item=>{const c=bomChoices[item.id]==='high'?item.high:item.low;
-    cost+=c.cost;if(c.wDelta!==undefined)weight+=c.wDelta;});
-  finalCost=cost;finalWeight=weight;
-  const cstar=Math.round(tgtPrice*.70*.60);
-  const totEl=document.getElementById('s4-total');
-  totEl.textContent='€'+cost;totEl.style.color=cost>cstar?'var(--red)':cost>cstar-10?'var(--gold)':'var(--grn)';
-  document.getElementById('s4-weight').textContent=`Weight: ${weight}g · C* ≈ €${cstar}`;
-}
-function setBOM(id,level){sfxClick();bomChoices[id]=level;renderBOM();}
-function submitS4(){sfxClick();sfxOk();addPts(120);
-  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
-  db.innerHTML=`<strong>UNKNOWN:</strong> The Bill of Materials is a cost model — it predicts manufacturing cost from design choices. Like the technical model predicts performance, the BOM predicts cost. Both are tools to avoid building expensive prototypes for every "what if."`;
-  document.getElementById('m4-content').appendChild(db);
-  setTimeout(()=>doneStep(4,{bomChoices,finalCost,finalWeight}),2400);
-}
 
-// ═══════════════════════════════════
-// STEP 5: Target Costing
-// ═══════════════════════════════════
-function initS5(){
-  const el=document.getElementById('m5-content');
-  const P=tgtPrice,Mr=.30,Mm=.40;
-  const retCut=Math.round(P*Mr),mfrPrice=Math.round(P*(1-Mr)),mfrCut=Math.round(mfrPrice*Mm);
-  finalCstar=Math.round(P*(1-Mr)*(1-Mm));
-  const gap=finalCost-finalCstar;
-  el.innerHTML=`
-    <div class="stag">STEP 5 · TARGET COSTING</div>
-    <div class="oq-box">
-      <span class="oq-label">UNKNOWN ASKS:</span>
-      <div class="oq-text">Who decides the price of your product — you, or the market?</div>
-    </div>
-    <div class="oq-opts">
-      <button class="oq-opt" onclick="ansOQ5(this,true)">The market. In target costing, price is fixed by competition. You work backwards to find your budget.</button>
-      <button class="oq-opt" onclick="ansOQ5(this,false)">The manufacturer. Calculate costs first, add margin, set price.</button>
-    </div>
-    <div id="s5-oq-fb" style="display:none;width:100%;"></div>
-    <div id="s5-task" style="display:none;width:100%;">
-      <div class="instr-box">
-        <span class="instr-label">C* = P × (1 − Mᵣ) × (1 − Mₘ)</span>
-        Start from retail price. Subtract retailer margin (30%), then manufacturer margin (40%). What remains = <strong>maximum manufacturing cost</strong>.
-      </div>
-      <div class="chain-row"><span>Retail Price (P)</span><span class="chain-amt">€${P}</span></div>
-      <div class="chain-row"><span>Retailer margin (30%)</span><span class="chain-amt" style="color:var(--red);">−€${retCut}</span></div>
-      <div class="chain-row"><span>Price to manufacturer</span><span class="chain-amt">€${mfrPrice}</span></div>
-      <div class="chain-row"><span>Manufacturer margin (40%)</span><span class="chain-amt" style="color:var(--red);">−€${mfrCut}</span></div>
-      <div class="chain-row ${gap>0?'danger':'highlight'}">
-        <span><strong>C* (max allowable cost)</strong></span>
-        <span class="chain-amt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCstar}</span>
-      </div>
-      <div class="chain-row ${gap>0?'danger':'highlight'}">
-        <span>Your BOM total</span>
-        <span class="chain-amt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCost}</span>
-      </div>
-      ${gap>0?`<div class="fb bad" style="text-align:center;margin-top:8px;font-size:.9rem;">
-        <strong>OVER BUDGET by €${gap}</strong><br><span style="font-size:.75rem;">You must make trade-offs in Step 6.</span></div>`
-        :`<div class="fb ok" style="text-align:center;margin-top:8px;">
-        <strong>PROFITABLE</strong> — €${Math.abs(gap)} under C*</div>`}
-      <button class="btn primary" style="width:100%;margin-top:12px;" onclick="submitS5()">CONTINUE →</button>
-    </div>`;
-  go('s-m5');
-}
-function ansOQ5(btn,correct){
-  document.querySelectorAll('#m5-content .oq-opt').forEach(b=>b.disabled=true);
-  if(correct){btn.classList.add('correct');sfxOk();addPts(30);
-    showFb('s5-oq-fb','ok','Correct. Target costing is the reverse of cost-plus. The market sets the price; you subtract margins to find your budget. If your cost exceeds C*, you redesign — not reprice.');}
-  else{btn.classList.add('wrong');sfxBad();
-    showFb('s5-oq-fb','bad','That is cost-plus pricing — the opposite of target costing. In competitive markets, the price is set by competition. You must work backwards from it.');}
-  document.getElementById('s5-task').style.display='block';
-}
-function submitS5(){
-  sfxClick();const gap=finalCost-finalCstar;
-  addPts(gap<=0?180:80);if(gap<=0)sfxOk();
-  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
-  db.innerHTML=`<strong>UNKNOWN:</strong> In this mission, the price is set by the Ministry — not by us. Target costing is a subtraction: Price − Margins = Budget. If your manufacturing cost exceeds C*, the mission fails financially. You must redesign, not reprice.`;
-  document.getElementById('m5-content').appendChild(db);
-  setTimeout(()=>doneStep(5,{finalCost,finalCstar,gap}),2400);
-}
+async function mobileJoin(){sfxClick();mNick=(document.getElementById('m-nick').value.trim()||'AGENT'+Math.floor(Math.random()*99)).substring(0,16);mRoom=(document.getElementById('m-code').value||'').trim().toUpperCase();if(!mRoom){toast('Enter room code!');return;}myNick=mNick;myRoom=mRoom;toast('Connecting…');let ok=await connectAbly(mRoom);if(!ok){await sleep(2000);ok=await connectAbly(mRoom);}if(!ok){toast('❌ Cannot connect');return;}pub('join',{nick:mNick});const h=document.getElementById('mob-hud');h.style.opacity='1';h.style.pointerEvents='auto';
+  sub('game-start',()=>{go('s-mwait');setWait('STANDBY','Mission starting…','Stand by');});
+  sub('launch',d=>{setHUD('STEP '+d.step,Math.round(d.step/7*100));launchStep(d.step);});
+  sub('spy-msg',d=>toast(d.msg));
+  sub('final-lb',d=>{const el=document.getElementById('mfinal-lb');if(!el)return;el.innerHTML=d.sorted.map(([n,s],i)=>`<div class="lb-row" style="animation-delay:${i*.08}s;${n===mNick?'border-color:var(--cyan);':''}"><div style="font-size:1rem;width:24px;">${medals[i]||i+1}</div><div style="flex:1;font-weight:700;${n===mNick?'color:var(--cyan)':''}">${n}${n===mNick?' (you)':''}</div><div style="font-family:var(--mono);color:var(--gold);">${s} pts</div></div>`).join('');});
+  go('s-mwait');setWait('CONNECTED','Waiting for host…','Stand by');toast('✅ Joined as '+mNick);startJazz();}
+function launchStep(s){if(s>=1&&s<=7){window['initS'+s]();go('s-m'+s);}else{go('s-mwait');setWait('STEP '+s,'Coming soon…','Wait for host');}}
+function doneStep(step,data){pub('step-result',{nick:mNick,step,score:myScore,data});go('s-mwait');setWait('STEP '+step+' ✓','Stand by…','Waiting for host');}
 
-// ═══════════════════════════════════
-// STEP 6: Trade-offs
-// ═══════════════════════════════════
-const TRADES=[
-  {id:'A',label:'Option A — Cut ANC',
-   a:'Downgrade ANC chip (saves €27, drops to ~25dB)',b:'Keep current ANC',
-   fxA:{costDelta:-27}},
-  {id:'B',label:'Option B — Cut Driver',
-   a:'Downgrade driver (saves €10)',b:'Keep premium driver',
-   fxA:{costDelta:-10}},
-  {id:'C',label:'Option C — Raise Price',
-   a:'Raise retail price +€50 (more C* room)',b:'Hold price',
-   fxA:{priceDelta:50}},
+/* ═══════════════════════════════════
+   STEP 1: Customer Needs — classify
+═══════════════════════════════════ */
+const S1_ITEMS=[
+  {text:'"I need headphones that block all noise."',type:'subj',why:'Subjective — "all noise" is vague. How many dB? At what frequency?'},
+  {text:'"Battery life ≥ 8 hours."',type:'obj',why:'Objective — measurable, with a unit and threshold.'},
+  {text:'"They should feel light on my head."',type:'subj',why:'Subjective — "feel light" varies by person. Needs a metric (grams).'},
+  {text:'"Bluetooth pairing time < 3 seconds."',type:'obj',why:'Objective — precise, testable, with units.'},
+  {text:'"They must look like normal headphones."',type:'subj',why:'Subjective — "look normal" is a perception, not a measurement.'},
 ];
-let t6ch=[];
-function initS6(){
-  t6ch=[null,null,null];
-  const gap=finalCost-finalCstar;
-  const el=document.getElementById('m6-content');
-  el.innerHTML=`
-    <div class="stag">STEP 6 · TRADE-OFFS</div>
-    <div class="oq-box">
-      <span class="oq-label">UNKNOWN ASKS:</span>
-      <div class="oq-text">${gap>0?`You are €${gap} over budget.`:'Your cost is within C*.'} In product development, trade-offs are inevitable. What are you willing to sacrifice?</div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px;">
-      <div class="card" style="text-align:center;padding:10px;">
-        <div style="font-size:.5rem;font-family:var(--mono);color:var(--dim);margin-bottom:2px;">COST</div>
-        <div id="t6-cost" style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCost}</div>
-      </div>
-      <div class="card" style="text-align:center;padding:10px;">
-        <div style="font-size:.5rem;font-family:var(--mono);color:var(--dim);margin-bottom:2px;">C*</div>
-        <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--cyan);">€${finalCstar}</div>
-      </div>
-      <div class="card" style="text-align:center;padding:10px;">
-        <div style="font-size:.5rem;font-family:var(--mono);color:var(--dim);margin-bottom:2px;">GAP</div>
-        <div id="t6-gap" style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:${gap>0?'var(--red)':'var(--grn)'};">${gap>0?'+€'+gap:'OK'}</div>
-      </div>
-    </div>
-    <div id="s6-trades">${TRADES.map((t,i)=>`
-      <div class="card" style="margin-bottom:8px;">
-        <div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);margin-bottom:6px;">${t.label}</div>
-        <div class="trade-pair">
-          <div class="trade-opt" onclick="pickT6(${i},'a',this)">${t.a}</div>
-          <div class="trade-opt" onclick="pickT6(${i},'b',this)">${t.b}</div>
-        </div>
-      </div>`).join('')}</div>
-    <button class="btn primary" style="width:100%;margin-top:8px;" onclick="submitS6()">FINALIZE →</button>
-    <div id="s6-fb" style="display:none;width:100%;"></div>`;
-  go('s-m6');
-}
-function pickT6(i,side,el){
-  sfxClick();t6ch[i]=side;
-  const card=el.closest('.card');
-  card.querySelectorAll('.trade-opt').forEach(b=>{b.className='trade-opt';});
-  el.classList.add(side==='a'?'picked-a':'picked-b');
-  // live update
-  let sc=finalCost,sp=tgtPrice;
-  t6ch.forEach((s,j)=>{if(s==='a'&&TRADES[j].fxA){
-    if(TRADES[j].fxA.costDelta)sc+=TRADES[j].fxA.costDelta;
-    if(TRADES[j].fxA.priceDelta)sp+=TRADES[j].fxA.priceDelta;}});
-  const nc=Math.round(sp*.70*.60),ng=sc-nc;
-  document.getElementById('t6-cost').textContent='€'+sc;
-  document.getElementById('t6-cost').style.color=ng>0?'var(--red)':'var(--grn)';
-  document.getElementById('t6-gap').textContent=ng>0?'+€'+ng:'OK';
-  document.getElementById('t6-gap').style.color=ng>0?'var(--red)':'var(--grn)';
-}
-function submitS6(){
-  if(t6ch.includes(null)){toast('Make all 3 choices!');return;}
-  sfxClick();
-  let fc=finalCost,fp=tgtPrice;
-  t6ch.forEach((s,i)=>{if(s==='a'&&TRADES[i].fxA){
-    if(TRADES[i].fxA.costDelta)fc+=TRADES[i].fxA.costDelta;
-    if(TRADES[i].fxA.priceDelta)fp+=TRADES[i].fxA.priceDelta;}});
-  finalCost=fc;finalCstar=Math.round(fp*.70*.60);
-  const gap=fc-finalCstar;
-  let pts=160;if(gap>0)pts-=50;
-  addPts(pts);if(gap<=0)sfxOk();else sfxBad();
-  showFb('s6-fb',gap<=0?'ok':'info',
-    `Spec sheet finalized. Cost: €${fc} · C*: €${finalCstar} · ${gap<=0?'PROFITABLE':'Over by €'+gap}`);
-  const db=document.createElement('div');db.className='debrief-box';db.style.marginTop='12px';
-  db.innerHTML=`<strong>UNKNOWN:</strong> Trade-offs are inevitable. They occur between performance metrics (ANC vs weight) and between performance and cost. The competitive map shows it clearly: every point of performance costs money. The final specification is not the ideal — it is the least dangerous compromise.`;
-  document.getElementById('m6-content').appendChild(db);
-  setTimeout(()=>doneStep(6,{finalCost:fc,finalCstar,finalWeight,finalANC:bomChoices.anc==='high'&&!t6ch.includes('a')?40:25}),3000);
-}
+let s1ans={};
+function initS1(){s1ans={};const el=document.getElementById('m1-c');
+  el.innerHTML=`<div class="stag">STEP 1 · CUSTOMER NEEDS</div>
+    <div class="oq-box"><span class="oq-label">UNKNOWN ASKS:</span><div class="oq-text">OMEGA says: "I need headphones that block noise completely." Can you hand this sentence to an engineer and expect a product?</div></div>
+    <div class="oq-opts"><button class="oq-opt" onclick="ansOQ(1,this,true)">No — it's too vague. Engineers need precise, measurable targets.</button><button class="oq-opt" onclick="ansOQ(1,this,false)">Yes — the engineer will figure out the details.</button></div>
+    <div id="s1-oqfb" style="display:none;width:100%;"></div>
+    <div id="s1-task" style="display:none;width:100%;"><div class="instr"><span class="itag">📋 YOUR TASK</span>For each statement, classify it as <strong>SUBJECTIVE</strong> (customer language) or <strong>OBJECTIVE</strong> (already a metric).</div><div id="s1-items"></div><button class="btn bp" style="width:100%;margin-top:10px;" onclick="submitS1()">LOCK ANSWERS →</button><div id="s1-fb" style="display:none;width:100%;"></div></div>`;}
+function ansOQ(step,btn,correct){const parent=btn.closest('.oq-opts');parent.querySelectorAll('.oq-opt').forEach(b=>b.disabled=true);
+  if(correct){btn.classList.add('correct');sfxOk();addPts(30);showFb('s'+step+'-oqfb','ok',step===1?'Correct. Customer needs are subjective — they must be translated into measurable specs.':step===2?'Correct. "Carbon fiber" is a design decision. Specs must say WHAT, not HOW.':step===3?'Correct. You need BOTH an Ideal (aspiration) AND Marginal (survival floor).':step===4?'Correct. Every spec improvement costs something. The BOM proves it.':'Correct. The market sets the price. You work backwards.');}
+  else{btn.classList.add('wrong');sfxBad();showFb('s'+step+'-oqfb','bad',step===1?'"Block noise completely" — how many dB? At what frequency? Engineers need numbers, not feelings.':step===2?'Specifying a material constrains the design too early. The metric should be mass (g).':step===3?'Always aiming for the best may be unaffordable. You need a floor AND a ceiling.':step===4?'In reality, improving one spec almost always costs money, weight, or complexity.':'That is cost-plus pricing — the opposite of target costing.');}
+  const taskEl=document.getElementById('s'+step+'-task');if(taskEl)taskEl.style.display='block';
+  if(step===1)renderS1Items();if(step===3)updPrice();}
+function renderS1Items(){document.getElementById('s1-items').innerHTML=S1_ITEMS.map((item,i)=>`<div class="mc" style="margin-bottom:8px;"><div style="font-size:.84rem;font-weight:600;margin-bottom:8px;">${item.text}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"><button class="oq-opt" style="margin:0;font-size:.76rem;padding:10px;" onclick="pickS1(${i},'subj',this)">SUBJECTIVE</button><button class="oq-opt" style="margin:0;font-size:.76rem;padding:10px;" onclick="pickS1(${i},'obj',this)">OBJECTIVE</button></div></div>`).join('');}
+function pickS1(i,type,btn){sfxClick();s1ans[i]=type;const card=btn.closest('.mc');card.querySelectorAll('.oq-opt').forEach(b=>{b.style.borderColor='var(--bd)';b.style.background='var(--s2)';b.style.color='var(--txt)';});btn.style.borderColor=type==='subj'?'var(--pur)':'var(--cyan)';btn.style.background=type==='subj'?'rgba(179,102,255,.08)':'rgba(0,229,255,.08)';btn.style.color=type==='subj'?'var(--pur)':'var(--cyan)';}
+function submitS1(){if(Object.keys(s1ans).length<S1_ITEMS.length){toast('Classify all!');return;}sfxClick();let ok=0;S1_ITEMS.forEach((item,i)=>{if(s1ans[i]===item.type)ok++;});const pts=ok*30;addPts(pts);if(ok>=4)sfxOk();else sfxBad();showFb('s1-fb',ok>=4?'ok':'info',`${ok}/${S1_ITEMS.length} correct · +${pts} pts`);
+  const db=document.createElement('div');db.className='debrief';db.innerHTML=`<strong>UNKNOWN:</strong> Customer needs are expressed in vague, emotional language. Before engineering begins, they must be translated into precise, measurable specifications. That translation is the foundation of product development.`;document.getElementById('m1-c').appendChild(db);
+  setTimeout(()=>doneStep(1,{correct:ok}),2800);}
 
-// ═══════════════════════════════════
-// STEP 7: Master Quiz (3 questions)
-// ═══════════════════════════════════
+/* ═══════════════════════════════════
+   STEP 2: Needs → Metrics
+═══════════════════════════════════ */
+const S2_M=[
+  {need:'"Block all background noise"',opts:['ANC attenuation (dB)','Ear pad foam density (kg/m³)','Speaker impedance (Ω)','Headband spring force (N)'],c:0},
+  {need:'"Last at least 8 hours"',opts:['Bluetooth codec version','Battery playback time (hours)','Charging cable length (cm)','Total mass (g)'],c:1},
+  {need:'"Light on the head"',opts:['Number of color options','Total assembled mass (grams)','Driver diameter (mm)','Cable thickness (mm)'],c:1},
+  {need:'"Pair instantly with any device"',opts:['App download size (MB)','Headband width (mm)','Bluetooth initial pairing time (s)','Box material'],c:2},
+];
+function initS2(){const el=document.getElementById('m2-c');
+  el.innerHTML=`<div class="stag">STEP 2 · NEEDS → METRICS</div>
+    <div class="oq-box"><span class="oq-label">UNKNOWN ASKS:</span><div class="oq-text">Can you order your engineers to use "carbon fiber housing"?</div></div>
+    <div class="oq-opts"><button class="oq-opt" onclick="ansOQ(2,this,false)">Yes — it solves the weight problem directly.</button><button class="oq-opt" onclick="ansOQ(2,this,true)">No — that's a design decision (independent variable), not a specification.</button></div>
+    <div id="s2-oqfb" style="display:none;width:100%;"></div>
+    <div id="s2-task" style="display:none;width:100%;"><div class="instr"><span class="itag">📋 YOUR TASK</span>Match each customer need to the correct <strong>engineering metric</strong>. A metric is a dependent variable — measures output, not input.</div><div id="s2-rows"></div><button class="btn bp" style="width:100%;margin-top:10px;" onclick="submitS2()">LOCK METRICS →</button><div id="s2-fb" style="display:none;width:100%;"></div></div>`;
+  // Pre-render rows after OQ is answered
+  setTimeout(()=>{if(document.getElementById('s2-rows'))document.getElementById('s2-rows').innerHTML=S2_M.map((m,i)=>`<div class="mc" style="margin-bottom:8px;"><div style="font-size:.65rem;font-family:var(--mono);color:var(--dim);margin-bottom:4px;">NEED:</div><div style="font-weight:700;font-size:.84rem;margin-bottom:9px;">${m.need}</div><select id="s2-${i}" class="gsel" onchange="sfxClick()"><option value="">— choose metric —</option>${[...m.opts].sort(()=>Math.random()-.5).map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div>`).join('');},100);}
+function submitS2(){sfxClick();let ok=0;S2_M.forEach((m,i)=>{const sel=document.getElementById('s2-'+i);if(!sel)return;const good=sel.value===m.opts[m.c];if(good)ok++;sel.style.borderColor=good?'var(--grn)':'var(--red)';sel.style.color=good?'var(--grn)':'var(--red)';});
+  const pts=ok*40;addPts(pts);if(ok>=3)sfxOk();else sfxBad();showFb('s2-fb',ok>=3?'ok':'bad',`${ok}/${S2_M.length} correct · +${pts} pts`);
+  const db=document.createElement('div');db.className='debrief';db.innerHTML=`<strong>UNKNOWN:</strong> Metrics are dependent variables — they measure what the product delivers, not how it's built. "Mass in grams" leaves engineers free to choose any material. "Use carbon fiber" locks them into one solution before exploring alternatives.`;document.getElementById('m2-c').appendChild(db);
+  setTimeout(()=>doneStep(2,{correct:ok}),2800);}
+
+/* ═══════════════════════════════════
+   STEP 3: Target Values
+═══════════════════════════════════ */
+function initS3(){const el=document.getElementById('m3-c');
+  el.innerHTML=`<div class="stag">STEP 3 · TARGET VALUES</div>
+    <div class="oq-box"><span class="oq-label">UNKNOWN ASKS:</span><div class="oq-text">The worst competitor has ANC 18dB. The best has 44dB. Should your target simply be 44dB?</div></div>
+    <div class="oq-opts"><button class="oq-opt" onclick="ansOQ(3,this,false)">Yes — always aim for the best.</button><button class="oq-opt" onclick="ansOQ(3,this,true)">Not necessarily — you need an Ideal AND a Marginal. The gap between them is your design space.</button></div>
+    <div id="s3-oqfb" style="display:none;width:100%;"></div>
+    <div id="s3-task" style="display:none;width:100%;">
+      <div class="instr"><span class="itag">COMPETITOR DATA</span><strong>BrandB</strong> (budget): ANC 18dB · Battery 12h · Weight 380g<br><strong>BrandX</strong> (mid): ANC 28dB · Battery 20h · Weight 330g<br><strong>BrandZ</strong> (upper): ANC 35dB · Battery 30h · Weight 295g<br><strong>BrandS</strong> (premium): ANC 44dB · Battery 40h · Weight 240g</div>
+      <div class="instr" style="border-left-color:var(--gold);"><span class="itag" style="color:var(--gold);">📋 YOUR TASK</span>Set <strong style="color:var(--cyan)">Ideal</strong> (best you aim for) and <strong style="color:var(--gold)">Marginal</strong> (minimum to survive). Fields are empty — think before typing.</div>
+      <div class="mc"><div style="font-size:.78rem;font-weight:700;margin-bottom:10px;">🎧 ANC Attenuation (dB) — higher = better</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);margin-bottom:6px;">IDEAL</div><input type="number" id="s3-anc-i" class="num-in cy" placeholder="?"></div><div><div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);margin-bottom:6px;">MARGINAL</div><input type="number" id="s3-anc-m" class="num-in go" placeholder="?"></div></div></div>
+      <div class="mc"><div style="font-size:.78rem;font-weight:700;margin-bottom:10px;">🔋 Battery Life (hours) — higher = better</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);margin-bottom:6px;">IDEAL</div><input type="number" id="s3-bat-i" class="num-in cy" placeholder="?"></div><div><div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);margin-bottom:6px;">MARGINAL</div><input type="number" id="s3-bat-m" class="num-in go" placeholder="?"></div></div></div>
+      <div class="mc"><div style="font-size:.78rem;font-weight:700;margin-bottom:4px;">⚖️ Total Mass (grams) — lower = better</div><div style="font-size:.68rem;color:var(--dim);margin-bottom:10px;">Ideal &lt; Marginal (lighter is better)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);margin-bottom:6px;">IDEAL (g)</div><input type="number" id="s3-wt-i" class="num-in cy" placeholder="?"></div><div><div style="font-size:.6rem;font-family:var(--mono);color:var(--gold);margin-bottom:6px;">MARGINAL (g)</div><input type="number" id="s3-wt-m" class="num-in go" placeholder="?"></div></div></div>
+      <div class="mc" style="border-color:rgba(255,196,0,.3);"><div style="font-size:.7rem;font-family:var(--mono);color:var(--gold);margin-bottom:8px;">💰 RETAIL PRICE TARGET</div><div style="font-size:.76rem;color:#8ab8d4;margin-bottom:10px;">Sets your C* in Step 5. BrandB=€89 · BrandS=€380</div><div style="display:flex;align-items:center;gap:10px;"><input type="range" id="price-slider" min="80" max="450" value="200" step="10" oninput="updPrice()"><span id="price-val" style="font-family:var(--mono);font-size:1rem;color:var(--gold);font-weight:700;min-width:50px;">€200</span></div><div style="font-size:.68rem;color:var(--dim);margin-top:6px;">C* = €<span id="cstar-prev">84</span></div></div>
+      <button class="btn bp" style="width:100%;" onclick="submitS3()">LOCK TARGET SPECS →</button><div id="s3-fb" style="display:none;width:100%;"></div>
+    </div>`;}
+function updPrice(){tgtPrice=+document.getElementById('price-slider').value||200;document.getElementById('price-val').textContent='€'+tgtPrice;document.getElementById('cstar-prev').textContent=Math.round(tgtPrice*.70*.60);}
+function submitS3(){sfxClick();tgtIdeal.anc=+document.getElementById('s3-anc-i').value;tgtMarg.anc=+document.getElementById('s3-anc-m').value;tgtIdeal.bat=+document.getElementById('s3-bat-i').value;tgtMarg.bat=+document.getElementById('s3-bat-m').value;tgtIdeal.wt=+document.getElementById('s3-wt-i').value;tgtMarg.wt=+document.getElementById('s3-wt-m').value;tgtPrice=+document.getElementById('price-slider').value||200;
+  if(!tgtIdeal.anc||!tgtMarg.anc||!tgtIdeal.bat||!tgtMarg.bat||!tgtIdeal.wt||!tgtMarg.wt){toast('Fill all fields!');return;}
+  if(tgtIdeal.anc<tgtMarg.anc){showFb('s3-fb','bad','Ideal ANC ≥ Marginal');return;}
+  if(tgtIdeal.bat<tgtMarg.bat){showFb('s3-fb','bad','Ideal Battery ≥ Marginal');return;}
+  if(tgtIdeal.wt>tgtMarg.wt){showFb('s3-fb','bad','Ideal Weight ≤ Marginal (lighter!)');return;}
+  let pts=100;if(tgtIdeal.anc>=40)pts+=20;if(tgtIdeal.bat>=30)pts+=20;if(tgtIdeal.wt<=260)pts+=20;addPts(pts);sfxOk();showFb('s3-fb','ok',`Targets locked! +${pts} pts`);
+  const db=document.createElement('div');db.className='debrief';db.innerHTML=`<strong>UNKNOWN:</strong> The Ideal value is the best result the team could hope for. The Marginal value is the bare minimum to make the product commercially viable. Both are set BEFORE concept selection — they are aspirations, not guarantees.`;document.getElementById('m3-c').appendChild(db);
+  setTimeout(()=>doneStep(3,{ideal:tgtIdeal,marg:tgtMarg,price:tgtPrice}),2800);}
+
+/* ═══════════════════════════════════
+   STEP 4: BOM
+═══════════════════════════════════ */
+function initS4(){bomChoices={anc:'low',bat:'low',mat:'low',drv:'low'};const el=document.getElementById('m4-c');
+  el.innerHTML=`<div class="stag">STEP 4 · BILL OF MATERIALS</div>
+    <div class="oq-box"><span class="oq-label">UNKNOWN ASKS:</span><div class="oq-text">Every improvement has a cost. Is any specification improvement free?</div></div>
+    <div class="oq-opts"><button class="oq-opt" onclick="ansOQ(4,this,true)">No — better ANC, lighter housing, longer battery — all cost more. Specs are interdependent.</button><button class="oq-opt" onclick="ansOQ(4,this,false)">Yes — good engineering can improve without trade-offs.</button></div>
+    <div id="s4-oqfb" style="display:none;width:100%;"></div>
+    <div id="s4-task" style="display:none;width:100%;">
+      <div class="instr"><span class="itag">📋 YOUR TASK</span>Choose <strong>LOW</strong> (cheaper) or <strong>HIGH</strong> (expensive, better) for each component. Watch cost and weight change live.</div>
+      <div style="font-size:.7rem;color:var(--dim);margin-bottom:8px;font-family:var(--mono);">Targets: ANC ${tgtMarg.anc}–${tgtIdeal.anc}dB · Bat ${tgtMarg.bat}–${tgtIdeal.bat}h · Wt &lt;${tgtMarg.wt}g · Price €${tgtPrice}</div>
+      <div id="s4-bom"></div>
+      <div class="mc" style="text-align:center;"><div style="font-size:.55rem;font-family:var(--mono);color:var(--dim);margin-bottom:4px;">TOTAL MFG COST</div><div id="s4-total" style="font-family:var(--mono);font-size:1.8rem;font-weight:700;">€0</div><div id="s4-wt" style="font-size:.7rem;color:var(--dim);margin-top:4px;"></div></div>
+      <button class="btn bp" style="width:100%;" onclick="submitS4()">LOCK BOM →</button></div>`;
+}
+function renderBOM(){document.getElementById('s4-bom').innerHTML=BOM_ITEMS.map(item=>{const ch=bomChoices[item.id];return `<div class="bom-item"><div style="font-size:.75rem;font-weight:700;margin-bottom:6px;">${item.label}</div><div class="bom-grid"><div class="bom-opt${ch==='low'?' pick':''}" onclick="setBOM('${item.id}','low')">LOW · €${item.low.cost}<br><span style="font-size:.65rem;opacity:.7;">${item.low.name}</span></div><div class="bom-opt${ch==='high'?' pick':''}" onclick="setBOM('${item.id}','high')">HIGH · €${item.high.cost}<br><span style="font-size:.65rem;opacity:.7;">${item.high.name}</span></div></div></div>`;}).join('');
+  let cost=BOM_BASE,weight=250;BOM_ITEMS.forEach(item=>{const c=bomChoices[item.id]==='high'?item.high:item.low;cost+=c.cost;if(c.wD!==undefined)weight+=c.wD;});finalCost=cost;finalWeight=weight;const cs=Math.round(tgtPrice*.70*.60);
+  const t=document.getElementById('s4-total');t.textContent='€'+cost;t.style.color=cost>cs?'var(--red)':cost>cs-10?'var(--gold)':'var(--grn)';document.getElementById('s4-wt').textContent=`Weight: ${weight}g · C* ≈ €${cs}`;}
+function setBOM(id,lv){sfxClick();bomChoices[id]=lv;renderBOM();}
+function submitS4(){sfxClick();sfxOk();addPts(120);
+  const db=document.createElement('div');db.className='debrief';db.innerHTML=`<strong>UNKNOWN:</strong> The Bill of Materials is a cost model. Like the technical model predicts performance, the BOM predicts cost. It is used iteratively — "what-if" analysis for every design decision.`;document.getElementById('m4-c').appendChild(db);
+  setTimeout(()=>doneStep(4,{bomChoices,finalCost,finalWeight}),2400);}
+
+/* ═══════════════════════════════════
+   STEP 5: Target Costing
+═══════════════════════════════════ */
+function initS5(){const el=document.getElementById('m5-c');const P=tgtPrice,retCut=Math.round(P*.30),mfrP=Math.round(P*.70),mfrCut=Math.round(mfrP*.40);finalCstar=Math.round(P*.70*.60);const gap=finalCost-finalCstar;
+  el.innerHTML=`<div class="stag">STEP 5 · TARGET COSTING</div>
+    <div class="oq-box"><span class="oq-label">UNKNOWN ASKS:</span><div class="oq-text">Who decides the price of your product — you, or the market?</div></div>
+    <div class="oq-opts"><button class="oq-opt" onclick="ansOQ(5,this,true)">The market. Target costing works backwards from the competitive price.</button><button class="oq-opt" onclick="ansOQ(5,this,false)">The manufacturer. Calculate costs, add margin, set price.</button></div>
+    <div id="s5-oqfb" style="display:none;width:100%;"></div>
+    <div id="s5-task" style="display:none;width:100%;">
+      <div class="instr"><span class="itag">C* = P × (1 − Mᵣ) × (1 − Mₘ)</span>Start from retail price. Subtract retailer margin (30%), then manufacturer margin (40%). What remains = <strong>maximum you can spend building it</strong>.</div>
+      <div class="crow"><span>Retail Price (P)</span><span class="camt">€${P}</span></div>
+      <div class="crow"><span>Retailer margin (30%)</span><span class="camt" style="color:var(--red);">−€${retCut}</span></div>
+      <div class="crow"><span>Price to manufacturer</span><span class="camt">€${mfrP}</span></div>
+      <div class="crow"><span>Manufacturer margin (40%)</span><span class="camt" style="color:var(--red);">−€${mfrCut}</span></div>
+      <div class="crow ${gap>0?'cr':'cg'}"><span><strong>C* (max cost)</strong></span><span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCstar}</span></div>
+      <div class="crow ${gap>0?'cr':'cg'}"><span>Your BOM</span><span class="camt" style="color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCost}</span></div>
+      ${gap>0?`<div class="fb bad" style="text-align:center;font-size:.9rem;"><strong>OVER BUDGET by €${gap}</strong><br><span style="font-size:.75rem;">Trade-offs required in Step 6.</span></div>`:`<div class="fb ok" style="text-align:center;"><strong>PROFITABLE</strong> — €${Math.abs(gap)} under C*</div>`}
+      <button class="btn bp" style="width:100%;margin-top:12px;" onclick="submitS5()">CONTINUE →</button></div>`;}
+function submitS5(){sfxClick();const gap=finalCost-finalCstar;addPts(gap<=0?180:80);if(gap<=0)sfxOk();
+  const db=document.createElement('div');db.className='debrief';db.innerHTML=`<strong>UNKNOWN:</strong> In this mission, the price is set by the Ministry — not by us. Target costing is a subtraction: Price − Margins = Budget. If your manufacturing cost exceeds C*, the mission fails financially. You must redesign, not reprice.`;document.getElementById('m5-c').appendChild(db);
+  setTimeout(()=>doneStep(5,{finalCost,finalCstar,gap}),2400);}
+
+/* ═══════════════════════════════════
+   STEP 6: Trade-offs
+═══════════════════════════════════ */
+const TRADES=[{id:'A',label:'Option A — Cut ANC',a:'Downgrade ANC (saves €27, drops to ~25dB)',b:'Keep current ANC',fxA:{costDelta:-27}},{id:'B',label:'Option B — Cut Driver',a:'Downgrade driver (saves €10)',b:'Keep premium driver',fxA:{costDelta:-10}},{id:'C',label:'Option C — Raise Price',a:'Raise price +€50 (more C* room)',b:'Hold price',fxA:{priceDelta:50}}];
+let t6ch=[];
+function initS6(){t6ch=[null,null,null];const gap=finalCost-finalCstar;const el=document.getElementById('m6-c');
+  el.innerHTML=`<div class="stag">STEP 6 · TRADE-OFFS</div>
+    <div class="instr"><span class="itag">⚖️ YOUR SITUATION</span>${gap>0?`<strong style="color:var(--red)">€${gap} over C*.</strong> Your BOM exceeds budget.`:'<strong style="color:var(--grn)">Cost within C*.</strong>'} Make strategic choices below.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px;">
+      <div class="mc" style="text-align:center;padding:10px;"><div style="font-size:.5rem;font-family:var(--mono);color:var(--dim);margin-bottom:2px;">COST</div><div id="t6-cost" style="font-family:var(--mono);font-size:1rem;font-weight:700;color:${gap>0?'var(--red)':'var(--grn)'};">€${finalCost}</div></div>
+      <div class="mc" style="text-align:center;padding:10px;"><div style="font-size:.5rem;font-family:var(--mono);color:var(--dim);margin-bottom:2px;">C*</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--cyan);">€${finalCstar}</div></div>
+      <div class="mc" style="text-align:center;padding:10px;"><div style="font-size:.5rem;font-family:var(--mono);color:var(--dim);margin-bottom:2px;">GAP</div><div id="t6-gap" style="font-family:var(--mono);font-size:1rem;font-weight:700;color:${gap>0?'var(--red)':'var(--grn)'};">${gap>0?'+€'+gap:'OK'}</div></div>
+    </div>
+    ${TRADES.map((t,i)=>`<div class="mc" style="margin-bottom:8px;"><div style="font-size:.6rem;font-family:var(--mono);color:var(--cyan);margin-bottom:6px;">${t.label}</div><div class="trade-pair"><div class="trade-opt" onclick="pickT6(${i},'a',this)">${t.a}</div><div class="trade-opt" onclick="pickT6(${i},'b',this)">${t.b}</div></div></div>`).join('')}
+    <button class="btn bp" style="width:100%;margin-top:8px;" onclick="submitS6()">FINALIZE →</button><div id="s6-fb" style="display:none;width:100%;"></div>`;}
+function pickT6(i,side,el){sfxClick();t6ch[i]=side;const card=el.closest('.mc');card.querySelectorAll('.trade-opt').forEach(b=>b.className='trade-opt');el.classList.add(side==='a'?'pa':'pb');
+  let sc=finalCost,sp=tgtPrice;t6ch.forEach((s,j)=>{if(s==='a'&&TRADES[j].fxA){if(TRADES[j].fxA.costDelta)sc+=TRADES[j].fxA.costDelta;if(TRADES[j].fxA.priceDelta)sp+=TRADES[j].fxA.priceDelta;}});
+  const nc=Math.round(sp*.70*.60),ng=sc-nc;document.getElementById('t6-cost').textContent='€'+sc;document.getElementById('t6-cost').style.color=ng>0?'var(--red)':'var(--grn)';document.getElementById('t6-gap').textContent=ng>0?'+€'+ng:'OK';document.getElementById('t6-gap').style.color=ng>0?'var(--red)':'var(--grn)';}
+function submitS6(){if(t6ch.includes(null)){toast('Make all 3 choices!');return;}sfxClick();let fc=finalCost,fp=tgtPrice;t6ch.forEach((s,i)=>{if(s==='a'&&TRADES[i].fxA){if(TRADES[i].fxA.costDelta)fc+=TRADES[i].fxA.costDelta;if(TRADES[i].fxA.priceDelta)fp+=TRADES[i].fxA.priceDelta;}});
+  finalCost=fc;finalCstar=Math.round(fp*.70*.60);const gap=fc-finalCstar;let pts=160;if(gap>0)pts-=50;addPts(pts);if(gap<=0)sfxOk();else sfxBad();
+  showFb('s6-fb',gap<=0?'ok':'info',`Cost: €${fc} · C*: €${finalCstar} · ${gap<=0?'PROFITABLE':'Over €'+gap}`);
+  const db=document.createElement('div');db.className='debrief';db.innerHTML=`<strong>UNKNOWN:</strong> Trade-offs are inevitable. They occur between performance metrics AND between performance and cost. The final specification is not the ideal — it is the least dangerous compromise for the mission.`;document.getElementById('m6-c').appendChild(db);
+  const fANC=bomChoices.anc==='high'&&t6ch[0]!=='a'?40:25;
+  setTimeout(()=>doneStep(6,{finalCost:fc,finalCstar,finalWeight,finalANC:fANC}),3000);}
+
+/* ═══════════════════════════════════
+   STEP 7: Master Quiz (3 questions)
+═══════════════════════════════════ */
 const QUIZ=[
-  {q:'A specification must be a dependent variable. Why?',
-   opts:['It measures what the product delivers (output), not how it is built (input) — keeping engineering free to choose the best approach.',
-     'Dependent variables are easier to measure than independent ones.',
-     'The textbook requires it for grading purposes.',
-     'Independent variables cannot be written in specification sheets.'],c:0,
-   why:'Specs say WHAT, not HOW. "Mass < 300g" lets engineers choose any material. "Use carbon fiber" locks them into one solution. (Ch.6, p.96–97)'},
-  {q:'In the formula C* = P × (1−Mᵣ) × (1−Mₘ), what does P represent?',
-   opts:['The estimated production cost.',
-     'The profit margin target.',
-     'The retail price paid by the end customer.',
-     'The average competitor manufacturing cost.'],c:2,
-   why:'P = retail price. Target costing works backwards from the market price — the opposite of adding margins to costs. (Appendix, p.114)'},
-  {q:'Specifications are set TWICE in product development. When?',
-   opts:['Once by marketing, once by engineering.',
-     'Once after identifying customer needs (target specs), once after concept selection (final specs).',
-     'Once before and once after manufacturing.',
-     'Once in the proposal and once in the contract.'],c:1,
-   why:'Target specs are aspirational — set early with limited knowledge. Final specs come after concept selection, when real constraints are known. The gap between them is where trade-offs happen. (Ch.6, p.94, 103)'},
+  {q:'A specification must be a dependent variable. Why?',opts:['It measures what the product delivers (output), not how it is built — keeping engineering free to choose the best approach.','Dependent variables are easier to measure.','The textbook requires it.','Independent variables cannot be written in spec sheets.'],c:0,why:'Specs say WHAT, not HOW. "Mass < 300g" lets engineers choose any material. "Use carbon fiber" locks them in. (Ch.6, p.96–97)'},
+  {q:'In C* = P × (1−Mᵣ) × (1−Mₘ), what does P represent?',opts:['The estimated production cost.','The profit margin target.','The retail price paid by the end customer.','The average competitor cost.'],c:2,why:'P = retail price. Target costing works backwards from market price — the opposite of cost-plus. (Appendix, p.114)'},
+  {q:'Specifications are set TWICE. When?',opts:['Once by marketing, once by engineering.','Once after identifying needs (target specs), once after concept selection (final specs).','Once before and once after manufacturing.','Once in the proposal, once in the contract.'],c:1,why:'Target specs are aspirational — set early. Final specs come after concept selection when real constraints are known. (Ch.6, p.94, 103)'},
 ];
 let qIdx=0,qDone=false;
-function initS7(){qIdx=0;qDone=false;renderQuiz();}
-function renderQuiz(){
-  qDone=false;const q=QUIZ[qIdx];
-  const el=document.getElementById('m7-content');
-  el.innerHTML=`
-    <div class="stag">QUESTION ${qIdx+1}/3</div>
-    <div style="font-size:.94rem;font-weight:700;line-height:1.45;margin-bottom:14px;
-      text-align:center;width:100%;color:var(--white);">${q.q}</div>
-    <div id="s7-opts">${q.opts.map((o,i)=>
-      `<button class="quiz-opt" onclick="ansQuiz(${i})">${o}</button>`).join('')}</div>
-    <div id="s7-exp" style="display:none;width:100%;"></div>`;
-  go('s-m7');
-}
-function ansQuiz(idx){
-  if(qDone)return;qDone=true;sfxClick();
-  const q=QUIZ[qIdx];const ok=idx===q.c;
-  document.querySelectorAll('.quiz-opt').forEach((b,i)=>{
-    b.disabled=true;if(i===q.c)b.classList.add('correct');
-    else if(i===idx&&!ok)b.classList.add('wrong');});
-  if(ok){sfxOk();addPts(100);}else sfxBad();
-  pub('quiz-ans',{nick:mNick,q:qIdx,correct:ok});
-  showFb('s7-exp',ok?'ok':'bad',q.why);
-  setTimeout(()=>{qIdx++;
-    if(qIdx<QUIZ.length)renderQuiz();
-    else{doneStep(7,{quizScore:myScore});showMobFinal();}
-  },3000);
-}
+function initS7(){qIdx=0;qDone=false;renderQ();}
+function renderQ(){qDone=false;const q=QUIZ[qIdx];document.getElementById('m7-c').innerHTML=`<div class="stag">QUESTION ${qIdx+1}/3</div><div style="font-size:.96rem;font-weight:700;line-height:1.45;margin-bottom:16px;text-align:center;width:100%;">${q.q}</div><div id="s7-opts">${q.opts.map((o,i)=>`<button class="qopt" onclick="ansQ(${i})">${o}</button>`).join('')}</div><div id="s7-exp" style="display:none;width:100%;"></div>`;}
+function ansQ(idx){if(qDone)return;qDone=true;sfxClick();const q=QUIZ[qIdx];const ok=idx===q.c;document.querySelectorAll('.qopt').forEach((b,i)=>{b.disabled=true;if(i===q.c)b.classList.add('ok');else if(i===idx&&!ok)b.classList.add('bad');});
+  if(ok){sfxOk();addPts(100);}else sfxBad();pub('quiz-ans',{nick:mNick,q:qIdx,correct:ok});showFb('s7-exp',ok?'ok':'bad',q.why);
+  setTimeout(()=>{qIdx++;if(qIdx<QUIZ.length)renderQ();else{doneStep(7,{});showMobFinal();}},3000);}
+
+/* ═══════════════════════════════════
+   MOBILE FINAL — ELABORATE OMEGA SCENE
+═══════════════════════════════════ */
 function showMobFinal(){
   sfxWin();confetti();go('s-mfinal');
-  document.getElementById('mfinal-score').textContent=myScore;
-  document.getElementById('mfinal-title').textContent='Mission Complete, '+mNick;
-  document.getElementById('mfinal-sub').textContent='Spec sheet delivered. OMEGA is equipped.';
+  const el=document.getElementById('mfinal-c');
+  el.innerHTML=`
+    <div style="width:100%;max-width:340px;text-align:center;margin-bottom:20px;">
+      <div style="position:relative;height:200px;overflow:hidden;border-radius:16px;background:linear-gradient(180deg,#020810 0%,#07111e 60%,#0c1a2e 100%);border:1px solid var(--bd);">
+        <div id="stars-f" style="position:absolute;inset:0;"></div>
+        <svg width="100%" height="80" viewBox="0 0 340 80" style="position:absolute;bottom:0;">
+          <rect x="10" y="30" width="20" height="50" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
+          <rect x="40" y="15" width="30" height="65" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
+          <rect x="80" y="35" width="18" height="45" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
+          <rect x="110" y="20" width="25" height="60" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
+          <rect x="170" y="10" width="35" height="70" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
+          <rect x="215" y="30" width="20" height="50" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
+          <rect x="245" y="18" width="28" height="62" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
+          <rect x="315" y="25" width="18" height="55" fill="#07111e" stroke="#1a2e48" stroke-width="1"/>
+          <rect x="44" y="20" width="4" height="4" fill="rgba(0,229,255,.4)" rx="1"/>
+          <rect x="175" y="15" width="4" height="4" fill="rgba(0,229,255,.5)" rx="1"/>
+          <rect x="250" y="28" width="4" height="4" fill="rgba(255,196,0,.4)" rx="1"/>
+        </svg>
+        <div style="position:absolute;bottom:12px;animation:omegawalk 2s ease forwards;opacity:0;">
+          <svg width="32" height="60" viewBox="0 0 32 60" fill="none">
+            <ellipse cx="16" cy="8" rx="6" ry="7" fill="white"/>
+            <path d="M8 16 Q16 14 24 16 L26 38 Q22 36 16 37 Q10 36 6 38 Z" fill="white"/>
+            <path d="M6 38 L4 58 L9 58 L12 44 L20 44 L23 58 L28 58 L26 38 Z" fill="white"/>
+            <path d="M24 20 L30 32 L27 33 L22 22 Z" fill="white"/>
+            <rect x="26" y="29" width="8" height="5" rx="2" fill="rgba(0,229,255,.9)"/>
+            <rect x="24" y="27" width="3" height="7" rx="1" fill="rgba(0,229,255,.9)"/>
+            <ellipse cx="13" cy="7" rx="1.5" ry="1.5" fill="rgba(0,229,255,.9)"/>
+            <ellipse cx="19" cy="7" rx="1.5" ry="1.5" fill="rgba(0,229,255,.9)"/>
+          </svg>
+        </div>
+        <div style="position:absolute;top:10px;right:15px;opacity:0;animation:wavefade 1s ease .8s forwards;">
+          <svg width="40" height="30" viewBox="0 0 40 30"><path d="M5 15 Q10 5 15 15 Q20 25 25 15 Q30 5 35 15" stroke="rgba(0,229,255,.6)" stroke-width="2" fill="none"/></svg>
+        </div>
+        <div style="position:absolute;inset:0;background:rgba(0,230,118,.12);border-radius:16px;opacity:0;animation:flashsuccess 1s ease .5s forwards;"></div>
+        <div style="position:absolute;top:12px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:.58rem;color:rgba(0,230,118,.8);letter-spacing:.2em;animation:textin 1s ease .6s both;">MISSION: SUCCESS</div>
+      </div>
+      <div style="background:rgba(7,17,30,.95);border:1px solid rgba(0,230,118,.3);border-radius:0 0 16px 16px;padding:12px 16px;font-family:var(--mono);font-size:.72rem;color:var(--grn);line-height:1.7;text-align:left;animation:textin .8s ease .4s both;">
+        <span style="font-size:.58rem;color:var(--dim);display:block;margin-bottom:4px;">TRANSMISSION — OMEGA TO BASE:</span>
+        "Equipment received. Headphones operational.<br>Noise cancellation: confirmed.<br>Communications: restored.<br>Proceeding with the mission."
+      </div>
+    </div>
+    <div style="text-align:center;margin-bottom:14px;width:100%;">
+      <div style="font-family:var(--head);font-size:1.1rem;font-weight:700;color:var(--grn);margin-bottom:4px;" id="mfinal-title">Mission Complete, ${mNick}</div>
+      <div style="font-size:.82rem;color:var(--dim);line-height:1.5;" id="mfinal-sub">Spec sheet approved. OMEGA is equipped.</div>
+      <div style="font-size:1rem;font-weight:700;margin-top:10px;">Your score: <span style="font-family:var(--mono);color:var(--gold);font-size:1.3rem;" id="mfinal-score">${myScore}</span> pts</div>
+    </div>
+    <div id="mfinal-lb" style="width:100%;max-width:340px;"></div>`;
+  // Stars
+  const sb=document.getElementById('stars-f');
+  if(sb)for(let i=0;i<40;i++){const s=document.createElement('div');s.style.cssText=`position:absolute;width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;background:rgba(255,255,255,${Math.random()*.6+.2});border-radius:50%;left:${Math.random()*100}%;top:${Math.random()*60}%;`;sb.appendChild(s);}
+  // Victory melody
+  setTimeout(()=>{[523,659,784,1047].forEach((f,i)=>note(f,'sine',.3,.09,i*.1));setTimeout(()=>[659,784,1047,1319].forEach((f,i)=>note(f,'sine',.25,.07,i*.08)),600);},300);
 }
 
-// ═══════════════════════════════════
-// URL PARAMS
-// ═══════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>{
-  const p=new URLSearchParams(location.search);
-  if(p.get('room')&&p.get('role')==='player'){
-    document.getElementById('m-code').value=p.get('room').toUpperCase();go('s-mjoin');}
-});
+/* ═══════════════════════════════════
+   URL PARAMS
+═══════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{const p=new URLSearchParams(location.search);if(p.get('room')&&p.get('role')==='player'){document.getElementById('m-code').value=p.get('room').toUpperCase();go('s-mjoin');}});
 </script>
 </body>
 </html>
