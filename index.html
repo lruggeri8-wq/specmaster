@@ -54,7 +54,83 @@ canvas#bg {
   z-index: 0;
   pointer-events: none;
 }
-
+/* ═══════════════════════════════════════════════════
+   TIMER BAR & DISPLAY
+═══════════════════════════════════════════════════ */
+#timer-bar-wrap {
+  position: fixed;
+  top: 46px; /* sotto il mob-hud */
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--bd);
+  z-index: 201;
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+}
+#timer-bar-wrap.on { opacity: 1; }
+#timer-bar-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 0 3px 3px 0;
+  background: var(--cyan);
+  transition: width .3s linear, background .3s;
+  transform-origin: left;
+}
+#timer-bar-fill.warn { background: var(--gold); }
+#timer-bar-fill.crit { background: var(--red); animation: tpulse .5s ease-in-out infinite; }
+@keyframes tpulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+ 
+#timer-badge {
+  position: fixed;
+  top: 54px;
+  right: 12px;
+  z-index: 202;
+  font-family: var(--mono);
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--cyan);
+  background: rgba(2,8,16,.9);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  padding: 3px 10px;
+  opacity: 0;
+  transition: opacity .3s, color .3s;
+  pointer-events: none;
+}
+#timer-badge.on { opacity: 1; }
+#timer-badge.warn { color: var(--gold); border-color: rgba(255,196,0,.3); }
+#timer-badge.crit { color: var(--red); border-color: rgba(255,61,90,.4); }
+ 
+/* Timer nel pannello host */
+.sp-timer-host {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+}
+.sp-timer-host .timer-icon {
+  font-size: 1.2rem;
+}
+.sp-timer-host .timer-text {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--cyan);
+}
+.sp-timer-host .timer-label {
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--dim);
+  letter-spacing: .1em;
+}
+.sp-timer-host.warn .timer-text { color: var(--gold); }
+.sp-timer-host.crit .timer-text { color: var(--red); }
 /* ═══════════════════════════════════════════════════
    SCREENS
 ═══════════════════════════════════════════════════ */
@@ -596,6 +672,198 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px;
 </head>
 <body>
 
+/* ═══════════════════════════════════════════════════
+   TIMER SYSTEM
+═══════════════════════════════════════════════════ */
+const BRIEFING_TIMER = 25;
+const TASK_TIMERS = { 1:60, 2:90, 3:120, 4:120, 5:90, 6:120, 7:90 };
+ 
+let _tmrInterval = null;
+let _tmrRemaining = 0;
+let _tmrTotal = 0;
+let _tmrCallback = null;
+let _tmrActive = false;
+ 
+function startTimer(seconds, onExpire) {
+  stopTimer();
+  _tmrTotal = seconds;
+  _tmrRemaining = seconds;
+  _tmrCallback = onExpire;
+  _tmrActive = true;
+ 
+  // Mostra elementi timer mobile
+  const barWrap = document.getElementById('timer-bar-wrap');
+  const badge = document.getElementById('timer-badge');
+  if (barWrap) barWrap.classList.add('on');
+  if (badge) badge.classList.add('on');
+ 
+  updateTimerDisplay();
+ 
+  _tmrInterval = setInterval(() => {
+    _tmrRemaining--;
+    updateTimerDisplay();
+ 
+    if (_tmrRemaining <= 0) {
+      stopTimer();
+      if (_tmrCallback) _tmrCallback();
+    }
+  }, 1000);
+}
+ 
+function stopTimer() {
+  _tmrActive = false;
+  if (_tmrInterval) { clearInterval(_tmrInterval); _tmrInterval = null; }
+ 
+  const barWrap = document.getElementById('timer-bar-wrap');
+  const badge = document.getElementById('timer-badge');
+  const fill = document.getElementById('timer-bar-fill');
+  if (barWrap) barWrap.classList.remove('on');
+  if (badge) { badge.classList.remove('on','warn','crit'); }
+  if (fill) { fill.classList.remove('warn','crit'); fill.style.width = '100%'; }
+ 
+  // Host timer
+  const hostTmr = document.getElementById('host-timer-box');
+  if (hostTmr) hostTmr.remove();
+}
+ 
+function updateTimerDisplay() {
+  const pct = (_tmrRemaining / _tmrTotal) * 100;
+  const min = Math.floor(_tmrRemaining / 60);
+  const sec = _tmrRemaining % 60;
+  const txt = min > 0 ? `${min}:${String(sec).padStart(2,'0')}` : `${sec}s`;
+ 
+  // Soglie colore
+  const isWarn = pct <= 40 && pct > 15;
+  const isCrit = pct <= 15;
+ 
+  // Barra mobile
+  const fill = document.getElementById('timer-bar-fill');
+  if (fill) {
+    fill.style.width = pct + '%';
+    fill.classList.toggle('warn', isWarn);
+    fill.classList.toggle('crit', isCrit);
+  }
+ 
+  // Badge mobile
+  const badge = document.getElementById('timer-badge');
+  if (badge) {
+    badge.textContent = txt;
+    badge.classList.toggle('warn', isWarn);
+    badge.classList.toggle('crit', isCrit);
+  }
+ 
+  // Host timer (se esiste)
+  const hostTxt = document.getElementById('host-timer-text');
+  const hostBox = document.getElementById('host-timer-box');
+  if (hostTxt) hostTxt.textContent = txt;
+  if (hostBox) {
+    hostBox.classList.toggle('warn', isWarn);
+    hostBox.classList.toggle('crit', isCrit);
+  }
+}
+ 
+// Inserisce il timer nel pannello host
+function injectHostTimer(seconds) {
+  const panel = document.getElementById('step-panel');
+  if (!panel) return;
+  // Rimuovi timer precedente se esiste
+  const old = document.getElementById('host-timer-box');
+  if (old) old.remove();
+  // Inserisci dopo sp-progress
+  const prog = panel.querySelector('.sp-progress');
+  const timerHtml = `
+    <div class="sp-timer-host" id="host-timer-box">
+      <div class="timer-icon">⏱</div>
+      <div>
+        <div class="timer-label">TIME REMAINING</div>
+        <div class="timer-text" id="host-timer-text">${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}</div>
+      </div>
+    </div>`;
+  if (prog) prog.insertAdjacentHTML('afterend', timerHtml);
+  else panel.insertAdjacentHTML('afterbegin', timerHtml);
+}
+ 
+ 
+/* ═══════════════════════════════════════════════════
+   AUTO-SUBMIT HELPERS
+   Chiamati quando scade il timer
+═══════════════════════════════════════════════════ */
+ 
+function autoSubmitBriefing(step) {
+  // Se non ha ancora risposto, conta come sbagliata
+  const btns = document.querySelectorAll('#brief-opts .oq-opt');
+  const alreadyAnswered = [...btns].some(b => b.disabled);
+  if (alreadyAnswered) return; // ha già risposto, non fare nulla
+ 
+  // Disabilita tutte le opzioni
+  btns.forEach(b => { b.disabled = true; b.style.opacity = '.5'; });
+  sfxBad();
+ 
+  const b = BRIEFINGS[step];
+  showFb('brief-fb', 'bad', '⏱ Time\'s up! ' + (b.badMsg || ''));
+  document.getElementById('brief-proceed').style.display = 'flex';
+}
+ 
+function autoSubmitS1() {
+  if (s1done) return;
+  // Riempi risposte mancanti con vuoto (sbagliate)
+  S1_ITEMS.forEach((_, i) => { if (!(i in s1ans)) s1ans[i] = ''; });
+  submitS1();
+}
+ 
+function autoSubmitS2() {
+  if (s2done) return;
+  submitS2();
+}
+ 
+function autoSubmitS3() {
+  // Metti valori di default se campi vuoti
+  if (!document.getElementById('s3-anc-i').value) document.getElementById('s3-anc-i').value = 25;
+  if (!document.getElementById('s3-anc-m').value) document.getElementById('s3-anc-m').value = 18;
+  if (!document.getElementById('s3-bat-i').value) document.getElementById('s3-bat-i').value = 20;
+  if (!document.getElementById('s3-bat-m').value) document.getElementById('s3-bat-m').value = 12;
+  if (!document.getElementById('s3-wt-i').value) document.getElementById('s3-wt-i').value = 300;
+  if (!document.getElementById('s3-wt-m').value) document.getElementById('s3-wt-m').value = 380;
+  submitS3();
+}
+ 
+function autoSubmitS4() {
+  submitS4();
+}
+ 
+function autoSubmitS5() {
+  submitS5();
+}
+ 
+function autoSubmitS6() {
+  // Riempi scelte mancanti con 'b' (mantieni tutto)
+  t6ch = t6ch.map(c => c === null ? 'b' : c);
+  submitS6();
+}
+ 
+function autoSubmitS7() {
+  // Se sta aspettando una risposta, forza avanti
+  if (!qAnswered) {
+    qAnswered = true;
+    document.querySelectorAll('.qopt').forEach(b => { b.disabled = true; });
+    sfxBad();
+    const q = QUIZ[qIdx];
+    showFb('s7-exp', 'bad', '⏱ Time\'s up! ' + q.why);
+    pub('quiz-ans', { nick: mNick, q: qIdx, correct: false });
+ 
+    setTimeout(() => {
+      qIdx++;
+      if (qIdx < QUIZ.length) {
+        renderQuiz();
+        // NON riavviare il timer — il timer globale dello step 7 continua
+      } else {
+        stopTimer();
+        doneStep(7, { quizScore: myScore });
+        showMobFinal();
+      }
+    }, 2500);
+  }
+}
 <canvas id="bg"></canvas>
 <div id="glitch-ov"></div>
 <div id="glitch-txt"></div>
@@ -606,6 +874,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px;
   <div id="mhl">—</div>
   <div id="mhbar"><div id="mhfill"></div></div>
   <div id="mhpts">0 pts</div>
+  <div id="timer-bar-wrap"><div id="timer-bar-fill"></div></div>
+  <div id="timer-badge"></div>
 </div>
 
 <!-- KAHOOT -->
@@ -1944,8 +2214,31 @@ function hostFireStep(step) {
   pub('launch', { step });
   toast('Step ' + step + ' launched!');
   startMusic('ambient');
+ 
+  // Mostra timer countdown nell'host panel
+  // Briefing + Task totale
+  const totalTime = BRIEFING_TIMER + (TASK_TIMERS[step] || 60);
+  injectHostTimer(totalTime);
+ 
+  // Countdown locale host (solo visuale)
+  let hostSec = totalTime;
+  const hostInt = setInterval(() => {
+    hostSec--;
+    const htxt = document.getElementById('host-timer-text');
+    const hbox = document.getElementById('host-timer-box');
+    if (!htxt || hostSec < 0) { clearInterval(hostInt); return; }
+    const m = Math.floor(hostSec / 60);
+    const s = hostSec % 60;
+    htxt.textContent = `${m}:${String(s).padStart(2, '0')}`;
+    const pct = (hostSec / totalTime) * 100;
+    if (hbox) {
+      hbox.classList.toggle('warn', pct <= 40 && pct > 15);
+      hbox.classList.toggle('crit', pct <= 15);
+    }
+    if (hostSec <= 0) clearInterval(hostInt);
+  }, 1000);
 }
-
+ 
 function goNextStep(step) {
   sfxClick();
   startMusic('jazz');
@@ -2182,10 +2475,17 @@ function showBriefing(step) {
 
   // Step 7 has no OQ — go straight to task
   if (!b.opts) {
-    window['initS' + step]();
-    go('s-m' + step);
-    return;
-  }
+        window['initS' + step]();
+        go('s-m' + step);
+        var dur7 = TASK_TIMERS[step];
+        if (dur7) {
+           startTimer(dur7, function() {
+           toast('⏱ Time\'s up!');
+           autoSubmitS7();
+          });
+       }
+       return;
+    }
 
   el.innerHTML = `
     <div class="stag">STEP ${step} · BRIEFING</div>
@@ -2218,11 +2518,13 @@ function showBriefing(step) {
     </button>`;
 
   go('s-brief');
+  // Timer per la domanda briefing
+  startTimer(BRIEFING_TIMER, () => autoSubmitBriefing(step));
 }
 
 function answerBriefing(step, idx, isCorrect, btn) {
-  const b = BRIEFINGS[step];
-  document.querySelectorAll('#brief-opts .oq-opt').forEach(o => { o.disabled = true; });
+  stopTimer();
+  const b = BRIEFINGS[step];  document.querySelectorAll('#brief-opts .oq-opt').forEach(o => { o.disabled = true; });
 
   if (isCorrect) {
     btn.classList.add('correct');
@@ -2240,10 +2542,20 @@ function answerBriefing(step, idx, isCorrect, btn) {
 
 function proceedToTask(step) {
   sfxClick();
+  stopTimer();
   window['initS' + step]();
   go('s-m' + step);
+ 
+  // Avvia timer task
+  const dur = TASK_TIMERS[step];
+  if (dur) {
+    const autoFn = window['autoSubmitS' + step];
+    startTimer(dur, () => {
+      toast('⏱ Time\'s up!');
+      if (autoFn) autoFn();
+    });
+  }
 }
-
 
 /* ═══════════════════════════════════════════════════
    DEBRIEF SCREEN — Character returns with feedback
@@ -2281,7 +2593,8 @@ const DEBRIEFS = {
 };
 
 function showDebrief(step, resultHtml) {
-  const d = DEBRIEFS[step];
+     stopTimer();
+     const d = DEBRIEFS[step];
   const avFn = d.char === 'engineer' ? svgEngineerLarge : svgUnknownLarge;
   const nameColor = d.char === 'engineer' ? 'var(--org)' : 'var(--cyan)';
 
@@ -2377,8 +2690,11 @@ function pickS1(i, type, btn) {
 }
 
 function submitS1() {
-  if (Object.keys(s1ans).length < S1_ITEMS.length) { toast('Classify all statements!'); return; }
+  if (!_tmrActive || _tmrRemaining > 0) {
+    if (Object.keys(s1ans).length < S1_ITEMS.length) { toast('Classify all statements!'); return; }
+  }
   if (s1done) return; s1done = true;
+  stopTimer();
   sfxClick();
 
   let correct = 0;
@@ -2452,6 +2768,7 @@ function initS2() {
 
 function submitS2() {
   if (s2done) return; s2done = true;
+  stopTimer();
   sfxClick();
 
   let ok = 0;
@@ -2596,6 +2913,7 @@ function updPrice() {
 }
 
 function submitS3() {
+  stopTimer();
   sfxClick();
   tgtIdeal.anc = +document.getElementById('s3-anc-i').value;
   tgtMarg.anc  = +document.getElementById('s3-anc-m').value;
@@ -2697,7 +3015,8 @@ function renderBOM() {
 function setBOM(id, lv) { sfxClick(); bomChoices[id] = lv; renderBOM(); }
 
 function submitS4() {
-  sfxClick(); sfxOk(); addPts(120);
+     stopTimer();
+     sfxClick(); sfxOk(); addPts(120);
   tgtPrice = +document.getElementById('price-slider').value || 200;
 
   const resultHtml = `<div class="fb ok">
@@ -2785,6 +3104,7 @@ function initS5() {
 }
 
 function submitS5() {
+  stopTimer();
   sfxClick();
   const gap = finalCost - finalCstar;
   addPts(gap <= 0 ? 180 : 80);
@@ -2909,7 +3229,9 @@ function pickT6(i, side, el) {
 }
 
 function submitS6() {
-  if (t6ch.includes(null)) { toast('Make all 3 choices!'); return; }
+  if (t6ch.includes(null) && _tmrRemaining > 0) { toast('Make all 3 choices!'); return; }
+  t6ch = t6ch.map(function(c) { return c === null ? 'b' : c; });
+  stopTimer();
   sfxClick();
 
   let fc = finalCost, fp = tgtPrice;
@@ -3042,6 +3364,7 @@ function answerQuiz(idx) {
     if (qIdx < QUIZ.length) {
       renderQuiz();
     } else {
+      stopTimer();
       doneStep(7, { quizScore: myScore });
       showMobFinal();
     }
