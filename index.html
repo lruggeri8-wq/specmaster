@@ -2241,16 +2241,7 @@ function hostFireStep(step) {
       hbox.classList.toggle('warn', pct <= 40 && pct > 15);
       hbox.classList.toggle('crit', pct <= 15);
     }
-    if (hostSec <= 0) {
-      clearInterval(hostInt);
-      if (step < 7) {
-        toast('⏱ Time up — advancing…');
-        setTimeout(function() { goNextStep(step); }, 1500);
-      } else {
-        toast('⏱ Final step complete');
-        setTimeout(function() { showFinal(); }, 1500);
-      }
-    }
+    if (hostSec <= 0) clearInterval(hostInt);
   }, 1000);
 }
  
