@@ -2101,18 +2101,22 @@ function injectHostTimer(seconds) {
 ═══════════════════════════════════════════════════ */
  
 function autoSubmitBriefing(step) {
-  // Se non ha ancora risposto, conta come sbagliata
   const btns = document.querySelectorAll('#brief-opts .oq-opt');
   const alreadyAnswered = [...btns].some(b => b.disabled);
-  if (alreadyAnswered) return; // ha già risposto, non fare nulla
- 
-  // Disabilita tutte le opzioni
+  if (alreadyAnswered) {
+    // Ha già risposto, vai direttamente alla task
+    proceedToTask(step);
+    return;
+  }
+
   btns.forEach(b => { b.disabled = true; b.style.opacity = '.5'; });
   sfxBad();
- 
+
   const b = BRIEFINGS[step];
   showFb('brief-fb', 'bad', '⏱ Time\'s up! ' + (b.badMsg || ''));
-  document.getElementById('brief-proceed').style.display = 'flex';
+
+  // Dopo 1.5s vai automaticamente alla task
+  setTimeout(function() { proceedToTask(step); }, 1500);
 }
  
 function autoSubmitS1() {
@@ -2237,7 +2241,10 @@ function hostFireStep(step) {
       hbox.classList.toggle('warn', pct <= 40 && pct > 15);
       hbox.classList.toggle('crit', pct <= 15);
     }
-    if (hostSec <= 0) clearInterval(hostInt);
+    if (hostSec <= 0) {
+      clearInterval(hostInt);
+      goNextStep(step);
+    }
   }, 1000);
 }
  
