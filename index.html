@@ -1986,7 +1986,7 @@ const HSTEPS = {
 /* ═══════════════════════════════════════════════════
    TIMER SYSTEM
 ═══════════════════════════════════════════════════ */
-const BRIEFING_TIMER = 25;
+const BRIEFING_TIMER = 30;
 const TASK_TIMERS = { 1:60, 2:90, 3:120, 4:120, 5:90, 6:120, 7:90 };
  
 let _tmrInterval = null;
@@ -2243,7 +2243,13 @@ function hostFireStep(step) {
     }
     if (hostSec <= 0) {
       clearInterval(hostInt);
-      goNextStep(step);
+      if (step < 7) {
+        toast('⏱ Time up — advancing…');
+        setTimeout(function() { goNextStep(step); }, 1500);
+      } else {
+        toast('⏱ Final step complete');
+        setTimeout(function() { showFinal(); }, 1500);
+      }
     }
   }, 1000);
 }
